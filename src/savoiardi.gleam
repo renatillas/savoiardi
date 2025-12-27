@@ -2140,15 +2140,38 @@ pub fn create_hemisphere_light(
 // OBJECTS
 // ============================================================================
 
-/// Create a sprite
+/// Creates a [Sprite](https://threejs.org/docs/#api/en/objects/Sprite).
+///
+/// A sprite is a plane that always faces the camera (billboard). Commonly used
+/// for particles, labels, lens flares, and UI elements in 3D space.
+///
+/// ## Parameters
+///
+/// - `material` - A SpriteMaterial (created with `create_sprite_material`)
 @external(javascript, "./savoiardi.ffi.mjs", "createSprite")
 pub fn create_sprite(material: Material) -> Sprite
 
-/// Create points (particle system)
+/// Creates a [Points](https://threejs.org/docs/#api/en/objects/Points) object (particle system).
+///
+/// Renders each vertex in the geometry as a point/sprite. Efficient for large
+/// particle systems with thousands of particles.
+///
+/// ## Parameters
+///
+/// - `geometry` - Geometry containing vertex positions (and optionally colors)
+/// - `material` - A PointsMaterial (created with `create_points_material`)
 @external(javascript, "./savoiardi.ffi.mjs", "createPoints")
 pub fn create_points(geometry: Geometry, material: Material) -> Points
 
-/// Create line segments
+/// Creates [LineSegments](https://threejs.org/docs/#api/en/objects/LineSegments).
+///
+/// Draws a series of line segments. Every pair of consecutive vertices forms
+/// a separate line segment (unlike Line which connects all vertices).
+///
+/// ## Parameters
+///
+/// - `geometry` - Geometry with vertex positions
+/// - `material` - A LineBasicMaterial (created with `create_line_material`)
 @external(javascript, "./savoiardi.ffi.mjs", "createLineSegments")
 pub fn create_line_segments(geometry: Geometry, material: Material) -> Object3D
 
@@ -2156,39 +2179,75 @@ pub fn create_line_segments(geometry: Geometry, material: Material) -> Object3D
 // SCENE GRAPH MANIPULATION
 // ============================================================================
 
-/// Remove child from parent
+/// Removes a child from its parent.
+///
+/// Wraps [Object3D.remove](https://threejs.org/docs/#api/en/core/Object3D.remove).
 @external(javascript, "./savoiardi.ffi.mjs", "removeChild")
 pub fn remove_child(parent: Object3D, child: Object3D) -> Nil
 
-/// Set object position
+/// Sets the object's local position.
+///
+/// Wraps [Object3D.position](https://threejs.org/docs/#api/en/core/Object3D.position).
+///
+/// ## Parameters
+///
+/// - `object` - The object to position
+/// - `position` - Position as Vec3 (x, y, z)
 @external(javascript, "./savoiardi.ffi.mjs", "setPosition")
 pub fn set_object_position(object: Object3D, position: Vec3(Float)) -> Nil
 
-/// Set object rotation (Euler angles)
+/// Sets the object's local rotation using Euler angles.
+///
+/// Wraps [Object3D.rotation](https://threejs.org/docs/#api/en/core/Object3D.rotation).
+/// Rotation order is XYZ by default.
+///
+/// ## Parameters
+///
+/// - `object` - The object to rotate
+/// - `rotation` - Rotation in radians as Vec3 (x, y, z)
 @external(javascript, "./savoiardi.ffi.mjs", "setRotation")
 pub fn set_object_rotation(object: Object3D, rotation: Vec3(Float)) -> Nil
 
-/// Set object scale
+/// Sets the object's local scale.
+///
+/// Wraps [Object3D.scale](https://threejs.org/docs/#api/en/core/Object3D.scale).
+///
+/// ## Parameters
+///
+/// - `object` - The object to scale
+/// - `scale` - Scale factors as Vec3 (1.0 = original size)
 @external(javascript, "./savoiardi.ffi.mjs", "setScale")
 pub fn set_object_scale(object: Object3D, scale: Vec3(Float)) -> Nil
 
-/// Get world position from object
+/// Gets the object's world position.
+///
+/// Wraps [Object3D.getWorldPosition](https://threejs.org/docs/#api/en/core/Object3D.getWorldPosition).
+/// Returns the position in world space, accounting for all parent transforms.
 @external(javascript, "./savoiardi.ffi.mjs", "getWorldPosition")
 pub fn get_world_position(object: Object3D) -> Vec3(Float)
 
-/// Get world quaternion from object
+/// Gets the object's world quaternion.
+///
+/// Wraps [Object3D.getWorldQuaternion](https://threejs.org/docs/#api/en/core/Object3D.getWorldQuaternion).
+/// Returns the rotation as a quaternion in world space.
 @external(javascript, "./savoiardi.ffi.mjs", "getWorldQuaternion")
 pub fn get_world_quaternion(object: Object3D) -> Quaternion
 
-/// Copy position from another object
+/// Copies position from another object.
+///
+/// Sets this object's position to match the source object's position.
 @external(javascript, "./savoiardi.ffi.mjs", "copyPosition")
 pub fn copy_position(object: Object3D, source: Object3D) -> Nil
 
-/// Copy rotation from another object
+/// Copies rotation from another object.
+///
+/// Sets this object's rotation to match the source object's rotation.
 @external(javascript, "./savoiardi.ffi.mjs", "copyRotation")
 pub fn copy_rotation(object: Object3D, source: Object3D) -> Nil
 
-/// Copy scale from another object
+/// Copies scale from another object.
+///
+/// Sets this object's scale to match the source object's scale.
 @external(javascript, "./savoiardi.ffi.mjs", "copyScale")
 pub fn copy_scale(object: Object3D, source: Object3D) -> Nil
 
@@ -2196,46 +2255,87 @@ pub fn copy_scale(object: Object3D, source: Object3D) -> Nil
 // ANIMATION
 // ============================================================================
 
-/// Create animation mixer for an object
+/// Creates an [AnimationMixer](https://threejs.org/docs/#api/en/animation/AnimationMixer).
+///
+/// The mixer is a player for animations on a particular object. Each animated
+/// object needs its own mixer. Call `update_mixer` each frame with delta time.
+///
+/// ## Parameters
+///
+/// - `root` - The root object to animate (usually a loaded model)
 @external(javascript, "./savoiardi.ffi.mjs", "createAnimationMixer")
 pub fn create_animation_mixer(root: Object3D) -> AnimationMixer
 
-/// Get clip action from mixer
+/// Gets an [AnimationAction](https://threejs.org/docs/#api/en/animation/AnimationAction) for a clip.
+///
+/// Wraps [AnimationMixer.clipAction](https://threejs.org/docs/#api/en/animation/AnimationMixer.clipAction).
+/// Returns an action that can be played, paused, or configured.
+///
+/// ## Parameters
+///
+/// - `mixer` - The animation mixer
+/// - `clip` - The animation clip (from loaded GLTF/FBX)
 @external(javascript, "./savoiardi.ffi.mjs", "clipAction")
 pub fn clip_action(
   mixer: AnimationMixer,
   clip: AnimationClip,
 ) -> AnimationAction
 
-/// Update animation mixer (delta in milliseconds)
+/// Updates the animation mixer.
+///
+/// Wraps [AnimationMixer.update](https://threejs.org/docs/#api/en/animation/AnimationMixer.update).
+/// Call this every frame with the time delta in seconds.
+///
+/// ## Parameters
+///
+/// - `mixer` - The animation mixer
+/// - `delta_time` - Time since last update in seconds
 @external(javascript, "./savoiardi.ffi.mjs", "updateMixer")
 pub fn update_mixer(mixer: AnimationMixer, delta_time: Float) -> Nil
 
-/// Play animation action
+/// Plays an animation action.
+///
+/// Wraps [AnimationAction.play](https://threejs.org/docs/#api/en/animation/AnimationAction.play).
 @external(javascript, "./savoiardi.ffi.mjs", "playAction")
 pub fn play_action(action: AnimationAction) -> Nil
 
-/// Stop animation action
+/// Stops an animation action.
+///
+/// Wraps [AnimationAction.stop](https://threejs.org/docs/#api/en/animation/AnimationAction.stop).
+/// Resets the action to the beginning.
 @external(javascript, "./savoiardi.ffi.mjs", "stopAction")
 pub fn stop_action(action: AnimationAction) -> Nil
 
-/// Set action loop mode
+/// Sets the loop mode of an animation action.
+///
+/// Wraps [AnimationAction.loop](https://threejs.org/docs/#api/en/animation/AnimationAction.loop).
+/// Use `get_loop_once`, `get_loop_repeat`, or `get_loop_ping_pong` for mode values.
 @external(javascript, "./savoiardi.ffi.mjs", "setActionLoop")
 pub fn set_action_loop(action: AnimationAction, loop_mode: Int) -> Nil
 
-/// Set action time scale
+/// Sets the time scale (playback speed) of an animation action.
+///
+/// Wraps [AnimationAction.timeScale](https://threejs.org/docs/#api/en/animation/AnimationAction.timeScale).
+/// 1.0 = normal speed, 2.0 = double speed, 0.5 = half speed, negative = reverse.
 @external(javascript, "./savoiardi.ffi.mjs", "setActionTimeScale")
 pub fn set_action_time_scale(action: AnimationAction, time_scale: Float) -> Nil
 
-/// Set action weight
+/// Sets the weight of an animation action.
+///
+/// Wraps [AnimationAction.weight](https://threejs.org/docs/#api/en/animation/AnimationAction.weight).
+/// Used for blending multiple animations. 0.0 = no influence, 1.0 = full influence.
 @external(javascript, "./savoiardi.ffi.mjs", "setActionWeight")
 pub fn set_action_weight(action: AnimationAction, weight: Float) -> Nil
 
-/// Get animation clip name
+/// Gets the name of an animation clip.
+///
+/// Accesses [AnimationClip.name](https://threejs.org/docs/#api/en/animation/AnimationClip.name).
 @external(javascript, "./savoiardi.ffi.mjs", "getClipName")
 pub fn get_clip_name(clip: AnimationClip) -> String
 
-/// Get animation clip duration
+/// Gets the duration of an animation clip in seconds.
+///
+/// Accesses [AnimationClip.duration](https://threejs.org/docs/#api/en/animation/AnimationClip.duration).
 @external(javascript, "./savoiardi.ffi.mjs", "getClipDuration")
 pub fn get_clip_duration(clip: AnimationClip) -> Float
 
@@ -2243,23 +2343,51 @@ pub fn get_clip_duration(clip: AnimationClip) -> Float
 // TEXTURES
 // ============================================================================
 
-/// Clone texture for independent animation
+/// Clones a texture for independent manipulation.
+///
+/// Wraps [Texture.clone](https://threejs.org/docs/#api/en/textures/Texture.clone).
+/// The clone shares the underlying image but has independent UV properties.
 @external(javascript, "./savoiardi.ffi.mjs", "cloneTexture")
 pub fn clone_texture(texture: Texture) -> Texture
 
-/// Set texture offset (UV coordinates)
+/// Sets the UV offset of a texture.
+///
+/// Wraps [Texture.offset](https://threejs.org/docs/#api/en/textures/Texture.offset).
+/// Useful for sprite sheet animation or tiling effects.
+///
+/// ## Parameters
+///
+/// - `texture` - The texture to modify
+/// - `x` - Horizontal offset (0.0-1.0)
+/// - `y` - Vertical offset (0.0-1.0)
 @external(javascript, "./savoiardi.ffi.mjs", "setTextureOffset")
 pub fn set_texture_offset(texture: Texture, x: Float, y: Float) -> Nil
 
-/// Set texture repeat (UV scaling)
+/// Sets the UV repeat (tiling) of a texture.
+///
+/// Wraps [Texture.repeat](https://threejs.org/docs/#api/en/textures/Texture.repeat).
+///
+/// ## Parameters
+///
+/// - `texture` - The texture to modify
+/// - `x` - Horizontal repeat count
+/// - `y` - Vertical repeat count
 @external(javascript, "./savoiardi.ffi.mjs", "setTextureRepeat")
 pub fn set_texture_repeat(texture: Texture, x: Float, y: Float) -> Nil
 
-/// Set texture wrapping mode
+/// Sets the texture wrapping mode.
+///
+/// Wraps [Texture.wrapS](https://threejs.org/docs/#api/en/textures/Texture.wrapS) and
+/// [Texture.wrapT](https://threejs.org/docs/#api/en/textures/Texture.wrapT).
+/// Use `get_repeat_wrapping`, `get_clamp_to_edge_wrapping`, or `get_mirrored_repeat_wrapping`.
 @external(javascript, "./savoiardi.ffi.mjs", "setTextureWrapMode")
 pub fn set_texture_wrap_mode(texture: Texture, wrap_s: Int, wrap_t: Int) -> Nil
 
-/// Set texture filtering mode
+/// Sets the texture filtering mode.
+///
+/// Wraps [Texture.minFilter](https://threejs.org/docs/#api/en/textures/Texture.minFilter) and
+/// [Texture.magFilter](https://threejs.org/docs/#api/en/textures/Texture.magFilter).
+/// Use `get_nearest_filter` for pixel art or `get_linear_filter` for smooth textures.
 @external(javascript, "./savoiardi.ffi.mjs", "setTextureFilterMode")
 pub fn set_texture_filter_mode(
   texture: Texture,
@@ -2267,23 +2395,33 @@ pub fn set_texture_filter_mode(
   mag_filter: Int,
 ) -> Nil
 
-/// Get RepeatWrapping constant
+/// Gets the [RepeatWrapping](https://threejs.org/docs/#api/en/constants/Textures) constant.
+///
+/// Texture repeats infinitely when UVs exceed 0-1 range.
 @external(javascript, "./savoiardi.ffi.mjs", "getRepeatWrapping")
 pub fn get_repeat_wrapping() -> Int
 
-/// Get ClampToEdgeWrapping constant
+/// Gets the [ClampToEdgeWrapping](https://threejs.org/docs/#api/en/constants/Textures) constant.
+///
+/// Texture edge pixels stretch infinitely when UVs exceed 0-1 range.
 @external(javascript, "./savoiardi.ffi.mjs", "getClampToEdgeWrapping")
 pub fn get_clamp_to_edge_wrapping() -> Int
 
-/// Get MirroredRepeatWrapping constant
+/// Gets the [MirroredRepeatWrapping](https://threejs.org/docs/#api/en/constants/Textures) constant.
+///
+/// Texture repeats with alternating mirrored copies.
 @external(javascript, "./savoiardi.ffi.mjs", "getMirroredRepeatWrapping")
 pub fn get_mirrored_repeat_wrapping() -> Int
 
-/// Get NearestFilter constant (for pixel art)
+/// Gets the [NearestFilter](https://threejs.org/docs/#api/en/constants/Textures) constant.
+///
+/// No interpolation, nearest pixel is used. Best for pixel art.
 @external(javascript, "./savoiardi.ffi.mjs", "getNearestFilter")
 pub fn get_nearest_filter() -> Int
 
-/// Get LinearFilter constant (for smooth textures)
+/// Gets the [LinearFilter](https://threejs.org/docs/#api/en/constants/Textures) constant.
+///
+/// Bilinear interpolation for smooth texture sampling.
 @external(javascript, "./savoiardi.ffi.mjs", "getLinearFilter")
 pub fn get_linear_filter() -> Int
 
@@ -2291,79 +2429,177 @@ pub fn get_linear_filter() -> Int
 // AUDIO
 // ============================================================================
 
-/// Create audio listener
+/// Creates an [AudioListener](https://threejs.org/docs/#api/en/audio/AudioListener).
+///
+/// Represents the virtual "ears" for the scene. Usually attached to the camera.
+/// Required for any audio playback in the scene.
 @external(javascript, "./savoiardi.ffi.mjs", "createAudioListener")
 pub fn create_audio_listener() -> AudioListener
 
-/// Create global audio (non-positional)
+/// Creates a global [Audio](https://threejs.org/docs/#api/en/audio/Audio) object.
+///
+/// Non-positional audio that plays at constant volume regardless of camera position.
+/// Use for background music, UI sounds, ambient audio.
+///
+/// ## Parameters
+///
+/// - `listener` - The AudioListener for the scene
 @external(javascript, "./savoiardi.ffi.mjs", "createAudio")
 pub fn create_audio(listener: AudioListener) -> Audio
 
-/// Create positional audio (3D audio)
+/// Creates a [PositionalAudio](https://threejs.org/docs/#api/en/audio/PositionalAudio) object.
+///
+/// 3D audio that changes volume and panning based on distance and direction
+/// from the listener. Use for sound effects attached to objects.
+///
+/// ## Parameters
+///
+/// - `listener` - The AudioListener for the scene
 @external(javascript, "./savoiardi.ffi.mjs", "createPositionalAudio")
 pub fn create_positional_audio(listener: AudioListener) -> PositionalAudio
 
-/// Set audio buffer
+/// Sets the audio buffer for an Audio object.
+///
+/// Wraps [Audio.setBuffer](https://threejs.org/docs/#api/en/audio/Audio.setBuffer).
+/// Load audio with `load_audio` first.
 @external(javascript, "./savoiardi.ffi.mjs", "setAudioBuffer")
 pub fn set_audio_buffer(audio: Audio, buffer: AudioBuffer) -> Nil
 
-/// Play audio
+/// Starts playing audio.
+///
+/// Wraps [Audio.play](https://threejs.org/docs/#api/en/audio/Audio.play).
+/// **Note:** Browser autoplay policies may require user interaction first.
 @external(javascript, "./savoiardi.ffi.mjs", "playAudio")
 pub fn play_audio(audio: Audio) -> Nil
 
-/// Pause audio
+/// Pauses audio playback.
+///
+/// Wraps [Audio.pause](https://threejs.org/docs/#api/en/audio/Audio.pause).
+/// Playback resumes from the current position when played again.
 @external(javascript, "./savoiardi.ffi.mjs", "pauseAudio")
 pub fn pause_audio(audio: Audio) -> Nil
 
-/// Stop audio
+/// Stops audio playback.
+///
+/// Wraps [Audio.stop](https://threejs.org/docs/#api/en/audio/Audio.stop).
+/// Resets playback position to the beginning.
 @external(javascript, "./savoiardi.ffi.mjs", "stopAudio")
 pub fn stop_audio(audio: Audio) -> Nil
 
-/// Set audio volume
+/// Sets the audio volume.
+///
+/// Wraps [Audio.setVolume](https://threejs.org/docs/#api/en/audio/Audio.setVolume).
+///
+/// ## Parameters
+///
+/// - `audio` - The audio object
+/// - `volume` - Volume from 0.0 (silent) to 1.0 (full volume)
 @external(javascript, "./savoiardi.ffi.mjs", "setAudioVolume")
 pub fn set_audio_volume(audio: Audio, volume: Float) -> Nil
 
-/// Set audio loop
+/// Sets whether audio should loop.
+///
+/// Wraps [Audio.setLoop](https://threejs.org/docs/#api/en/audio/Audio.setLoop).
 @external(javascript, "./savoiardi.ffi.mjs", "setAudioLoop")
 pub fn set_audio_loop(audio: Audio, loop: Bool) -> Nil
 
-/// Set audio playback rate
+/// Sets the audio playback rate.
+///
+/// Wraps [Audio.setPlaybackRate](https://threejs.org/docs/#api/en/audio/Audio.setPlaybackRate).
+/// 1.0 = normal speed, 2.0 = double speed, 0.5 = half speed.
 @external(javascript, "./savoiardi.ffi.mjs", "setAudioPlaybackRate")
 pub fn set_audio_playback_rate(audio: Audio, rate: Float) -> Nil
 
-/// Check if audio is playing
+/// Checks if audio is currently playing.
+///
+/// Accesses [Audio.isPlaying](https://threejs.org/docs/#api/en/audio/Audio.isPlaying).
 @external(javascript, "./savoiardi.ffi.mjs", "isAudioPlaying")
 pub fn is_audio_playing(audio: Audio) -> Bool
 
-/// Set positional audio reference distance
+/// Sets the reference distance for positional audio attenuation.
+///
+/// Wraps [PositionalAudio.setRefDistance](https://threejs.org/docs/#api/en/audio/PositionalAudio.setRefDistance).
+/// The distance at which the volume reduction starts. Audio at this distance
+/// plays at full volume; beyond this, volume decreases based on rolloff.
+///
+/// ## Parameters
+///
+/// - `audio` - The positional audio object
+/// - `distance` - Reference distance in world units (default: 1)
 @external(javascript, "./savoiardi.ffi.mjs", "setRefDistance")
 pub fn set_ref_distance(audio: PositionalAudio, distance: Float) -> Nil
 
-/// Set positional audio rolloff factor
+/// Sets the rolloff factor for positional audio attenuation.
+///
+/// Wraps [PositionalAudio.setRolloffFactor](https://threejs.org/docs/#api/en/audio/PositionalAudio.setRolloffFactor).
+/// Controls how quickly volume decreases with distance. Higher values = faster falloff.
+///
+/// ## Parameters
+///
+/// - `audio` - The positional audio object
+/// - `factor` - Rolloff factor (default: 1, range: 0-∞)
 @external(javascript, "./savoiardi.ffi.mjs", "setRolloffFactor")
 pub fn set_rolloff_factor(audio: PositionalAudio, factor: Float) -> Nil
 
-/// Set positional audio max distance
+/// Sets the maximum distance for positional audio.
+///
+/// Wraps [PositionalAudio.setMaxDistance](https://threejs.org/docs/#api/en/audio/PositionalAudio.setMaxDistance).
+/// Beyond this distance, volume won't decrease further.
+///
+/// ## Parameters
+///
+/// - `audio` - The positional audio object
+/// - `distance` - Maximum distance in world units (default: 10000)
 @external(javascript, "./savoiardi.ffi.mjs", "setMaxDistance")
 pub fn set_max_distance(audio: PositionalAudio, distance: Float) -> Nil
 
-/// Check if audio has a buffer
+/// Checks if an audio object has a buffer loaded.
+///
+/// Returns `True` if `set_audio_buffer` has been called with a valid buffer.
 @external(javascript, "./savoiardi.ffi.mjs", "hasAudioBuffer")
 pub fn has_audio_buffer(audio: Audio) -> Bool
 
-/// Get audio loop state
+/// Gets the loop state of an audio object.
+///
+/// Accesses [Audio.loop](https://threejs.org/docs/#api/en/audio/Audio.loop).
 @external(javascript, "./savoiardi.ffi.mjs", "getAudioLoop")
 pub fn get_audio_loop(audio: Audio) -> Bool
 
-/// Get AudioContext state
+/// Gets the current state of the Web Audio [AudioContext](https://developer.mozilla.org/en-US/docs/Web/API/AudioContext/state).
+///
+/// ## Returns
+///
+/// One of: "suspended", "running", or "closed".
+/// Browsers often start in "suspended" state until user interaction.
 @external(javascript, "./savoiardi.ffi.mjs", "getAudioContextState")
 pub fn get_audio_context_state() -> String
 
-/// Resume AudioContext
+/// Resumes the Web Audio [AudioContext](https://developer.mozilla.org/en-US/docs/Web/API/AudioContext/resume).
+///
+/// Call this after user interaction (e.g., button click) to enable audio
+/// playback in browsers with autoplay restrictions.
 @external(javascript, "./savoiardi.ffi.mjs", "resumeAudioContext")
 pub fn resume_audio_context() -> Nil
 
-/// Play audio with fade in effect
+/// Plays audio with a fade-in effect.
+///
+/// Starts playback at zero volume and gradually increases to target volume.
+/// Useful for smooth audio transitions.
+///
+/// ## Parameters
+///
+/// - `audio` - The audio object to play
+/// - `fade_duration` - Duration of the fade-in effect
+/// - `target_volume` - Final volume (0.0 to 1.0)
+///
+/// ## Example
+///
+/// ```gleam
+/// import gleam/time/duration
+///
+/// // Fade in over 2 seconds to 80% volume
+/// play_audio_with_fade_in(music, duration.seconds(2), 0.8)
+/// ```
 pub fn play_audio_with_fade_in(
   audio: Audio,
   fade_duration: Duration,
@@ -2380,7 +2616,25 @@ fn play_audio_with_fade_in_ffi(
   target_volume: Float,
 ) -> Nil
 
-/// Stop audio with fade out effect
+/// Stops audio with a fade-out effect.
+///
+/// Gradually decreases volume to zero, then stops or pauses.
+/// Useful for smooth audio transitions.
+///
+/// ## Parameters
+///
+/// - `audio` - The audio object to stop
+/// - `fade_duration` - Duration of the fade-out effect
+/// - `pause_instead_of_stop` - If `True`, pauses (can resume); if `False`, stops (resets to beginning)
+///
+/// ## Example
+///
+/// ```gleam
+/// import gleam/time/duration
+///
+/// // Fade out over 1 second, then stop
+/// stop_audio_with_fade_out(music, duration.seconds(1), False)
+/// ```
 pub fn stop_audio_with_fade_out(
   audio: Audio,
   fade_duration: Duration,
@@ -2401,15 +2655,39 @@ fn stop_audio_with_fade_out_ffi(
 // DEBUG HELPERS
 // ============================================================================
 
-/// Create axes helper
+/// Creates an [AxesHelper](https://threejs.org/docs/#api/en/helpers/AxesHelper).
+///
+/// Displays the 3 axes in a simple way: X (red), Y (green), Z (blue).
+/// Useful for understanding object orientation and debugging transforms.
+///
+/// ## Parameters
+///
+/// - `size` - Length of each axis line
 @external(javascript, "./savoiardi.ffi.mjs", "createAxesHelper")
 pub fn create_axes_helper(size: Float) -> Object3D
 
-/// Create grid helper
+/// Creates a [GridHelper](https://threejs.org/docs/#api/en/helpers/GridHelper).
+///
+/// A 2D grid in the XZ plane. Useful for visualizing the ground plane and
+/// understanding scale in the scene.
+///
+/// ## Parameters
+///
+/// - `size` - Total size of the grid (extends size/2 in each direction)
+/// - `divisions` - Number of divisions (grid cells)
+/// - `color` - Grid line color as hex
 @external(javascript, "./savoiardi.ffi.mjs", "createGridHelper")
 pub fn create_grid_helper(size: Float, divisions: Int, color: Int) -> Object3D
 
-/// Create box helper (wireframe around object)
+/// Creates a [BoxHelper](https://threejs.org/docs/#api/en/helpers/BoxHelper).
+///
+/// A wireframe box that shows the bounding box of an object.
+/// Useful for visualizing object bounds and debugging collisions.
+///
+/// ## Parameters
+///
+/// - `object` - The object to create a bounding box helper for
+/// - `color` - Wireframe color as hex
 @external(javascript, "./savoiardi.ffi.mjs", "createBoxHelper")
 pub fn create_box_helper(object: Object3D, color: Int) -> Object3D
 
@@ -2417,18 +2695,34 @@ pub fn create_box_helper(object: Object3D, color: Int) -> Object3D
 // BUFFER GEOMETRY MANIPULATION
 // ============================================================================
 
-/// Create empty buffer geometry
+/// Creates an empty [BufferGeometry](https://threejs.org/docs/#api/en/core/BufferGeometry).
+///
+/// BufferGeometry is the most efficient geometry type, storing data in typed arrays.
+/// Add attributes (position, normal, color, uv) using `set_geometry_attribute`.
 @external(javascript, "./savoiardi.ffi.mjs", "createBufferGeometry")
 pub fn create_buffer_geometry() -> Geometry
 
-/// Create buffer attribute from Float32Array
+/// Creates a [BufferAttribute](https://threejs.org/docs/#api/en/core/BufferAttribute) from a Float32Array.
+///
+/// BufferAttributes store data for geometry attributes like positions, normals, and colors.
+///
+/// ## Parameters
+///
+/// - `array` - The Float32Array containing the data
+/// - `item_size` - Number of values per vertex (3 for xyz, 4 for rgba, 2 for uv)
 @external(javascript, "./savoiardi.ffi.mjs", "createBufferAttribute")
 pub fn create_buffer_attribute(
   array: Float32Array,
   item_size: Int,
 ) -> BufferAttribute
 
-/// Set geometry attribute
+/// Sets an attribute on a [BufferGeometry](https://threejs.org/docs/#api/en/core/BufferGeometry.setAttribute).
+///
+/// ## Parameters
+///
+/// - `geometry` - The geometry to modify
+/// - `name` - Attribute name ("position", "normal", "color", "uv", etc.)
+/// - `attribute` - The BufferAttribute to set
 @external(javascript, "./savoiardi.ffi.mjs", "setGeometryAttribute")
 pub fn set_geometry_attribute(
   geometry: Geometry,
@@ -2436,11 +2730,23 @@ pub fn set_geometry_attribute(
   attribute: BufferAttribute,
 ) -> Nil
 
-/// Mark buffer attribute as needing update
+/// Marks a buffer attribute for GPU upload.
+///
+/// Sets [BufferAttribute.needsUpdate](https://threejs.org/docs/#api/en/core/BufferAttribute.needsUpdate)
+/// to `true`. Call this after modifying attribute data.
 @external(javascript, "./savoiardi.ffi.mjs", "markAttributeNeedsUpdate")
 pub fn mark_attribute_needs_update(attribute: BufferAttribute) -> Nil
 
-/// Set geometry draw range
+/// Sets the draw range for a geometry.
+///
+/// Wraps [BufferGeometry.setDrawRange](https://threejs.org/docs/#api/en/core/BufferGeometry.setDrawRange).
+/// Limits which vertices are rendered, useful for partial geometry rendering.
+///
+/// ## Parameters
+///
+/// - `geometry` - The geometry to modify
+/// - `start` - First vertex index to render
+/// - `count` - Number of vertices to render
 @external(javascript, "./savoiardi.ffi.mjs", "setDrawRange")
 pub fn set_draw_range(geometry: Geometry, start: Int, count: Int) -> Nil
 
@@ -2448,11 +2754,24 @@ pub fn set_draw_range(geometry: Geometry, start: Int, count: Int) -> Nil
 // MATH UTILITIES
 // ============================================================================
 
-/// Create Matrix4
+/// Creates a new identity [Matrix4](https://threejs.org/docs/#api/en/math/Matrix4).
+///
+/// A 4x4 transformation matrix initialized to the identity matrix.
+/// Use `compose_matrix` to set translation, rotation, and scale.
 @external(javascript, "./savoiardi.ffi.mjs", "createMatrix4")
 pub fn create_matrix4() -> Matrix4
 
-/// Compose matrix from position, quaternion, scale
+/// Composes a transformation matrix from position, rotation, and scale.
+///
+/// Wraps [Matrix4.compose](https://threejs.org/docs/#api/en/math/Matrix4.compose).
+/// The resulting matrix can be used with `set_instance_matrix` for instanced rendering.
+///
+/// ## Parameters
+///
+/// - `matrix` - The matrix to modify
+/// - `position` - Translation as Vec3
+/// - `quaternion` - Rotation as Quaternion
+/// - `scale` - Scale factors as Vec3
 @external(javascript, "./savoiardi.ffi.mjs", "composeMatrix")
 pub fn compose_matrix(
   matrix: Matrix4,
@@ -2461,11 +2780,24 @@ pub fn compose_matrix(
   scale: vec3.Vec3(Float),
 ) -> Nil
 
-/// Create Color from hex
+/// Creates a [Color](https://threejs.org/docs/#api/en/math/Color) from a hex value.
+///
+/// ## Parameters
+///
+/// - `hex` - Color as hex integer (e.g., `0xff0000` for red)
 @external(javascript, "./savoiardi.ffi.mjs", "createColor")
 pub fn create_color(hex: Int) -> Color
 
-/// Lerp between two colors
+/// Linearly interpolates between two colors.
+///
+/// Wraps [Color.lerp](https://threejs.org/docs/#api/en/math/Color.lerp).
+/// Creates a new color that is a blend of the two input colors.
+///
+/// ## Parameters
+///
+/// - `color1` - Starting color (t=0)
+/// - `color2` - Ending color (t=1)
+/// - `t` - Interpolation factor (0.0 to 1.0)
 @external(javascript, "./savoiardi.ffi.mjs", "lerpColor")
 pub fn lerp_color(color1: Color, color2: Color, t: Float) -> Color
 
@@ -2473,23 +2805,34 @@ pub fn lerp_color(color1: Color, color2: Color, t: Float) -> Color
 // CONSTANTS
 // ============================================================================
 
-/// Get LoopOnce constant
+/// Gets the [LoopOnce](https://threejs.org/docs/#api/en/constants/Animation) constant.
+///
+/// Animation plays once and stops at the end.
 @external(javascript, "./savoiardi.ffi.mjs", "getLoopOnce")
 pub fn get_loop_once() -> Int
 
-/// Get LoopRepeat constant
+/// Gets the [LoopRepeat](https://threejs.org/docs/#api/en/constants/Animation) constant.
+///
+/// Animation plays repeatedly, restarting from the beginning each time.
 @external(javascript, "./savoiardi.ffi.mjs", "getLoopRepeat")
 pub fn get_loop_repeat() -> Int
 
-/// Get LoopPingPong constant
+/// Gets the [LoopPingPong](https://threejs.org/docs/#api/en/constants/Animation) constant.
+///
+/// Animation plays forward, then backward, then forward, etc.
 @external(javascript, "./savoiardi.ffi.mjs", "getLoopPingPong")
 pub fn get_loop_ping_pong() -> Int
 
-/// Get AdditiveBlending constant
+/// Gets the [AdditiveBlending](https://threejs.org/docs/#api/en/constants/Materials) constant.
+///
+/// Additive blending adds the source and destination colors together.
+/// Creates a "glow" effect, commonly used for particles and effects.
 @external(javascript, "./savoiardi.ffi.mjs", "getAdditiveBlending")
 pub fn get_additive_blending() -> Int
 
-/// Get NormalBlending constant
+/// Gets the [NormalBlending](https://threejs.org/docs/#api/en/constants/Materials) constant.
+///
+/// Standard alpha blending where source replaces destination based on alpha.
 @external(javascript, "./savoiardi.ffi.mjs", "getNormalBlending")
 pub fn get_normal_blending() -> Int
 
@@ -2497,23 +2840,44 @@ pub fn get_normal_blending() -> Int
 // PARTICLE SYSTEMS HELPERS
 // ============================================================================
 
-/// Get red component from color
+/// Gets the red component of a color (0.0 to 1.0).
+///
+/// Accesses [Color.r](https://threejs.org/docs/#api/en/math/Color.r).
 @external(javascript, "./savoiardi.ffi.mjs", "getColorR")
 pub fn get_color_r(color: Color) -> Float
 
-/// Get green component from color
+/// Gets the green component of a color (0.0 to 1.0).
+///
+/// Accesses [Color.g](https://threejs.org/docs/#api/en/math/Color.g).
 @external(javascript, "./savoiardi.ffi.mjs", "getColorG")
 pub fn get_color_g(color: Color) -> Float
 
-/// Get blue component from color
+/// Gets the blue component of a color (0.0 to 1.0).
+///
+/// Accesses [Color.b](https://threejs.org/docs/#api/en/math/Color.b).
 @external(javascript, "./savoiardi.ffi.mjs", "getColorB")
 pub fn get_color_b(color: Color) -> Float
 
-/// Create Float32Array
+/// Creates a [Float32Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Float32Array) of the specified size.
+///
+/// Used for storing vertex data for buffer geometry attributes.
+///
+/// ## Parameters
+///
+/// - `size` - Number of float elements in the array
 @external(javascript, "./savoiardi.ffi.mjs", "createFloat32Array")
 pub fn create_float32_array(size: Int) -> Float32Array
 
-/// Set buffer attribute directly
+/// Sets a buffer attribute directly on geometry.
+///
+/// Convenience function that creates a BufferAttribute and sets it in one call.
+///
+/// ## Parameters
+///
+/// - `geometry` - The geometry to modify
+/// - `name` - Attribute name ("position", "color", etc.)
+/// - `array` - The Float32Array containing the data
+/// - `item_size` - Values per vertex (3 for xyz, 4 for rgba)
 @external(javascript, "./savoiardi.ffi.mjs", "setBufferAttribute")
 pub fn set_buffer_attribute(
   geometry: Geometry,
@@ -2522,15 +2886,32 @@ pub fn set_buffer_attribute(
   item_size: Int,
 ) -> Nil
 
-/// Get geometry from Points object
+/// Gets the geometry from a Points object.
+///
+/// Accesses [Points.geometry](https://threejs.org/docs/#api/en/objects/Points.geometry).
 @external(javascript, "./savoiardi.ffi.mjs", "getGeometry")
 pub fn get_geometry(points: Points) -> Geometry
 
-/// Get attribute from geometry
+/// Gets an attribute from geometry by name.
+///
+/// Wraps [BufferGeometry.getAttribute](https://threejs.org/docs/#api/en/core/BufferGeometry.getAttribute).
+///
+/// ## Parameters
+///
+/// - `geometry` - The geometry to query
+/// - `name` - Attribute name ("position", "color", "normal", "uv", etc.)
 @external(javascript, "./savoiardi.ffi.mjs", "getAttribute")
 pub fn get_attribute(geometry: Geometry, name: String) -> BufferAttribute
 
-/// Set XYZ values in buffer attribute at index
+/// Sets XYZ values in a buffer attribute at a specific index.
+///
+/// Wraps [BufferAttribute.setXYZ](https://threejs.org/docs/#api/en/core/BufferAttribute.setXYZ).
+///
+/// ## Parameters
+///
+/// - `attribute` - The buffer attribute to modify
+/// - `index` - Vertex index
+/// - `value` - XYZ values as Vec3
 @external(javascript, "./savoiardi.ffi.mjs", "setBufferXYZ")
 pub fn set_buffer_xyz(
   attribute: BufferAttribute,
@@ -2538,11 +2919,15 @@ pub fn set_buffer_xyz(
   value: Vec3(Float),
 ) -> Nil
 
-/// Set single value in buffer attribute at index
+/// Sets a single value (X component) in a buffer attribute at an index.
+///
+/// Wraps [BufferAttribute.setX](https://threejs.org/docs/#api/en/core/BufferAttribute.setX).
 @external(javascript, "./savoiardi.ffi.mjs", "setBufferX")
 pub fn set_buffer_x(attribute: BufferAttribute, index: Int, value: Float) -> Nil
 
-/// Set attribute needs update
+/// Sets the needsUpdate flag on a buffer attribute.
+///
+/// When `True`, the attribute data will be uploaded to the GPU on the next render.
 @external(javascript, "./savoiardi.ffi.mjs", "setAttributeNeedsUpdate")
 pub fn set_attribute_needs_update(
   attribute: BufferAttribute,
@@ -2550,10 +2935,20 @@ pub fn set_attribute_needs_update(
 ) -> Nil
 
 // ============================================================================
-// RENDERER PATCH APPLICATION
+// TRANSFORM UTILITIES
 // ============================================================================
 
-/// Apply transform with quaternion
+/// Applies position, rotation (as quaternion), and scale to an object.
+///
+/// Like `apply_transform` but uses a Quaternion for rotation instead of Euler angles.
+/// Quaternions avoid gimbal lock and interpolate smoothly.
+///
+/// ## Parameters
+///
+/// - `object` - The object to transform
+/// - `position` - Position in world units
+/// - `quaternion` - Rotation as Quaternion
+/// - `scale` - Scale factors
 @external(javascript, "./savoiardi.ffi.mjs", "applyTransformWithQuaternion")
 pub fn apply_transform_with_quaternion(
   object object: Object3D,
@@ -2562,14 +2957,34 @@ pub fn apply_transform_with_quaternion(
   scale scale: Vec3(Float),
 ) -> Nil
 
-/// Set camera to look at a target position
+/// Makes a camera look at a target position.
+///
+/// Wraps [Object3D.lookAt](https://threejs.org/docs/#api/en/core/Object3D.lookAt).
+/// Rotates the camera so its -Z axis points at the target.
+///
+/// ## Parameters
+///
+/// - `camera` - The camera to rotate
+/// - `target` - The world position to look at
 @external(javascript, "./savoiardi.ffi.mjs", "applyCameraLookAt")
 pub fn set_camera_look_at(
   camera camera: Camera,
   target target: Vec3(Float),
 ) -> Nil
 
-/// Set shadow properties on an object
+/// Sets shadow casting and receiving properties on an object.
+///
+/// For shadows to work, you need:
+/// 1. A light with `cast_shadow: True`
+/// 2. Objects with `cast_shadow: True`
+/// 3. Objects with `receive_shadow: True`
+/// 4. `renderer.shadowMap.enabled = true` (automatic in create_renderer)
+///
+/// ## Parameters
+///
+/// - `object` - The object to configure
+/// - `cast_shadow` - Whether this object casts shadows
+/// - `receive_shadow` - Whether this object receives shadows from other objects
 @external(javascript, "./savoiardi.ffi.mjs", "setShadowProperties")
 pub fn set_shadow_properties(
   object object: Object3D,
@@ -2581,43 +2996,62 @@ pub fn set_shadow_properties(
 // OBJECT3D UTILITIES
 // ============================================================================
 
-/// Check if object is an OrthographicCamera
+/// Checks if an object is an [OrthographicCamera](https://threejs.org/docs/#api/en/cameras/OrthographicCamera).
 @external(javascript, "./savoiardi.ffi.mjs", "isOrthographicCamera")
 pub fn is_orthographic_camera(object: Object3D) -> Bool
 
-/// Check if object is an InstancedMesh
+/// Checks if an object is an [InstancedMesh](https://threejs.org/docs/#api/en/objects/InstancedMesh).
 @external(javascript, "./savoiardi.ffi.mjs", "isInstancedMesh")
 pub fn is_instanced_mesh(object: Object3D) -> Bool
 
-/// Check if object is an LOD
+/// Checks if an object is a [LOD](https://threejs.org/docs/#api/en/objects/LOD).
 @external(javascript, "./savoiardi.ffi.mjs", "isLOD")
 pub fn is_lod(object: Object3D) -> Bool
 
-/// Clear all LOD levels
+/// Removes all levels from a LOD object.
 @external(javascript, "./savoiardi.ffi.mjs", "clearLODLevels")
 pub fn clear_lod_levels(lod: LOD) -> Nil
 
-/// Update instanced mesh transforms
-/// Each instance is a tuple of (position, rotation, scale) as Vec3s
+/// Updates all instance transforms in an instanced mesh.
+///
+/// Efficient batch update for all instances. Each instance is specified as
+/// a tuple of `#(position, rotation, scale)` where rotation is Euler angles.
+///
+/// ## Parameters
+///
+/// - `mesh` - The instanced mesh
+/// - `instances` - List of transform tuples
 @external(javascript, "./savoiardi.ffi.mjs", "updateInstancedMeshTransforms")
 pub fn update_instanced_mesh_transforms(
   mesh: InstancedMesh,
   instances: List(#(Vec3(Float), Vec3(Float), Vec3(Float))),
 ) -> Nil
 
-/// Update all instanced meshes in a group with transforms
-/// Each instance is a tuple of (position, rotation, scale) as Vec3s
+/// Updates all instanced meshes within a group with the same transforms.
+///
+/// Applies the same instance transforms to all InstancedMesh children in a group.
+///
+/// ## Parameters
+///
+/// - `group` - The group containing instanced meshes
+/// - `instances` - List of transform tuples (position, rotation, scale)
 @external(javascript, "./savoiardi.ffi.mjs", "updateGroupInstancedMeshes")
 pub fn update_group_instanced_meshes(
   group: Object3D,
   instances: List(#(Vec3(Float), Vec3(Float), Vec3(Float))),
 ) -> Nil
 
-/// Update camera projection matrix
+/// Updates the camera's projection matrix.
+///
+/// Wraps [Camera.updateProjectionMatrix](https://threejs.org/docs/#api/en/cameras/Camera.updateProjectionMatrix).
+/// Call this after changing camera parameters (fov, aspect, near, far, etc.).
 @external(javascript, "./savoiardi.ffi.mjs", "updateCameraProjectionMatrix")
 pub fn update_camera_projection_matrix(camera: Camera) -> Nil
 
-/// Set perspective camera parameters
+/// Sets all parameters of a perspective camera.
+///
+/// Updates fov, aspect, near, and far planes. Call `update_camera_projection_matrix`
+/// afterward to apply the changes.
 @external(javascript, "./savoiardi.ffi.mjs", "setPerspectiveCameraParams")
 pub fn set_perspective_camera_params(
   camera: Camera,
@@ -2627,7 +3061,10 @@ pub fn set_perspective_camera_params(
   far: Float,
 ) -> Nil
 
-/// Set orthographic camera parameters
+/// Sets all parameters of an orthographic camera.
+///
+/// Updates left, right, top, bottom, near, and far planes. Call
+/// `update_camera_projection_matrix` afterward to apply the changes.
 @external(javascript, "./savoiardi.ffi.mjs", "setOrthographicCameraParams")
 pub fn set_orthographic_camera_params(
   camera: Camera,
@@ -2639,51 +3076,82 @@ pub fn set_orthographic_camera_params(
   far: Float,
 ) -> Nil
 
-/// Get object geometry
+/// Gets the geometry from a mesh.
+///
+/// Accesses [Mesh.geometry](https://threejs.org/docs/#api/en/objects/Mesh.geometry).
 @external(javascript, "./savoiardi.ffi.mjs", "getObjectGeometry")
 pub fn get_object_geometry(object: Object3D) -> Geometry
 
-/// Get object material
+/// Gets the material from a mesh.
+///
+/// Accesses [Mesh.material](https://threejs.org/docs/#api/en/objects/Mesh.material).
 @external(javascript, "./savoiardi.ffi.mjs", "getObjectMaterial")
 pub fn get_object_material(object: Object3D) -> Material
 
-/// Set object geometry
+/// Sets the geometry of a mesh.
+///
+/// Replaces the mesh's geometry. The old geometry is not automatically disposed.
 @external(javascript, "./savoiardi.ffi.mjs", "setObjectGeometry")
 pub fn set_object_geometry(object: Object3D, geometry: Geometry) -> Nil
 
-/// Set object material
+/// Sets the material of a mesh.
+///
+/// Replaces the mesh's material. The old material is not automatically disposed.
 @external(javascript, "./savoiardi.ffi.mjs", "setObjectMaterial")
 pub fn set_object_material(object: Object3D, material: Material) -> Nil
 
-/// Get object position
+/// Gets the object's local position.
+///
+/// Accesses [Object3D.position](https://threejs.org/docs/#api/en/core/Object3D.position).
 @external(javascript, "./savoiardi.ffi.mjs", "getObjectPosition")
 pub fn get_object_position(object: Object3D) -> Vec3(Float)
 
-/// Get object rotation (Euler angles)
+/// Gets the object's local rotation as Euler angles.
+///
+/// Accesses [Object3D.rotation](https://threejs.org/docs/#api/en/core/Object3D.rotation).
 @external(javascript, "./savoiardi.ffi.mjs", "getObjectRotation")
 pub fn get_object_rotation(object: Object3D) -> Vec3(Float)
 
-/// Get object scale
+/// Gets the object's local scale.
+///
+/// Accesses [Object3D.scale](https://threejs.org/docs/#api/en/core/Object3D.scale).
 @external(javascript, "./savoiardi.ffi.mjs", "getObjectScale")
 pub fn get_object_scale(object: Object3D) -> Vec3(Float)
 
-/// Get object quaternion
+/// Gets the object's local rotation as a quaternion.
+///
+/// Accesses [Object3D.quaternion](https://threejs.org/docs/#api/en/core/Object3D.quaternion).
 @external(javascript, "./savoiardi.ffi.mjs", "getObjectQuaternion")
 pub fn get_object_quaternion(object: Object3D) -> Quaternion
 
-/// Set object quaternion
+/// Sets the object's rotation using a quaternion.
+///
+/// Sets [Object3D.quaternion](https://threejs.org/docs/#api/en/core/Object3D.quaternion).
+/// Quaternions avoid gimbal lock and interpolate smoothly.
 @external(javascript, "./savoiardi.ffi.mjs", "setObjectQuaternion")
 pub fn set_object_quaternion(object: Object3D, quaternion: Quaternion) -> Nil
 
-/// Enable transparency on all materials in an Object3D
+/// Enables transparency on all materials in an object hierarchy.
+///
+/// Traverses the object and all children, setting `transparent: true` on all materials.
 @external(javascript, "./savoiardi.ffi.mjs", "enableTransparency")
 pub fn enable_transparency(object: Object3D) -> Nil
 
-/// Apply material to all meshes in an Object3D
+/// Applies a material to all meshes in an object hierarchy.
+///
+/// Traverses the object and all children, replacing their materials.
 @external(javascript, "./savoiardi.ffi.mjs", "applyMaterialToObject")
 pub fn apply_material_to_object(object: Object3D, material: Material) -> Nil
 
-/// Apply texture to all materials in an Object3D
+/// Applies a texture to all materials in an object hierarchy.
+///
+/// Traverses the object and sets the texture as the `map` property on all materials.
+///
+/// ## Parameters
+///
+/// - `object` - The object hierarchy
+/// - `texture` - The texture to apply
+/// - `filter_mode` - "nearest" for pixel art, "linear" for smooth textures
 @external(javascript, "./savoiardi.ffi.mjs", "applyTextureToObject")
 pub fn apply_texture_to_object(
   object: Object3D,
@@ -2695,15 +3163,24 @@ pub fn apply_texture_to_object(
 // RESOURCE DISPOSAL
 // ============================================================================
 
-/// Dispose of a texture
+/// Disposes of a texture and frees GPU memory.
+///
+/// Wraps [Texture.dispose](https://threejs.org/docs/#api/en/textures/Texture.dispose).
+/// Call when a texture is no longer needed to prevent memory leaks.
 @external(javascript, "./savoiardi.ffi.mjs", "disposeTexture")
 pub fn dispose_texture(texture: Texture) -> Nil
 
-/// Dispose of a geometry
+/// Disposes of a geometry and frees GPU memory.
+///
+/// Wraps [BufferGeometry.dispose](https://threejs.org/docs/#api/en/core/BufferGeometry.dispose).
+/// Call when geometry is no longer needed.
 @external(javascript, "./savoiardi.ffi.mjs", "disposeGeometry")
 pub fn dispose_geometry(geometry: Geometry) -> Nil
 
-/// Dispose of a material
+/// Disposes of a material and frees GPU memory.
+///
+/// Wraps [Material.dispose](https://threejs.org/docs/#api/en/materials/Material.dispose).
+/// Note: This does not dispose textures used by the material.
 @external(javascript, "./savoiardi.ffi.mjs", "disposeMaterial")
 pub fn dispose_material(material: Material) -> Nil
 
@@ -2711,7 +3188,15 @@ pub fn dispose_material(material: Material) -> Nil
 // DEBUG VISUALIZATION
 // ============================================================================
 
-/// Create debug wireframe box
+/// Creates a debug wireframe box between two points.
+///
+/// Useful for visualizing bounding boxes, collision volumes, and spatial regions.
+///
+/// ## Parameters
+///
+/// - `min` - Minimum corner (lower-left-back)
+/// - `max` - Maximum corner (upper-right-front)
+/// - `color` - Wireframe color as hex
 @external(javascript, "./savoiardi.ffi.mjs", "createDebugBox")
 pub fn create_debug_box(
   min: Vec3(Float),
@@ -2719,7 +3204,15 @@ pub fn create_debug_box(
   color: Int,
 ) -> Object3D
 
-/// Create debug wireframe sphere
+/// Creates a debug wireframe sphere.
+///
+/// Useful for visualizing collision spheres, ranges, and influence areas.
+///
+/// ## Parameters
+///
+/// - `center` - Sphere center position
+/// - `radius` - Sphere radius
+/// - `color` - Wireframe color as hex
 @external(javascript, "./savoiardi.ffi.mjs", "createDebugSphere")
 pub fn create_debug_sphere(
   center: Vec3(Float),
@@ -2727,7 +3220,15 @@ pub fn create_debug_sphere(
   color: Int,
 ) -> Object3D
 
-/// Create debug line
+/// Creates a debug line between two points.
+///
+/// Useful for visualizing vectors, rays, and connections.
+///
+/// ## Parameters
+///
+/// - `from` - Line start position
+/// - `to` - Line end position
+/// - `color` - Line color as hex
 @external(javascript, "./savoiardi.ffi.mjs", "createDebugLine")
 pub fn create_debug_line(
   from: Vec3(Float),
@@ -2735,15 +3236,36 @@ pub fn create_debug_line(
   color: Int,
 ) -> Object3D
 
-/// Create debug axes
+/// Creates debug coordinate axes at a position.
+///
+/// Shows X (red), Y (green), Z (blue) axes.
+///
+/// ## Parameters
+///
+/// - `origin` - Position for the axes
+/// - `size` - Length of each axis line
 @external(javascript, "./savoiardi.ffi.mjs", "createDebugAxes")
 pub fn create_debug_axes(origin: Vec3(Float), size: Float) -> Object3D
 
-/// Create debug grid
+/// Creates a debug grid on the XZ plane.
+///
+/// ## Parameters
+///
+/// - `size` - Total grid size
+/// - `divisions` - Number of grid divisions
+/// - `color` - Grid line color as hex
 @external(javascript, "./savoiardi.ffi.mjs", "createDebugGrid")
 pub fn create_debug_grid(size: Float, divisions: Int, color: Int) -> Object3D
 
-/// Create debug point marker
+/// Creates a debug point marker.
+///
+/// Renders as a small sphere at the specified position.
+///
+/// ## Parameters
+///
+/// - `position` - Point position
+/// - `size` - Marker size
+/// - `color` - Marker color as hex
 @external(javascript, "./savoiardi.ffi.mjs", "createDebugPoint")
 pub fn create_debug_point(
   position: Vec3(Float),
@@ -2755,11 +3277,16 @@ pub fn create_debug_point(
 // CSS2D RENDERER
 // ============================================================================
 
-/// Create CSS2DRenderer
+/// Creates a [CSS2DRenderer](https://threejs.org/docs/#examples/en/renderers/CSS2DRenderer).
+///
+/// CSS2D renders DOM elements in 3D space, always facing the camera.
+/// Use for labels, health bars, tooltips, and UI elements attached to 3D objects.
 @external(javascript, "./savoiardi.ffi.mjs", "createCSS2DRenderer")
 pub fn create_css2d_renderer() -> CSS2DRenderer
 
-/// Set CSS2DRenderer size
+/// Sets the size of a CSS2DRenderer.
+///
+/// Should match the WebGL renderer size.
 @external(javascript, "./savoiardi.ffi.mjs", "setCSS2DRendererSize")
 pub fn set_css2d_renderer_size(
   renderer: CSS2DRenderer,
@@ -2767,11 +3294,15 @@ pub fn set_css2d_renderer_size(
   height: Int,
 ) -> Nil
 
-/// Get CSS2DRenderer DOM element
+/// Gets the DOM element of a CSS2DRenderer.
+///
+/// The DOM element should be positioned over the WebGL canvas.
 @external(javascript, "./savoiardi.ffi.mjs", "getCSS2DRendererDomElement")
 pub fn get_css2d_renderer_dom_element(renderer: CSS2DRenderer) -> a
 
-/// Render CSS2D
+/// Renders CSS2D objects in the scene.
+///
+/// Call this after `render()` in your render loop.
 @external(javascript, "./savoiardi.ffi.mjs", "renderCSS2D")
 pub fn render_css2d(
   renderer: CSS2DRenderer,
@@ -2779,27 +3310,51 @@ pub fn render_css2d(
   camera: Camera,
 ) -> Nil
 
-/// Create CSS2DObject from HTML string
+/// Creates a [CSS2DObject](https://threejs.org/docs/#examples/en/renderers/CSS2DRenderer) from HTML.
+///
+/// The HTML string is parsed and wrapped in a CSS2DObject that can be
+/// positioned in 3D space.
+///
+/// ## Parameters
+///
+/// - `html` - HTML string for the label content
 @external(javascript, "./savoiardi.ffi.mjs", "createCSS2DObject")
 pub fn create_css2d_object(html: String) -> CSS2DObject
 
-/// Update CSS2DObject HTML content
+/// Updates the HTML content of a CSS2DObject.
+///
+/// ## Parameters
+///
+/// - `object` - The CSS2DObject to update
+/// - `html` - New HTML content
 @external(javascript, "./savoiardi.ffi.mjs", "updateCSS2DObjectHTML")
 pub fn update_css2d_object_html(object: CSS2DObject, html: String) -> Nil
 
-/// Create CSS3DObject from HTML string
+/// Creates a [CSS3DObject](https://threejs.org/docs/#examples/en/renderers/CSS3DRenderer) from HTML.
+///
+/// Unlike CSS2DObject, CSS3DObject exists in full 3D space and can be
+/// rotated and scaled like any other 3D object.
 @external(javascript, "./savoiardi.ffi.mjs", "createCSS3DObject")
 pub fn create_css3d_object(html: String) -> CSS3DObject
 
-/// Update CSS3DObject HTML content
+/// Updates the HTML content of a CSS3DObject.
 @external(javascript, "./savoiardi.ffi.mjs", "updateCSS3DObjectHTML")
 pub fn update_css3d_object_html(object: CSS3DObject, html: String) -> Nil
 
 // ============================================================================
-// CANVAS SPRITE LABELS (paint library integration)
+// CANVAS SPRITE LABELS
 // ============================================================================
 
-/// Create canvas texture from encoded paint.Picture
+/// Creates a texture from an encoded picture.
+///
+/// Used for rendering 2D canvas content (like text labels) onto 3D planes.
+/// The encoded picture is typically from a 2D drawing library.
+///
+/// ## Parameters
+///
+/// - `encoded_picture` - Base64 or data URL encoded image
+/// - `width` - Texture width in pixels
+/// - `height` - Texture height in pixels
 @external(javascript, "./savoiardi.ffi.mjs", "createCanvasTextureFromPicture")
 pub fn create_canvas_texture_from_picture(
   encoded_picture: String,
@@ -2807,7 +3362,15 @@ pub fn create_canvas_texture_from_picture(
   height: Int,
 ) -> Texture
 
-/// Create a plane mesh with texture for canvas drawing
+/// Creates a plane mesh with a canvas texture.
+///
+/// Creates a billboard-like plane that can display 2D content in 3D space.
+///
+/// ## Parameters
+///
+/// - `texture` - The canvas texture to display
+/// - `width` - Plane width in world units
+/// - `height` - Plane height in world units
 @external(javascript, "./savoiardi.ffi.mjs", "createCanvasPlane")
 pub fn create_canvas_plane(
   texture: Texture,
@@ -2815,19 +3378,27 @@ pub fn create_canvas_plane(
   height: Float,
 ) -> Object3D
 
-/// Update canvas texture on object
+/// Updates the texture on a canvas plane.
+///
+/// Replaces the current texture with a new one.
 @external(javascript, "./savoiardi.ffi.mjs", "updateCanvasTexture")
 pub fn update_canvas_texture(object: Object3D, texture: Texture) -> Nil
 
-/// Update canvas plane size
+/// Updates the size of a canvas plane.
+///
+/// Changes the plane geometry dimensions.
 @external(javascript, "./savoiardi.ffi.mjs", "updateCanvasSize")
 pub fn update_canvas_size(object: Object3D, width: Float, height: Float) -> Nil
 
-/// Get cached encoded picture from canvas object
+/// Gets the cached encoded picture from a canvas object.
+///
+/// Used for dirty-checking to avoid unnecessary texture updates.
 @external(javascript, "./savoiardi.ffi.mjs", "getCanvasCachedPicture")
 pub fn get_canvas_cached_picture(object: Object3D) -> String
 
-/// Store encoded picture in canvas object for caching
+/// Stores an encoded picture in a canvas object for caching.
+///
+/// Used to track the current content and avoid redundant updates.
 @external(javascript, "./savoiardi.ffi.mjs", "setCanvasCachedPicture")
 pub fn set_canvas_cached_picture(
   object: Object3D,
@@ -2838,11 +3409,63 @@ pub fn set_canvas_cached_picture(
 // UTILITY FUNCTIONS
 // ============================================================================
 
-/// Get renderer info
+/// Gets diagnostic information about the WebGL renderer.
+///
+/// Returns information about the WebGL context including:
+/// - Memory usage (geometries, textures)
+/// - Render statistics (draw calls, triangles, points, lines)
+/// - WebGL capabilities and limits
+///
+/// Useful for debugging performance issues and monitoring resource usage.
+///
+/// See: [WebGLRenderer.info](https://threejs.org/docs/#api/en/renderers/WebGLRenderer.info)
+///
+/// ## Example
+///
+/// ```gleam
+/// let info = get_renderer_info(renderer)
+/// // Access render statistics for profiling
+/// ```
+///
+/// ## Notes
+///
+/// - The returned object structure depends on Three.js version
+/// - Memory stats include counts of geometries and textures in GPU memory
+/// - Render stats are reset each frame by default
+/// - Call `info.reset()` in JavaScript to manually reset stats
+///
 @external(javascript, "./savoiardi.ffi.mjs", "getRendererInfo")
 pub fn get_renderer_info(renderer: Renderer) -> a
 
-/// Check if WebGL context is valid
+/// Checks if the WebGL context is still valid and usable.
+///
+/// The WebGL context can be lost due to:
+/// - GPU driver crashes or resets
+/// - Too many active WebGL contexts
+/// - System resource pressure
+/// - Device sleep/wake cycles
+///
+/// See: [WebGLRenderer](https://threejs.org/docs/#api/en/renderers/WebGLRenderer)
+///
+/// ## Example
+///
+/// ```gleam
+/// case is_context_valid(renderer) {
+///   True -> render(renderer, scene, camera)
+///   False -> {
+///     // Handle context loss - may need to recreate renderer
+///     io.println("WebGL context lost!")
+///   }
+/// }
+/// ```
+///
+/// ## Notes
+///
+/// - Returns `False` if context was lost and not yet restored
+/// - Listen for `webglcontextlost` and `webglcontextrestored` events
+/// - When context is lost, all textures and buffers are invalidated
+/// - May need to recreate resources after context restoration
+///
 @external(javascript, "./savoiardi.ffi.mjs", "isContextValid")
 pub fn is_context_valid(renderer: Renderer) -> Bool
 
@@ -2850,41 +3473,341 @@ pub fn is_context_valid(renderer: Renderer) -> Bool
 // ASSET LOADING
 // ============================================================================
 
-/// Load a texture from URL
+/// Loads a texture image from a URL asynchronously.
+///
+/// Supports common image formats: PNG, JPG, GIF, BMP, WebP.
+/// The texture is automatically uploaded to GPU memory when used.
+///
+/// See: [TextureLoader](https://threejs.org/docs/#api/en/loaders/TextureLoader)
+///
+/// ## Parameters
+///
+/// - `url`: Path or URL to the image file
+///
+/// ## Example
+///
+/// ```gleam
+/// use texture <- promise.await(load_texture("/textures/brick.jpg"))
+/// case texture {
+///   Ok(tex) -> {
+///     let material = create_basic_material(0xffffff, False, 1.0, option.Some(tex))
+///     // Use material...
+///   }
+///   Error(Nil) -> io.println("Failed to load texture")
+/// }
+/// ```
+///
+/// ## Notes
+///
+/// - Loading is asynchronous - texture may not be immediately available
+/// - Large textures impact memory; consider power-of-two dimensions
+/// - Set texture filtering and wrapping after loading if needed
+/// - CORS restrictions apply for cross-origin URLs
+/// - Consider using compressed textures (KTX2) for better performance
+///
 @external(javascript, "./savoiardi.ffi.mjs", "loadTexture")
 pub fn load_texture(url: String) -> Promise(Result(Texture, Nil))
 
-/// Load an audio file from URL
+/// Loads an audio file from a URL into an AudioBuffer.
+///
+/// The AudioBuffer can be used with both global Audio and PositionalAudio.
+/// Supports common formats: MP3, OGG, WAV, AAC (browser-dependent).
+///
+/// See: [AudioLoader](https://threejs.org/docs/#api/en/loaders/AudioLoader)
+///
+/// ## Parameters
+///
+/// - `url`: Path or URL to the audio file
+///
+/// ## Example
+///
+/// ```gleam
+/// use buffer <- promise.await(load_audio("/sounds/explosion.mp3"))
+/// case buffer {
+///   Ok(audio_buffer) -> {
+///     set_audio_buffer(sound, audio_buffer)
+///     play_audio(sound)
+///   }
+///   Error(Nil) -> io.println("Failed to load audio")
+/// }
+/// ```
+///
+/// ## Notes
+///
+/// - Audio must be triggered by user interaction (browser autoplay policy)
+/// - Decoded audio is stored in memory - large files consume RAM
+/// - MP3 has best browser support; OGG better for looping
+/// - WAV files are larger but have no decoding overhead
+/// - Consider using compressed formats for music, WAV for short effects
+///
 @external(javascript, "./savoiardi.ffi.mjs", "loadAudio")
 pub fn load_audio(url: String) -> Promise(Result(AudioBuffer, Nil))
 
-/// Load an STL model from URL
+/// Loads an STL (stereolithography) model from a URL.
+///
+/// STL is common for 3D printing and CAD applications. Returns only
+/// geometry data - you'll need to create a material and mesh.
+///
+/// See: [STLLoader](https://threejs.org/docs/#examples/en/loaders/STLLoader)
+///
+/// ## Parameters
+///
+/// - `url`: Path or URL to the .stl file
+///
+/// ## Example
+///
+/// ```gleam
+/// use geometry <- promise.await(load_stl("/models/part.stl"))
+/// case geometry {
+///   Ok(geo) -> {
+///     let material = create_standard_material(0x888888, 0.5, 0.5, option.None)
+///     let mesh = create_mesh(geo, material)
+///     add_to_scene(scene, mesh)
+///   }
+///   Error(Nil) -> io.println("Failed to load STL")
+/// }
+/// ```
+///
+/// ## Notes
+///
+/// - STL contains only geometry, no materials or colors
+/// - Both ASCII and binary STL formats are supported
+/// - Binary STL is more compact and loads faster
+/// - STL has no hierarchy - always returns a single geometry
+/// - Consider computing vertex normals after loading for smooth shading
+///
 @external(javascript, "./savoiardi.ffi.mjs", "loadSTL")
 pub fn load_stl(url: String) -> Promise(Result(Geometry, Nil))
 
-/// Load a GLTF/GLB model from URL
+/// Loads a GLTF or GLB model from a URL.
+///
+/// GLTF is the recommended format for web 3D - it's efficient, well-supported,
+/// and includes materials, animations, and scene hierarchy.
+///
+/// See: [GLTFLoader](https://threejs.org/docs/#examples/en/loaders/GLTFLoader)
+///
+/// ## Parameters
+///
+/// - `url`: Path or URL to the .gltf or .glb file
+///
+/// ## Example
+///
+/// ```gleam
+/// use gltf <- promise.await(load_gltf("/models/character.glb"))
+/// case gltf {
+///   Ok(data) -> {
+///     let model = get_gltf_scene(data)
+///     add_to_scene(scene, model)
+///
+///     // If model has animations
+///     let clips = get_gltf_animations(data)
+///     let mixer = create_animation_mixer(model)
+///     // Play animations...
+///   }
+///   Error(Nil) -> io.println("Failed to load GLTF")
+/// }
+/// ```
+///
+/// ## Notes
+///
+/// - GLB is binary GLTF - single file, faster to load
+/// - GLTF may reference external textures and .bin files
+/// - Materials are automatically converted to Three.js materials
+/// - Animations are stored in `animations` array of GLTFData
+/// - Use Draco compression for smaller file sizes (requires DRACOLoader)
+/// - Consider KTX2 textures for GPU-compressed textures
+///
 @external(javascript, "./savoiardi.ffi.mjs", "loadGLTF")
 pub fn load_gltf(url: String) -> Promise(Result(GLTFData, Nil))
 
-/// Load an OBJ model from URL
+/// Loads an OBJ model from a URL.
+///
+/// OBJ is a simple, widely-supported 3D format. It contains only
+/// geometry and basic material references (via .mtl files).
+///
+/// See: [OBJLoader](https://threejs.org/docs/#examples/en/loaders/OBJLoader)
+///
+/// ## Parameters
+///
+/// - `url`: Path or URL to the .obj file
+///
+/// ## Example
+///
+/// ```gleam
+/// use model <- promise.await(load_obj("/models/furniture.obj"))
+/// case model {
+///   Ok(obj) -> {
+///     add_to_scene(scene, obj)
+///   }
+///   Error(Nil) -> io.println("Failed to load OBJ")
+/// }
+/// ```
+///
+/// ## Notes
+///
+/// - OBJ files are text-based and can be large
+/// - Materials require separate MTLLoader (not included here)
+/// - No animation support in OBJ format
+/// - Returns an Object3D that may contain multiple meshes
+/// - Consider GLTF for better features and smaller files
+///
 @external(javascript, "./savoiardi.ffi.mjs", "loadOBJ")
 pub fn load_obj(url: String) -> Promise(Result(Object3D, Nil))
 
-/// Load an FBX model from URL
+/// Loads an FBX model from a URL.
+///
+/// FBX is common in game development and supports complex animations,
+/// blend shapes, and skeletal rigs from tools like Maya and Blender.
+///
+/// See: [FBXLoader](https://threejs.org/docs/#examples/en/loaders/FBXLoader)
+///
+/// ## Parameters
+///
+/// - `url`: Path or URL to the .fbx file
+///
+/// ## Example
+///
+/// ```gleam
+/// use fbx <- promise.await(load_fbx("/models/animated_character.fbx"))
+/// case fbx {
+///   Ok(data) -> {
+///     let model = get_fbx_scene(data)
+///     add_to_scene(scene, model)
+///
+///     // Setup animation
+///     let mixer = create_animation_mixer(model)
+///     let clips = get_fbx_animations(data)
+///     // Play animations...
+///   }
+///   Error(Nil) -> io.println("Failed to load FBX")
+/// }
+/// ```
+///
+/// ## Notes
+///
+/// - FBX files can be very large (binary format recommended)
+/// - Supports skeletal animation, blend shapes, and morph targets
+/// - Materials may need adjustment for web rendering
+/// - Embedded textures are automatically extracted
+/// - Consider converting to GLTF for better web performance
+///
 @external(javascript, "./savoiardi.ffi.mjs", "loadFBX")
 pub fn load_fbx(url: String) -> Promise(Result(FBXData, Nil))
 
-/// Load a font for text geometry
+/// Loads a font file for use with TextGeometry.
+///
+/// Fonts must be in Three.js JSON format (converted from TTF/OTF).
+/// Use tools like Facetype.js to convert standard fonts.
+///
+/// See: [FontLoader](https://threejs.org/docs/#examples/en/loaders/FontLoader)
+///
+/// ## Parameters
+///
+/// - `url`: Path or URL to the JSON font file
+///
+/// ## Example
+///
+/// ```gleam
+/// use font <- promise.await(load_font("/fonts/helvetiker_regular.typeface.json"))
+/// case font {
+///   Ok(f) -> {
+///     let text_geo = create_text_geometry("Hello!", f, 1.0, 0.2, 12, 1)
+///     let material = create_basic_material(0xffffff, False, 1.0, option.None)
+///     let text_mesh = create_mesh(text_geo, material)
+///     add_to_scene(scene, text_mesh)
+///   }
+///   Error(Nil) -> io.println("Failed to load font")
+/// }
+/// ```
+///
+/// ## Notes
+///
+/// - Three.js includes helvetiker font in examples
+/// - Convert fonts at: https://gero3.github.io/facetype.js/
+/// - Only outline fonts work (no bitmap/raster fonts)
+/// - Text geometry can have many triangles - use sparingly
+/// - Consider CSS2DRenderer for 2D text overlays instead
+///
 @external(javascript, "./savoiardi.ffi.mjs", "loadFont")
 pub fn load_font(url: String) -> Promise(Result(Font, Nil))
 
-/// Load an equirectangular (360°) texture from URL
+/// Loads an equirectangular (360°) texture for environment maps or skyboxes.
+///
+/// Equirectangular images are panoramic photos mapped to a sphere.
+/// Commonly used for HDR environment lighting and reflections.
+///
+/// See: [RGBELoader](https://threejs.org/docs/#examples/en/loaders/RGBELoader)
+///
+/// ## Parameters
+///
+/// - `url`: Path or URL to the equirectangular image (HDR, EXR, or standard image)
+///
+/// ## Example
+///
+/// ```gleam
+/// use env_texture <- promise.await(load_equirectangular_texture("/env/studio.hdr"))
+/// case env_texture {
+///   Ok(tex) -> {
+///     // Use as scene background
+///     set_scene_background_texture(scene, tex)
+///     // Or use for PBR environment lighting
+///     set_scene_environment(scene, tex)
+///   }
+///   Error(Nil) -> io.println("Failed to load environment")
+/// }
+/// ```
+///
+/// ## Notes
+///
+/// - HDR/EXR provide better lighting than LDR images
+/// - Set texture mapping to EquirectangularReflectionMapping
+/// - Large panoramas impact memory and load time
+/// - Consider pre-processed cubemaps for better performance
+/// - PMREMGenerator can convert to optimized environment maps
+///
 @external(javascript, "./savoiardi.ffi.mjs", "loadEquirectangularTexture")
 pub fn load_equirectangular_texture(
   url: String,
 ) -> Promise(Result(Texture, Nil))
 
-/// Load a cube texture (skybox) from 6 URLs [px, nx, py, ny, pz, nz]
+/// Loads a cube texture (skybox) from 6 image URLs.
+///
+/// Cube textures use 6 images representing the faces of a cube:
+/// positive X, negative X, positive Y, negative Y, positive Z, negative Z.
+///
+/// See: [CubeTextureLoader](https://threejs.org/docs/#api/en/loaders/CubeTextureLoader)
+///
+/// ## Parameters
+///
+/// - `urls`: List of 6 URLs in order: [+X, -X, +Y, -Y, +Z, -Z]
+///
+/// ## Example
+///
+/// ```gleam
+/// let skybox_urls = [
+///   "/skybox/px.jpg",  // positive X (right)
+///   "/skybox/nx.jpg",  // negative X (left)
+///   "/skybox/py.jpg",  // positive Y (top)
+///   "/skybox/ny.jpg",  // negative Y (bottom)
+///   "/skybox/pz.jpg",  // positive Z (front)
+///   "/skybox/nz.jpg",  // negative Z (back)
+/// ]
+///
+/// use cube_tex <- promise.await(load_cube_texture(skybox_urls))
+/// case cube_tex {
+///   Ok(tex) -> set_scene_background_cube_texture(scene, tex)
+///   Error(Nil) -> io.println("Failed to load skybox")
+/// }
+/// ```
+///
+/// ## Notes
+///
+/// - All 6 images must be the same size and square
+/// - Power-of-two dimensions recommended (512, 1024, 2048)
+/// - More efficient than equirectangular for real-time skyboxes
+/// - Can also be used for reflection/environment mapping
+/// - Consider compressed textures for large skyboxes
+///
 @external(javascript, "./savoiardi.ffi.mjs", "loadCubeTexture")
 pub fn load_cube_texture(
   urls: List(String),
@@ -2894,53 +3817,337 @@ pub fn load_cube_texture(
 // POSITIONAL AUDIO OPERATIONS
 // ============================================================================
 
-/// Set buffer on positional audio
+/// Sets the audio buffer for a positional audio source.
+///
+/// The buffer contains the decoded audio data to play. Must be set
+/// before playing the audio.
+///
+/// See: [PositionalAudio.setBuffer](https://threejs.org/docs/#api/en/audio/PositionalAudio.setBuffer)
+///
+/// ## Parameters
+///
+/// - `audio`: The positional audio source
+/// - `buffer`: Decoded audio buffer from `load_audio`
+///
+/// ## Example
+///
+/// ```gleam
+/// use buffer <- promise.await(load_audio("/sounds/engine.mp3"))
+/// case buffer {
+///   Ok(audio_buffer) -> {
+///     set_positional_audio_buffer(car_sound, audio_buffer)
+///     set_positional_audio_loop(car_sound, True)
+///     play_positional_audio(car_sound)
+///   }
+///   Error(Nil) -> Nil
+/// }
+/// ```
+///
+/// ## Notes
+///
+/// - Buffer must be set before calling play
+/// - Same buffer can be shared between multiple audio sources
+/// - Buffer stays in memory until explicitly released
+///
 @external(javascript, "./savoiardi.ffi.mjs", "setAudioBuffer")
 pub fn set_positional_audio_buffer(
   audio: PositionalAudio,
   buffer: AudioBuffer,
 ) -> Nil
 
-/// Set volume on positional audio
+/// Sets the volume for a positional audio source.
+///
+/// Volume is a multiplier for the audio output. This is the base volume
+/// before distance attenuation is applied.
+///
+/// See: [PositionalAudio.setVolume](https://threejs.org/docs/#api/en/audio/PositionalAudio.setVolume)
+///
+/// ## Parameters
+///
+/// - `audio`: The positional audio source
+/// - `volume`: Volume level (0.0 = silent, 1.0 = full volume)
+///
+/// ## Example
+///
+/// ```gleam
+/// // Set ambient sound to half volume
+/// set_positional_audio_volume(forest_ambience, 0.5)
+///
+/// // Mute temporarily
+/// set_positional_audio_volume(music, 0.0)
+/// ```
+///
+/// ## Notes
+///
+/// - Values above 1.0 amplify the sound (may cause clipping)
+/// - Actual heard volume also depends on listener distance
+/// - Use fade functions for smooth volume transitions
+///
 @external(javascript, "./savoiardi.ffi.mjs", "setAudioVolume")
 pub fn set_positional_audio_volume(audio: PositionalAudio, volume: Float) -> Nil
 
-/// Set loop on positional audio
+/// Enables or disables looping for a positional audio source.
+///
+/// When enabled, the audio will restart from the beginning when it
+/// reaches the end.
+///
+/// See: [PositionalAudio.setLoop](https://threejs.org/docs/#api/en/audio/PositionalAudio.setLoop)
+///
+/// ## Parameters
+///
+/// - `audio`: The positional audio source
+/// - `loop`: `True` to enable looping, `False` for one-shot playback
+///
+/// ## Example
+///
+/// ```gleam
+/// // Background music should loop
+/// set_positional_audio_loop(music, True)
+///
+/// // Sound effects play once
+/// set_positional_audio_loop(explosion_sound, False)
+/// ```
+///
+/// ## Notes
+///
+/// - Can be changed while audio is playing
+/// - OGG format handles looping better than MP3 (no gaps)
+/// - For seamless loops, ensure audio file is properly trimmed
+///
 @external(javascript, "./savoiardi.ffi.mjs", "setAudioLoop")
 pub fn set_positional_audio_loop(audio: PositionalAudio, loop: Bool) -> Nil
 
-/// Set playback rate on positional audio
+/// Sets the playback rate for a positional audio source.
+///
+/// Changes both the speed and pitch of the audio playback.
+///
+/// See: [PositionalAudio.setPlaybackRate](https://threejs.org/docs/#api/en/audio/PositionalAudio.setPlaybackRate)
+///
+/// ## Parameters
+///
+/// - `audio`: The positional audio source
+/// - `rate`: Playback speed (1.0 = normal, 2.0 = double speed, 0.5 = half speed)
+///
+/// ## Example
+///
+/// ```gleam
+/// // Simulate engine revving up
+/// set_positional_audio_playback_rate(engine_sound, 1.5)
+///
+/// // Slow motion effect
+/// set_positional_audio_playback_rate(sound, 0.5)
+/// ```
+///
+/// ## Notes
+///
+/// - Changes pitch proportionally (higher rate = higher pitch)
+/// - Values below 0.5 or above 4.0 may sound unnatural
+/// - Good for simulating Doppler effect or engine RPM
+/// - Can be changed while audio is playing for dynamic effects
+///
 @external(javascript, "./savoiardi.ffi.mjs", "setAudioPlaybackRate")
 pub fn set_positional_audio_playback_rate(
   audio: PositionalAudio,
   rate: Float,
 ) -> Nil
 
-/// Play positional audio
+/// Starts playback of a positional audio source.
+///
+/// If the audio was paused, resumes from the paused position.
+/// If stopped, starts from the beginning.
+///
+/// See: [PositionalAudio.play](https://threejs.org/docs/#api/en/audio/PositionalAudio.play)
+///
+/// ## Parameters
+///
+/// - `audio`: The positional audio source to play
+///
+/// ## Example
+///
+/// ```gleam
+/// // Start playing after buffer is loaded
+/// case has_positional_audio_buffer(sound) {
+///   True -> play_positional_audio(sound)
+///   False -> io.println("Buffer not loaded yet")
+/// }
+/// ```
+///
+/// ## Notes
+///
+/// - Requires user interaction first (browser autoplay policy)
+/// - Buffer must be set before calling play
+/// - Calling play on already playing audio restarts it
+/// - Use `is_positional_audio_playing` to check state first
+///
 @external(javascript, "./savoiardi.ffi.mjs", "playAudio")
 pub fn play_positional_audio(audio: PositionalAudio) -> Nil
 
-/// Pause positional audio
+/// Pauses playback of a positional audio source.
+///
+/// The playback position is preserved and can be resumed with play.
+///
+/// See: [PositionalAudio.pause](https://threejs.org/docs/#api/en/audio/PositionalAudio.pause)
+///
+/// ## Parameters
+///
+/// - `audio`: The positional audio source to pause
+///
+/// ## Example
+///
+/// ```gleam
+/// // Pause when game is paused
+/// pause_positional_audio(background_music)
+///
+/// // Resume when game continues
+/// play_positional_audio(background_music)
+/// ```
+///
+/// ## Notes
+///
+/// - Preserves playback position
+/// - Has no effect if audio is not playing
+/// - Better than stop for temporary pauses
+///
 @external(javascript, "./savoiardi.ffi.mjs", "pauseAudio")
 pub fn pause_positional_audio(audio: PositionalAudio) -> Nil
 
-/// Stop positional audio
+/// Stops playback of a positional audio source.
+///
+/// Resets the playback position to the beginning.
+///
+/// See: [PositionalAudio.stop](https://threejs.org/docs/#api/en/audio/PositionalAudio.stop)
+///
+/// ## Parameters
+///
+/// - `audio`: The positional audio source to stop
+///
+/// ## Example
+///
+/// ```gleam
+/// // Stop sound effect
+/// stop_positional_audio(explosion_sound)
+///
+/// // Play again from start
+/// play_positional_audio(explosion_sound)
+/// ```
+///
+/// ## Notes
+///
+/// - Resets position to beginning (unlike pause)
+/// - Has no effect if audio is not playing
+/// - Use for one-shot sounds or complete restarts
+///
 @external(javascript, "./savoiardi.ffi.mjs", "stopAudio")
 pub fn stop_positional_audio(audio: PositionalAudio) -> Nil
 
-/// Check if positional audio is playing
+/// Checks if a positional audio source is currently playing.
+///
+/// See: [PositionalAudio.isPlaying](https://threejs.org/docs/#api/en/audio/PositionalAudio.isPlaying)
+///
+/// ## Parameters
+///
+/// - `audio`: The positional audio source to check
+///
+/// ## Returns
+///
+/// `True` if the audio is currently playing, `False` otherwise.
+///
+/// ## Example
+///
+/// ```gleam
+/// case is_positional_audio_playing(music) {
+///   True -> pause_positional_audio(music)
+///   False -> play_positional_audio(music)
+/// }
+/// ```
+///
 @external(javascript, "./savoiardi.ffi.mjs", "isAudioPlaying")
 pub fn is_positional_audio_playing(audio: PositionalAudio) -> Bool
 
-/// Check if positional audio has a buffer
+/// Checks if a positional audio source has a buffer loaded.
+///
+/// Useful to verify audio is ready before attempting playback.
+///
+/// See: [PositionalAudio.buffer](https://threejs.org/docs/#api/en/audio/PositionalAudio)
+///
+/// ## Parameters
+///
+/// - `audio`: The positional audio source to check
+///
+/// ## Returns
+///
+/// `True` if a buffer has been set, `False` otherwise.
+///
+/// ## Example
+///
+/// ```gleam
+/// // Only play if buffer is ready
+/// case has_positional_audio_buffer(sound) {
+///   True -> play_positional_audio(sound)
+///   False -> {
+///     // Buffer still loading, queue for later
+///     io.println("Audio not ready")
+///   }
+/// }
+/// ```
+///
 @external(javascript, "./savoiardi.ffi.mjs", "hasAudioBuffer")
 pub fn has_positional_audio_buffer(audio: PositionalAudio) -> Bool
 
-/// Get loop state of positional audio
+/// Gets the loop state of a positional audio source.
+///
+/// See: [PositionalAudio.loop](https://threejs.org/docs/#api/en/audio/PositionalAudio)
+///
+/// ## Parameters
+///
+/// - `audio`: The positional audio source to check
+///
+/// ## Returns
+///
+/// `True` if looping is enabled, `False` otherwise.
+///
+/// ## Example
+///
+/// ```gleam
+/// // Toggle loop state
+/// let current_loop = get_positional_audio_loop(music)
+/// set_positional_audio_loop(music, !current_loop)
+/// ```
+///
 @external(javascript, "./savoiardi.ffi.mjs", "getAudioLoop")
 pub fn get_positional_audio_loop(audio: PositionalAudio) -> Bool
 
-/// Play positional audio with fade in
+/// Starts playback of a positional audio source with a fade-in effect.
+///
+/// The volume starts at 0 and smoothly increases to the target volume
+/// over the specified duration.
+///
+/// ## Parameters
+///
+/// - `audio`: The positional audio source to play
+/// - `fade_duration`: Duration over which to fade in
+/// - `target_volume`: Final volume level (0.0 to 1.0)
+///
+/// ## Example
+///
+/// ```gleam
+/// import birl/duration
+///
+/// // Fade in music over 2 seconds to 80% volume
+/// play_positional_audio_with_fade_in(
+///   music,
+///   duration.seconds(2),
+///   0.8,
+/// )
+/// ```
+///
+/// ## Notes
+///
+/// - Starts playing immediately at volume 0
+/// - Volume ramps up linearly over the duration
+/// - Good for music and ambient sounds
+/// - Buffer must be loaded before calling
+///
 pub fn play_positional_audio_with_fade_in(
   audio: PositionalAudio,
   fade_duration: Duration,
@@ -2957,7 +4164,44 @@ fn play_positional_audio_with_fade_in_ffi(
   target_volume: Float,
 ) -> Nil
 
-/// Stop positional audio with fade out
+/// Stops playback of a positional audio source with a fade-out effect.
+///
+/// The volume smoothly decreases to 0 over the specified duration,
+/// then either stops or pauses the audio.
+///
+/// ## Parameters
+///
+/// - `audio`: The positional audio source to stop
+/// - `fade_duration`: Duration over which to fade out
+/// - `pause_instead_of_stop`: `True` to pause (preserving position), `False` to stop
+///
+/// ## Example
+///
+/// ```gleam
+/// import birl/duration
+///
+/// // Fade out and stop music over 3 seconds
+/// stop_positional_audio_with_fade_out(
+///   music,
+///   duration.seconds(3),
+///   False,  // Stop completely
+/// )
+///
+/// // Fade out and pause (can resume later)
+/// stop_positional_audio_with_fade_out(
+///   music,
+///   duration.seconds(1),
+///   True,   // Just pause
+/// )
+/// ```
+///
+/// ## Notes
+///
+/// - Volume ramps down linearly over the duration
+/// - Audio actually stops/pauses when fade completes
+/// - Set `pause_instead_of_stop` to `True` to resume from same position later
+/// - Good for scene transitions and game pausing
+///
 pub fn stop_positional_audio_with_fade_out(
   audio: PositionalAudio,
   fade_duration: Duration,
