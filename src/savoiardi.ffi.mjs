@@ -15,9 +15,19 @@ import { FontLoader } from 'three/addons/loaders/FontLoader.js';
 import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
 import { STLLoader } from 'three/addons/loaders/STLLoader.js';
 import { FBXLoader } from 'three/addons/loaders/FBXLoader.js';
+// Import from Gleam prelude for constructing Gleam types
+// Each package has its own gleam.mjs prelude in the build output
+import { Result$Ok, Result$Error } from './gleam.mjs';
+// Import from vec package for Vec3 constructor
 import { Vec3$Vec3 } from '../vec/vec/vec3.mjs';
-import { Result$Ok, Result$Error } from '../prelude.mjs';
+// Import from gleam_stdlib for Option helpers
 import { Option$isSome, Option$Some$0 } from '../gleam_stdlib/gleam/option.mjs';
+import { Quaternion$Quaternion } from '../quaterni/quaternion.mjs';
+
+// Identity function for type casting
+export function identity(x) {
+  return x;
+}
 
 
 
@@ -165,21 +175,6 @@ export function getCanvasClientHeight(canvas) {
   return canvas.clientHeight;
 }
 
-/**
- * Get window inner width
- * @returns {number}
- */
-export function getWindowWidth() {
-  return window.innerWidth;
-}
-
-/**
- * Get window inner height
- * @returns {number}
- */
-export function getWindowHeight() {
-  return window.innerHeight;
-}
 
 // Global active camera reference
 let globalCamera = null;
@@ -339,13 +334,11 @@ export function setCameraAspect(camera, aspect) {
 /**
  * Set camera to look at a point
  * @param {THREE.Camera} camera
- * @param {number} x
- * @param {number} y
- * @param {number} z
+ * @param {Vec3} target
  */
-export function cameraLookAt(camera, x, y, z) {
+export function cameraLookAt(camera, target) {
   camera.updateMatrixWorld(true);
-  camera.lookAt(x, y, z);
+  camera.lookAt(target.x, target.y, target.z);
 }
 
 // ============================================================================
@@ -971,34 +964,28 @@ export function removeChild(parent, child) {
 /**
  * Set position
  * @param {THREE.Object3D} object
- * @param {number} x
- * @param {number} y
- * @param {number} z
+ * @param {Vec3} position
  */
-export function setPosition(object, x, y, z) {
-  object.position.set(x, y, z);
+export function setPosition(object, position) {
+  object.position.set(position.x, position.y, position.z);
 }
 
 /**
  * Set rotation
  * @param {THREE.Object3D} object
- * @param {number} x
- * @param {number} y
- * @param {number} z
+ * @param {Vec3} rotation
  */
-export function setRotation(object, x, y, z) {
-  object.rotation.set(x, y, z);
+export function setRotation(object, rotation) {
+  object.rotation.set(rotation.x, rotation.y, rotation.z);
 }
 
 /**
  * Set scale
  * @param {THREE.Object3D} object
- * @param {number} x
- * @param {number} y
- * @param {number} z
+ * @param {Vec3} scale
  */
-export function setScale(object, x, y, z) {
-  object.scale.set(x, y, z);
+export function setScale(object, scale) {
+  object.scale.set(scale.x, scale.y, scale.z);
 }
 
 /**
@@ -1039,7 +1026,7 @@ export function getWorldPosition(object) {
 export function getWorldQuaternion(object) {
   const worldQuat = new THREE.Quaternion();
   object.getWorldQuaternion(worldQuat);
-  return [worldQuat.x, worldQuat.y, worldQuat.z, worldQuat.w];
+  return Quaternion$Quaternion(worldQuat.x, worldQuat.y, worldQuat.z, worldQuat.w);
 }
 
 /**
@@ -1625,47 +1612,11 @@ export function createMatrix4() {
  * @param {THREE.Vector3} scale
  */
 export function composeMatrix(matrix, position, quaternion, scale) {
-  matrix.compose(position, quaternion, scale);
+  // quaternion is a Gleam Quaternion record with x, y, z, w fields
+  const threeQuat = new THREE.Quaternion(quaternion.x, quaternion.y, quaternion.z, quaternion.w);
+  matrix.compose(position, threeQuat, scale);
 }
 
-/**
- * Create Vector3
- * @param {number} x
- * @param {number} y
- * @param {number} z
- * @returns {THREE.Vector3}
- */
-export function createVector3(x, y, z) {
-  return new THREE.Vector3(x, y, z);
-}
-
-/**
- * Create Euler
- * @param {number} x
- * @param {number} y
- * @param {number} z
- * @returns {THREE.Euler}
- */
-export function createEuler(x, y, z) {
-  return new THREE.Euler(x, y, z);
-}
-
-/**
- * Create Quaternion
- * @returns {THREE.Quaternion}
- */
-export function createQuaternion() {
-  return new THREE.Quaternion();
-}
-
-/**
- * Set quaternion from Euler
- * @param {THREE.Quaternion} quaternion
- * @param {THREE.Euler} euler
- */
-export function setQuaternionFromEuler(quaternion, euler) {
-  quaternion.setFromEuler(euler);
-}
 
 /**
  * Create Color
@@ -2027,15 +1978,13 @@ export function getAttribute(geometry, name) {
  * Set XYZ values in buffer attribute at index
  * @param {THREE.BufferAttribute} attribute
  * @param {number} index
- * @param {number} x
- * @param {number} y
- * @param {number} z
+ * @param {Vec3} value
  */
-export function setBufferXYZ(attribute, index, x, y, z) {
+export function setBufferXYZ(attribute, index, value) {
   const i = index * 3;
-  attribute.array[i] = x;
-  attribute.array[i + 1] = y;
-  attribute.array[i + 2] = z;
+  attribute.array[i] = value.x;
+  attribute.array[i + 1] = value.y;
+  attribute.array[i + 2] = value.z;
 }
 
 /**
@@ -2065,20 +2014,14 @@ export function setAttributeNeedsUpdate(attribute, needsUpdate) {
 /**
  * Apply transform to Three.js object
  * @param {THREE.Object3D} object
- * @param {number} px - position x
- * @param {number} py - position y
- * @param {number} pz - position z
- * @param {number} rx - rotation x (Euler)
- * @param {number} ry - rotation y (Euler)
- * @param {number} rz - rotation z (Euler)
- * @param {number} sx - scale x
- * @param {number} sy - scale y
- * @param {number} sz - scale z
+ * @param {Vec3 } position - Gleam Vec3
+ * @param {Vec3 } rotation - Gleam Vec3 (Euler angles in radians)
+ * @param {Vec3 } scale - Gleam Vec3
  */
-export function applyTransform(object, px, py, pz, rx, ry, rz, sx, sy, sz) {
-  object.position.set(px, py, pz);
-  object.rotation.set(rx, ry, rz);
-  object.scale.set(sx, sy, sz);
+export function applyTransform(object, position, rotation, scale) {
+  object.position.set(position.x, position.y, position.z);
+  object.rotation.set(rotation.x, rotation.y, rotation.z);
+  object.scale.set(scale.x, scale.y, scale.z);
 }
 
 /**
@@ -2180,19 +2123,26 @@ export function hasCameraUserData(camera, key) {
 /**
  * Update instanced mesh transforms
  * @param {THREE.InstancedMesh} mesh
- * @param {Array} instances - Array of {position: {x,y,z}, rotation: {x,y,z}, scale: {x,y,z}}
+ * @param {Array} instances - Gleam List of tuples: #(Vec3 position, Vec3 euler_rotation, Vec3 scale)
  */
 export function updateInstancedMeshTransforms(mesh, instances) {
   const matrix = new THREE.Matrix4();
   const position = new THREE.Vector3();
+  const euler = new THREE.Euler();
   const quaternion = new THREE.Quaternion();
   const scale = new THREE.Vector3();
 
   let i = 0;
   for (const inst of instances) {
-    position.set(inst.position.x, inst.position.y, inst.position.z);
-    quaternion.set(inst.rotation.x, inst.rotation.y, inst.rotation.z, inst.rotation.w);
-    scale.set(inst.scale.x, inst.scale.y, inst.scale.z);
+    // Gleam tuple is a 3-element array: [position_vec3, rotation_vec3, scale_vec3]
+    const posVec = inst[0];
+    const rotVec = inst[1];
+    const scaleVec = inst[2];
+
+    position.set(posVec.x, posVec.y, posVec.z);
+    euler.set(rotVec.x, rotVec.y, rotVec.z);
+    quaternion.setFromEuler(euler);
+    scale.set(scaleVec.x, scaleVec.y, scaleVec.z);
 
     matrix.compose(position, quaternion, scale);
 
@@ -2365,24 +2315,21 @@ export function getObjectScale(object) {
  * @returns {Array[Number]} - Gleam Quaternion
  */
 export function getObjectQuaternion(object) {
-  return [
+  return Quaternion$Quaternion(
     object.quaternion.x,
     object.quaternion.y,
     object.quaternion.z,
     object.quaternion.w
-  ];
+  );
 }
 
 /**
  * Set object quaternion
  * @param {THREE.Object3D} object
- * @param {number} x
- * @param {number} y
- * @param {number} z
- * @param {number} w
+ * @param {Quaternion} quaternion
  */
-export function setObjectQuaternion(object, x, y, z, w) {
-  object.quaternion.set(x, y, z, w);
+export function setObjectQuaternion(object, quaternion) {
+  object.quaternion.set(quaternion.x, quaternion.y, quaternion.z, quaternion.w);
 }
 
 // ============================================================================
