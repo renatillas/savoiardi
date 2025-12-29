@@ -35,8 +35,6 @@
 ////     functions: [
 ////       "create_perspective_camera",
 ////       "create_orthographic_camera",
-////       "set_active_camera",
-////       "get_active_camera",
 ////       "set_camera_aspect",
 ////       "set_camera_look_at",
 ////       "update_camera_projection_matrix",
@@ -182,8 +180,6 @@
 ////       "is_audio_playing",
 ////       "has_audio_buffer",
 ////       "get_audio_loop",
-////       "play_audio_with_fade_in",
-////       "stop_audio_with_fade_out",
 ////       "get_audio_context_state",
 ////       "resume_audio_context"
 ////     ]
@@ -201,8 +197,6 @@
 ////       "is_positional_audio_playing",
 ////       "has_positional_audio_buffer",
 ////       "get_positional_audio_loop",
-////       "play_positional_audio_with_fade_in",
-////       "stop_positional_audio_with_fade_out",
 ////       "set_ref_distance",
 ////       "set_rolloff_factor",
 ////       "set_max_distance"
@@ -289,35 +283,16 @@
 ////     ]
 ////   },
 ////   {
-////     header: "Canvas Sprites",
-////     functions: [
-////       "create_canvas_texture_from_picture",
-////       "create_canvas_plane",
-////       "update_canvas_texture",
-////       "update_canvas_size",
-////       "get_canvas_cached_picture",
-////       "set_canvas_cached_picture"
-////     ]
-////   },
-////   {
 ////     header: "Debug Helpers",
 ////     functions: [
 ////       "create_axes_helper",
 ////       "create_grid_helper",
-////       "create_box_helper",
-////       "create_debug_box",
-////       "create_debug_sphere",
-////       "create_debug_line",
-////       "create_debug_axes",
-////       "create_debug_grid",
-////       "create_debug_point"
+////       "create_box_helper"
 ////     ]
 ////   },
 ////   {
 ////     header: "Canvas",
 ////     functions: [
-////       "set_canvas",
-////       "get_canvas",
 ////       "get_canvas_client_width",
 ////       "get_canvas_client_height"
 ////     ]
@@ -521,7 +496,6 @@
 import gleam/javascript/array
 import gleam/javascript/promise.{type Promise}
 import gleam/option.{type Option}
-import gleam/time/duration.{type Duration}
 import quaternion.{type Quaternion}
 import vec/vec3.{type Vec3}
 
@@ -1126,19 +1100,6 @@ pub fn get_render_stats(renderer: Renderer) -> #(Int, Int)
 // CANVAS
 // ============================================================================
 
-/// Sets the global canvas reference for the library.
-///
-/// Some operations require access to the canvas element. This stores a
-/// reference that can be retrieved with `get_canvas`.
-@external(javascript, "./savoiardi.ffi.mjs", "setCanvas")
-pub fn set_canvas(canvas: Canvas) -> Nil
-
-/// Gets the global canvas reference.
-///
-/// Returns the canvas previously set with `set_canvas`.
-@external(javascript, "./savoiardi.ffi.mjs", "getCanvas")
-pub fn get_canvas() -> Canvas
-
 /// Gets the canvas client width (CSS pixels).
 ///
 /// Accesses [Element.clientWidth](https://developer.mozilla.org/en-US/docs/Web/API/Element/clientWidth).
@@ -1156,19 +1117,6 @@ pub fn get_canvas_client_height(canvas: Canvas) -> Float
 // ============================================================================
 // CAMERA
 // ============================================================================
-
-/// Sets the active camera for global access.
-///
-/// Stores a reference to the camera that can be retrieved with `get_active_camera`.
-/// Useful for systems that need access to the current camera without passing it around.
-@external(javascript, "./savoiardi.ffi.mjs", "setActiveCamera")
-pub fn set_active_camera(camera: Camera) -> Nil
-
-/// Gets the currently active camera.
-///
-/// Returns the camera previously set with `set_active_camera`.
-@external(javascript, "./savoiardi.ffi.mjs", "getActiveCamera")
-pub fn get_active_camera() -> Camera
 
 /// Creates a [PerspectiveCamera](https://threejs.org/docs/#api/en/cameras/PerspectiveCamera).
 ///
@@ -2581,76 +2529,6 @@ pub fn get_audio_context_state() -> String
 @external(javascript, "./savoiardi.ffi.mjs", "resumeAudioContext")
 pub fn resume_audio_context() -> Nil
 
-/// Plays audio with a fade-in effect.
-///
-/// Starts playback at zero volume and gradually increases to target volume.
-/// Useful for smooth audio transitions.
-///
-/// ## Parameters
-///
-/// - `audio` - The audio object to play
-/// - `fade_duration` - Duration of the fade-in effect
-/// - `target_volume` - Final volume (0.0 to 1.0)
-///
-/// ## Example
-///
-/// ```gleam
-/// import gleam/time/duration
-///
-/// // Fade in over 2 seconds to 80% volume
-/// play_audio_with_fade_in(music, duration.seconds(2), 0.8)
-/// ```
-pub fn play_audio_with_fade_in(
-  audio: Audio,
-  fade_duration: Duration,
-  target_volume: Float,
-) -> Nil {
-  let fade_ms = duration.to_seconds(fade_duration) *. 1000.0
-  play_audio_with_fade_in_ffi(audio, fade_ms, target_volume)
-}
-
-@external(javascript, "./savoiardi.ffi.mjs", "playAudioWithFadeIn")
-fn play_audio_with_fade_in_ffi(
-  audio: Audio,
-  fade_duration_ms: Float,
-  target_volume: Float,
-) -> Nil
-
-/// Stops audio with a fade-out effect.
-///
-/// Gradually decreases volume to zero, then stops or pauses.
-/// Useful for smooth audio transitions.
-///
-/// ## Parameters
-///
-/// - `audio` - The audio object to stop
-/// - `fade_duration` - Duration of the fade-out effect
-/// - `pause_instead_of_stop` - If `True`, pauses (can resume); if `False`, stops (resets to beginning)
-///
-/// ## Example
-///
-/// ```gleam
-/// import gleam/time/duration
-///
-/// // Fade out over 1 second, then stop
-/// stop_audio_with_fade_out(music, duration.seconds(1), False)
-/// ```
-pub fn stop_audio_with_fade_out(
-  audio: Audio,
-  fade_duration: Duration,
-  pause_instead_of_stop: Bool,
-) -> Nil {
-  let fade_ms = duration.to_seconds(fade_duration) *. 1000.0
-  stop_audio_with_fade_out_ffi(audio, fade_ms, pause_instead_of_stop)
-}
-
-@external(javascript, "./savoiardi.ffi.mjs", "stopAudioWithFadeOut")
-fn stop_audio_with_fade_out_ffi(
-  audio: Audio,
-  fade_duration_ms: Float,
-  pause_instead_of_stop: Bool,
-) -> Nil
-
 // ============================================================================
 // DEBUG HELPERS
 // ============================================================================
@@ -3185,95 +3063,6 @@ pub fn dispose_geometry(geometry: Geometry) -> Nil
 pub fn dispose_material(material: Material) -> Nil
 
 // ============================================================================
-// DEBUG VISUALIZATION
-// ============================================================================
-
-/// Creates a debug wireframe box between two points.
-///
-/// Useful for visualizing bounding boxes, collision volumes, and spatial regions.
-///
-/// ## Parameters
-///
-/// - `min` - Minimum corner (lower-left-back)
-/// - `max` - Maximum corner (upper-right-front)
-/// - `color` - Wireframe color as hex
-@external(javascript, "./savoiardi.ffi.mjs", "createDebugBox")
-pub fn create_debug_box(
-  min: Vec3(Float),
-  max: Vec3(Float),
-  color: Int,
-) -> Object3D
-
-/// Creates a debug wireframe sphere.
-///
-/// Useful for visualizing collision spheres, ranges, and influence areas.
-///
-/// ## Parameters
-///
-/// - `center` - Sphere center position
-/// - `radius` - Sphere radius
-/// - `color` - Wireframe color as hex
-@external(javascript, "./savoiardi.ffi.mjs", "createDebugSphere")
-pub fn create_debug_sphere(
-  center: Vec3(Float),
-  radius: Float,
-  color: Int,
-) -> Object3D
-
-/// Creates a debug line between two points.
-///
-/// Useful for visualizing vectors, rays, and connections.
-///
-/// ## Parameters
-///
-/// - `from` - Line start position
-/// - `to` - Line end position
-/// - `color` - Line color as hex
-@external(javascript, "./savoiardi.ffi.mjs", "createDebugLine")
-pub fn create_debug_line(
-  from: Vec3(Float),
-  to: Vec3(Float),
-  color: Int,
-) -> Object3D
-
-/// Creates debug coordinate axes at a position.
-///
-/// Shows X (red), Y (green), Z (blue) axes.
-///
-/// ## Parameters
-///
-/// - `origin` - Position for the axes
-/// - `size` - Length of each axis line
-@external(javascript, "./savoiardi.ffi.mjs", "createDebugAxes")
-pub fn create_debug_axes(origin: Vec3(Float), size: Float) -> Object3D
-
-/// Creates a debug grid on the XZ plane.
-///
-/// ## Parameters
-///
-/// - `size` - Total grid size
-/// - `divisions` - Number of grid divisions
-/// - `color` - Grid line color as hex
-@external(javascript, "./savoiardi.ffi.mjs", "createDebugGrid")
-pub fn create_debug_grid(size: Float, divisions: Int, color: Int) -> Object3D
-
-/// Creates a debug point marker.
-///
-/// Renders as a small sphere at the specified position.
-///
-/// ## Parameters
-///
-/// - `position` - Point position
-/// - `size` - Marker size
-/// - `color` - Marker color as hex
-@external(javascript, "./savoiardi.ffi.mjs", "createDebugPoint")
-pub fn create_debug_point(
-  position: Vec3(Float),
-  size: Float,
-  color: Int,
-) -> Object3D
-
-// ============================================================================
 // CSS2D RENDERER
 // ============================================================================
 
@@ -3340,70 +3129,6 @@ pub fn create_css3d_object(html: String) -> CSS3DObject
 /// Updates the HTML content of a CSS3DObject.
 @external(javascript, "./savoiardi.ffi.mjs", "updateCSS3DObjectHTML")
 pub fn update_css3d_object_html(object: CSS3DObject, html: String) -> Nil
-
-// ============================================================================
-// CANVAS SPRITE LABELS
-// ============================================================================
-
-/// Creates a texture from an encoded picture.
-///
-/// Used for rendering 2D canvas content (like text labels) onto 3D planes.
-/// The encoded picture is typically from a 2D drawing library.
-///
-/// ## Parameters
-///
-/// - `encoded_picture` - Base64 or data URL encoded image
-/// - `width` - Texture width in pixels
-/// - `height` - Texture height in pixels
-@external(javascript, "./savoiardi.ffi.mjs", "createCanvasTextureFromPicture")
-pub fn create_canvas_texture_from_picture(
-  encoded_picture: String,
-  width: Int,
-  height: Int,
-) -> Texture
-
-/// Creates a plane mesh with a canvas texture.
-///
-/// Creates a billboard-like plane that can display 2D content in 3D space.
-///
-/// ## Parameters
-///
-/// - `texture` - The canvas texture to display
-/// - `width` - Plane width in world units
-/// - `height` - Plane height in world units
-@external(javascript, "./savoiardi.ffi.mjs", "createCanvasPlane")
-pub fn create_canvas_plane(
-  texture: Texture,
-  width: Float,
-  height: Float,
-) -> Object3D
-
-/// Updates the texture on a canvas plane.
-///
-/// Replaces the current texture with a new one.
-@external(javascript, "./savoiardi.ffi.mjs", "updateCanvasTexture")
-pub fn update_canvas_texture(object: Object3D, texture: Texture) -> Nil
-
-/// Updates the size of a canvas plane.
-///
-/// Changes the plane geometry dimensions.
-@external(javascript, "./savoiardi.ffi.mjs", "updateCanvasSize")
-pub fn update_canvas_size(object: Object3D, width: Float, height: Float) -> Nil
-
-/// Gets the cached encoded picture from a canvas object.
-///
-/// Used for dirty-checking to avoid unnecessary texture updates.
-@external(javascript, "./savoiardi.ffi.mjs", "getCanvasCachedPicture")
-pub fn get_canvas_cached_picture(object: Object3D) -> String
-
-/// Stores an encoded picture in a canvas object for caching.
-///
-/// Used to track the current content and avoid redundant updates.
-@external(javascript, "./savoiardi.ffi.mjs", "setCanvasCachedPicture")
-pub fn set_canvas_cached_picture(
-  object: Object3D,
-  encoded_picture: String,
-) -> Nil
 
 // ============================================================================
 // UTILITY FUNCTIONS
@@ -3578,6 +3303,39 @@ pub fn load_audio(url: String) -> Promise(Result(AudioBuffer, Nil))
 ///
 @external(javascript, "./savoiardi.ffi.mjs", "loadSTL")
 pub fn load_stl(url: String) -> Promise(Result(Geometry, Nil))
+
+/// Centers a geometry around its bounding box center.
+///
+/// This is useful for STL or OBJ models that need to rotate around their
+/// geometric center rather than their original origin point.
+///
+/// Many CAD-exported models have their origin at an arbitrary location.
+/// Call this function after loading to ensure the model rotates around
+/// its visual center.
+///
+/// ## Example
+///
+/// ```gleam
+/// use result <- promise.await(load_stl("/models/part.stl"))
+/// case result {
+///   Ok(geometry) -> {
+///     // Center the geometry so it rotates around its middle
+///     let centered = center_geometry(geometry)
+///     let material = create_standard_material(0x888888, 0.5, 0.5, option.None)
+///     let mesh = create_mesh(centered, material)
+///   }
+///   Error(Nil) -> io.println("Failed to load")
+/// }
+/// ```
+///
+/// ## Notes
+///
+/// - This mutates the geometry in place and returns it for convenience
+/// - The geometry's vertices are translated so the bounding box center is at origin
+/// - Useful for any geometry, not just STL files
+///
+@external(javascript, "./savoiardi.ffi.mjs", "centerGeometry")
+pub fn center_geometry(geometry: Geometry) -> Geometry
 
 /// Loads a GLTF or GLB model from a URL.
 ///
@@ -4116,104 +3874,3 @@ pub fn has_positional_audio_buffer(audio: PositionalAudio) -> Bool
 ///
 @external(javascript, "./savoiardi.ffi.mjs", "getAudioLoop")
 pub fn get_positional_audio_loop(audio: PositionalAudio) -> Bool
-
-/// Starts playback of a positional audio source with a fade-in effect.
-///
-/// The volume starts at 0 and smoothly increases to the target volume
-/// over the specified duration.
-///
-/// ## Parameters
-///
-/// - `audio`: The positional audio source to play
-/// - `fade_duration`: Duration over which to fade in
-/// - `target_volume`: Final volume level (0.0 to 1.0)
-///
-/// ## Example
-///
-/// ```gleam
-/// import birl/duration
-///
-/// // Fade in music over 2 seconds to 80% volume
-/// play_positional_audio_with_fade_in(
-///   music,
-///   duration.seconds(2),
-///   0.8,
-/// )
-/// ```
-///
-/// ## Notes
-///
-/// - Starts playing immediately at volume 0
-/// - Volume ramps up linearly over the duration
-/// - Good for music and ambient sounds
-/// - Buffer must be loaded before calling
-///
-pub fn play_positional_audio_with_fade_in(
-  audio: PositionalAudio,
-  fade_duration: Duration,
-  target_volume: Float,
-) -> Nil {
-  let fade_ms = duration.to_seconds(fade_duration) *. 1000.0
-  play_positional_audio_with_fade_in_ffi(audio, fade_ms, target_volume)
-}
-
-@external(javascript, "./savoiardi.ffi.mjs", "playAudioWithFadeIn")
-fn play_positional_audio_with_fade_in_ffi(
-  audio: PositionalAudio,
-  fade_duration_ms: Float,
-  target_volume: Float,
-) -> Nil
-
-/// Stops playback of a positional audio source with a fade-out effect.
-///
-/// The volume smoothly decreases to 0 over the specified duration,
-/// then either stops or pauses the audio.
-///
-/// ## Parameters
-///
-/// - `audio`: The positional audio source to stop
-/// - `fade_duration`: Duration over which to fade out
-/// - `pause_instead_of_stop`: `True` to pause (preserving position), `False` to stop
-///
-/// ## Example
-///
-/// ```gleam
-/// import birl/duration
-///
-/// // Fade out and stop music over 3 seconds
-/// stop_positional_audio_with_fade_out(
-///   music,
-///   duration.seconds(3),
-///   False,  // Stop completely
-/// )
-///
-/// // Fade out and pause (can resume later)
-/// stop_positional_audio_with_fade_out(
-///   music,
-///   duration.seconds(1),
-///   True,   // Just pause
-/// )
-/// ```
-///
-/// ## Notes
-///
-/// - Volume ramps down linearly over the duration
-/// - Audio actually stops/pauses when fade completes
-/// - Set `pause_instead_of_stop` to `True` to resume from same position later
-/// - Good for scene transitions and game pausing
-///
-pub fn stop_positional_audio_with_fade_out(
-  audio: PositionalAudio,
-  fade_duration: Duration,
-  pause_instead_of_stop: Bool,
-) -> Nil {
-  let fade_ms = duration.to_seconds(fade_duration) *. 1000.0
-  stop_positional_audio_with_fade_out_ffi(audio, fade_ms, pause_instead_of_stop)
-}
-
-@external(javascript, "./savoiardi.ffi.mjs", "stopAudioWithFadeOut")
-fn stop_positional_audio_with_fade_out_ffi(
-  audio: PositionalAudio,
-  fade_duration_ms: Float,
-  pause_instead_of_stop: Bool,
-) -> Nil
