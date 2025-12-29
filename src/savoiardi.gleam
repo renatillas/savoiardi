@@ -99,6 +99,9 @@
 ////       "create_icosahedron_geometry",
 ////       "create_text_geometry",
 ////       "create_buffer_geometry",
+////       "create_buffer_attribute",
+////       "set_geometry_attribute",
+////       "mark_attribute_needs_update",
 ////       "dispose_geometry"
 ////     ]
 ////   },
@@ -205,15 +208,11 @@
 ////   {
 ////     header: "Asset Loading",
 ////     functions: [
-////       "load_texture",
-////       "load_audio",
 ////       "load_stl",
 ////       "load_gltf",
 ////       "load_obj",
 ////       "load_fbx",
 ////       "load_font",
-////       "load_equirectangular_texture",
-////       "load_cube_texture"
 ////     ]
 ////   },
 ////   {
@@ -245,16 +244,8 @@
 ////       "set_buffer_xyz",
 ////       "set_buffer_x",
 ////       "set_attribute_needs_update",
-////       "set_draw_range"
-////     ]
-////   },
-////   {
-////     header: "Buffer Geometry",
-////     functions: [
-////       "create_buffer_geometry",
-////       "create_buffer_attribute",
-////       "set_geometry_attribute",
-////       "mark_attribute_needs_update"
+////       "set_draw_range",
+////       "center_geometry"
 ////     ]
 ////   },
 ////   {
@@ -288,13 +279,6 @@
 ////       "create_axes_helper",
 ////       "create_grid_helper",
 ////       "create_box_helper"
-////     ]
-////   },
-////   {
-////     header: "Canvas",
-////     functions: [
-////       "get_canvas_client_width",
-////       "get_canvas_client_height"
 ////     ]
 ////   },
 ////   {
@@ -355,148 +339,12 @@
 ////     { once: true }
 ////   )
 //// </script>
-////
-//// # Savoiardi
-////
-//// Type-safe [Three.js](https://threejs.org/) bindings for Gleam, part of the
-//// [tiramisu](https://github.com/renatillas/tiramisu) game engine ecosystem.
-////
-//// ## Overview
-////
-//// Savoiardi provides comprehensive bindings to Three.js, enabling you to build
-//// 3D graphics applications in Gleam that run in the browser. It covers:
-////
-//// - **Scene management** - Create and manage 3D scenes with backgrounds
-//// - **Cameras** - Perspective and orthographic cameras with full control
-//// - **Geometries** - Box, sphere, plane, cylinder, torus, text, and more
-//// - **Materials** - Basic, standard PBR, phong, lambert, toon materials
-//// - **Lighting** - Ambient, directional, point, spot, and hemisphere lights
-//// - **Textures** - Load and configure textures with filtering and wrapping
-//// - **Animation** - Animation mixers and actions for skeletal/keyframe animation
-//// - **Audio** - Global and positional 3D audio with fade effects
-//// - **Asset loading** - GLTF, FBX, OBJ, STL models and fonts
-//// - **LOD & Instancing** - Level of detail and instanced mesh rendering
-//// - **Particle systems** - Points-based particle systems
-//// - **CSS renderers** - CSS2D and CSS3D object overlays
-////
-//// ## Quick Start
-////
-//// ```gleam
-//// import savoiardi
-//// import gleam/option
-////
-//// pub fn main() {
-////   // Create the renderer with default options (fullscreen, antialiased)
-////   let renderer = savoiardi.create_renderer(savoiardi.default_renderer_options())
-////
-////   // Create a scene with a dark blue background
-////   let scene = savoiardi.create_scene()
-////     |> savoiardi.set_scene_background_color(0x1a1a2e)
-////
-////   // Create a perspective camera
-////   let camera = savoiardi.create_perspective_camera(75.0, 16.0 /. 9.0, 0.1, 1000.0)
-////
-////   // Create a simple cube
-////   let geometry = savoiardi.create_box_geometry(1.0, 1.0, 1.0)
-////   let material = savoiardi.create_basic_material(0xff0000, False, 1.0, option.None)
-////   let cube = savoiardi.create_mesh(geometry, material)
-////
-////   // Add the cube to the scene
-////   savoiardi.add_to_scene(scene: scene, object: cube)
-////
-////   // Render the scene
-////   savoiardi.render(renderer, scene, camera)
-//// }
-//// ```
-////
-//// ## Working with Transforms
-////
-//// Objects can be positioned, rotated, and scaled using Vec3 from the `vec` package:
-////
-//// ```gleam
-//// import vec/vec3
-////
-//// // Position an object
-//// savoiardi.set_object_position(cube, vec3.new(0.0, 1.0, -5.0))
-////
-//// // Rotate (Euler angles in radians)
-//// savoiardi.set_object_rotation(cube, vec3.new(0.0, 3.14159, 0.0))
-////
-//// // Scale uniformly
-//// savoiardi.set_object_scale(cube, vec3.new(2.0, 2.0, 2.0))
-//// ```
-////
-//// ## Loading Assets
-////
-//// All asset loaders return `Promise(Result(asset, Nil))`:
-////
-//// ```gleam
-//// import gleam/javascript/promise
-////
-//// // Load a GLTF model
-//// savoiardi.load_gltf("/models/character.glb")
-//// |> promise.map(fn(result) {
-////   case result {
-////     Ok(gltf_data) -> {
-////       // Add model to scene
-////       todo
-////     }
-////     Error(Nil) -> {
-////       // Handle loading error
-////       todo
-////     }
-////   }
-//// })
-//// ```
-////
-//// ## Animation
-////
-//// Create animation mixers for objects with animation clips:
-////
-//// ```gleam
-//// let mixer = savoiardi.create_animation_mixer(model)
-//// let action = savoiardi.clip_action(mixer, animation_clip)
-//// savoiardi.play_action(action)
-////
-//// // In your render loop, update the mixer with delta time in milliseconds
-//// savoiardi.update_mixer(mixer, delta_ms)
-//// ```
-////
-//// ## Audio
-////
-//// Savoiardi supports both global and positional 3D audio:
-////
-//// ```gleam
-//// // Create an audio listener (attach to camera)
-//// let listener = savoiardi.create_audio_listener()
-////
-//// // Create positional audio for 3D sound
-//// let sound = savoiardi.create_positional_audio(listener)
-////
-//// // Load and play audio
-//// savoiardi.load_audio("/sounds/ambient.mp3")
-//// |> promise.map(fn(result) {
-////   case result {
-////     Ok(buffer) -> {
-////       savoiardi.set_positional_audio_buffer(sound, buffer)
-////       savoiardi.set_positional_audio_loop(sound, True)
-////       savoiardi.play_positional_audio(sound)
-////     }
-////     Error(Nil) -> Nil
-////   }
-//// })
-//// ```
-////
-//// ## Related Packages
-////
-//// - [vec](https://hexdocs.pm/vec) - Vector mathematics (Vec2, Vec3, Vec4)
-//// - [quaterni](https://hexdocs.pm/quaterni) - Quaternion mathematics for rotations
-//// - [tiramisu](https://github.com/renatillas/tiramisu) - The full game engine
 
 import gleam/javascript/array
 import gleam/javascript/promise.{type Promise}
 import gleam/option.{type Option}
 import quaternion.{type Quaternion}
+import vec/vec2
 import vec/vec3.{type Vec3}
 
 // ============================================================================
@@ -687,12 +535,6 @@ pub type BufferAttribute
 /// Represented internally as a column-major 16-element array.
 pub type Matrix4
 
-/// Opaque type wrapping Three.js [Euler](https://threejs.org/docs/#api/en/math/Euler).
-///
-/// Represents rotation as Euler angles (rotation around X, Y, Z axes in order).
-/// Default order is 'XYZ'. Be aware of gimbal lock issues with Euler angles.
-pub type Euler
-
 /// Opaque type wrapping Three.js [Color](https://threejs.org/docs/#api/en/math/Color).
 ///
 /// Represents a color. Can be created from hex values with `create_color`.
@@ -705,16 +547,19 @@ pub type Color
 /// attributes like positions, normals, colors, and UVs.
 pub type Float32Array
 
+/// Opaque type for an HTML [DOM Element](https://developer.mozilla.org/en-US/docs/Web/API/Element).
+///
+/// Represents a generic DOM element returned by CSS renderers.
+pub type DomElement
+
+/// Opaque type for WebGL renderer information from [WebGLRenderer.info](https://threejs.org/docs/#api/en/renderers/WebGLRenderer.info).
+///
+/// Contains memory and render statistics useful for debugging and profiling.
+pub type RendererInfo
+
 // ============================================================================
 // CONFIGURATION TYPES
 // ============================================================================
-
-/// Canvas dimensions for the renderer.
-///
-/// Used with `RendererOptions` to specify a fixed canvas size instead of fullscreen.
-pub type Dimensions {
-  Dimensions(width: Float, height: Float)
-}
 
 /// Options for creating a [WebGLRenderer](https://threejs.org/docs/#api/en/renderers/WebGLRenderer).
 ///
@@ -744,7 +589,7 @@ pub type RendererOptions {
     /// Enable alpha channel (transparent canvas background)
     alpha: Bool,
     /// Canvas dimensions (None for fullscreen mode)
-    dimensions: Option(Dimensions),
+    dimensions: Option(vec2.Vec2(Float)),
   )
 }
 
@@ -895,7 +740,7 @@ pub fn remove_from_scene(scene scene: Scene, object object: Object3D) -> Nil
 ///
 /// See [WebGLRenderer](https://threejs.org/docs/#api/en/renderers/WebGLRenderer).
 @external(javascript, "./savoiardi.ffi.mjs", "getCanvasDimensions")
-pub fn get_canvas_dimensions(renderer: Renderer) -> #(Float, Float)
+pub fn get_canvas_dimensions(renderer: Renderer) -> vec2.Vec2(Float)
 
 /// Creates a new [WebGLRenderer](https://threejs.org/docs/#api/en/renderers/WebGLRenderer).
 ///
@@ -1097,24 +942,6 @@ pub fn set_scissor_test(renderer: Renderer, enabled: Bool) -> Nil
 pub fn get_render_stats(renderer: Renderer) -> #(Int, Int)
 
 // ============================================================================
-// CANVAS
-// ============================================================================
-
-/// Gets the canvas client width (CSS pixels).
-///
-/// Accesses [Element.clientWidth](https://developer.mozilla.org/en-US/docs/Web/API/Element/clientWidth).
-/// This is the visible width of the canvas including padding but not borders.
-@external(javascript, "./savoiardi.ffi.mjs", "getCanvasClientWidth")
-pub fn get_canvas_client_width(canvas: Canvas) -> Float
-
-/// Gets the canvas client height (CSS pixels).
-///
-/// Accesses [Element.clientHeight](https://developer.mozilla.org/en-US/docs/Web/API/Element/clientHeight).
-/// This is the visible height of the canvas including padding but not borders.
-@external(javascript, "./savoiardi.ffi.mjs", "getCanvasClientHeight")
-pub fn get_canvas_client_height(canvas: Canvas) -> Float
-
-// ============================================================================
 // CAMERA
 // ============================================================================
 
@@ -1216,7 +1043,7 @@ pub fn set_camera_aspect(camera: Camera, aspect: Float) -> Nil
 ///
 /// `True` if the object is a PerspectiveCamera, `False` otherwise.
 @external(javascript, "./savoiardi.ffi.mjs", "isPerspectiveCamera")
-pub fn is_perspective_camera(object: a) -> Bool
+pub fn is_perspective_camera(object: Object3D) -> Bool
 
 /// Stores arbitrary user data on a camera.
 ///
@@ -3087,7 +2914,7 @@ pub fn set_css2d_renderer_size(
 ///
 /// The DOM element should be positioned over the WebGL canvas.
 @external(javascript, "./savoiardi.ffi.mjs", "getCSS2DRendererDomElement")
-pub fn get_css2d_renderer_dom_element(renderer: CSS2DRenderer) -> a
+pub fn get_css2d_renderer_dom_element(renderer: CSS2DRenderer) -> DomElement
 
 /// Renders CSS2D objects in the scene.
 ///
@@ -3160,7 +2987,7 @@ pub fn update_css3d_object_html(object: CSS3DObject, html: String) -> Nil
 /// - Call `info.reset()` in JavaScript to manually reset stats
 ///
 @external(javascript, "./savoiardi.ffi.mjs", "getRendererInfo")
-pub fn get_renderer_info(renderer: Renderer) -> a
+pub fn get_renderer_info(renderer: Renderer) -> RendererInfo
 
 /// Checks if the WebGL context is still valid and usable.
 ///

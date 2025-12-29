@@ -15,20 +15,11 @@ import { FontLoader } from 'three/addons/loaders/FontLoader.js';
 import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
 import { STLLoader } from 'three/addons/loaders/STLLoader.js';
 import { FBXLoader } from 'three/addons/loaders/FBXLoader.js';
-// Import from Gleam prelude for constructing Gleam types
-// Each package has its own gleam.mjs prelude in the build output
 import { Result$Ok, Result$Error } from './gleam.mjs';
-// Import from vec package for Vec3 constructor
 import { Vec3$Vec3 } from '../vec/vec/vec3.mjs';
-// Import from gleam_stdlib for Option helpers
+import { Vec2$Vec2 } from '../vec/vec/vec2.mjs';
 import { Option$isSome, Option$Some$0 } from '../gleam_stdlib/gleam/option.mjs';
 import { Quaternion$Quaternion } from '../quaterni/quaternion.mjs';
-
-// Identity function for type casting
-export function identity(x) {
-  return x;
-}
-
 
 
 // ============================================================================
@@ -77,7 +68,7 @@ export function setSceneBackgroundCubeTexture(scene, cubeTexture) {
  */
 export function getCanvasDimensions(renderer) {
   const canvas = renderer.domElement;
-  return [canvas.clientWidth, canvas.clientHeight];
+  return Vec2$Vec2(canvas.clientWidth, canvas.clientHeight);
 }
 
 /**
