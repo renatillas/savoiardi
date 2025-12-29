@@ -901,10 +901,7 @@ export function cloneObject(object) {
  * @param {THREE.Object3D} child
  */
 export function addChild(parent, child) {
-  const beforeCount = parent.children.length;
   parent.add(child);
-  const afterCount = parent.children.length;
-  console.log(`addChild: parent now has ${afterCount} children (was ${beforeCount}), child.visible=${child.visible}, child.position=`, child.position);
 }
 
 /**
