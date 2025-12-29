@@ -2748,7 +2748,8 @@ pub fn update_group_instanced_meshes(
 
 /// Updates the camera's projection matrix.
 ///
-/// Wraps [Camera.updateProjectionMatrix](https://threejs.org/docs/#api/en/cameras/Camera.updateProjectionMatrix).
+/// See [PerspectiveCamera](https://threejs.org/docs/#api/en/cameras/PerspectiveCamera) or
+/// [OrthographicCamera](https://threejs.org/docs/#api/en/cameras/OrthographicCamera).
 /// Call this after changing camera parameters (fov, aspect, near, far, etc.).
 @external(javascript, "./savoiardi.ffi.mjs", "updateCameraProjectionMatrix")
 pub fn update_camera_projection_matrix(camera: Camera) -> Nil
@@ -3319,24 +3320,22 @@ pub fn load_font(url: String) -> Promise(Result(Font, Nil))
 /// Loads an equirectangular (360°) texture for environment maps or skyboxes.
 ///
 /// Equirectangular images are panoramic photos mapped to a sphere.
-/// Commonly used for HDR environment lighting and reflections.
+/// Commonly used for environment backgrounds and reflections.
 ///
-/// See: [RGBELoader](https://threejs.org/docs/#examples/en/loaders/RGBELoader)
+/// See: [TextureLoader](https://threejs.org/docs/#api/en/loaders/TextureLoader)
 ///
 /// ## Parameters
 ///
-/// - `url`: Path or URL to the equirectangular image (HDR, EXR, or standard image)
+/// - `url`: Path or URL to the equirectangular image (PNG, JPG, WebP)
 ///
 /// ## Example
 ///
 /// ```gleam
-/// use env_texture <- promise.await(load_equirectangular_texture("/env/studio.hdr"))
+/// use env_texture <- promise.await(load_equirectangular_texture("/env/studio.jpg"))
 /// case env_texture {
 ///   Ok(tex) -> {
 ///     // Use as scene background
 ///     set_scene_background_texture(scene, tex)
-///     // Or use for PBR environment lighting
-///     set_scene_environment(scene, tex)
 ///   }
 ///   Error(Nil) -> io.println("Failed to load environment")
 /// }
@@ -3344,11 +3343,9 @@ pub fn load_font(url: String) -> Promise(Result(Font, Nil))
 ///
 /// ## Notes
 ///
-/// - HDR/EXR provide better lighting than LDR images
-/// - Set texture mapping to EquirectangularReflectionMapping
+/// - Supports standard image formats (PNG, JPG, WebP)
 /// - Large panoramas impact memory and load time
 /// - Consider pre-processed cubemaps for better performance
-/// - PMREMGenerator can convert to optimized environment maps
 ///
 @external(javascript, "./savoiardi.ffi.mjs", "loadEquirectangularTexture")
 pub fn load_equirectangular_texture(
