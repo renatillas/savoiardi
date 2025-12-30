@@ -446,19 +446,49 @@ export function createTextGeometry(
 // ============================================================================
 
 /**
+ * Get THREE.FrontSide constant
+ * @returns {number}
+ */
+export function getFrontSide() {
+  return THREE.FrontSide;
+}
+
+/**
+ * Get THREE.BackSide constant
+ * @returns {number}
+ */
+export function getBackSide() {
+  return THREE.BackSide;
+}
+
+/**
+ * Get THREE.DoubleSide constant
+ * @returns {number}
+ */
+export function getDoubleSide() {
+  return THREE.DoubleSide;
+}
+
+/**
  * Create basic material
  * @param {number} color
  * @param {boolean} transparent
  * @param {number} opacity
  * @param {THREE.Texture|null} map
+ * @param {number} side - THREE.js side constant (FrontSide, BackSide, DoubleSide)
+ * @param {number} alphaTest
+ * @param {boolean} depthWrite
  * @returns {THREE.MeshBasicMaterial}
  */
-export function createBasicMaterial(color, transparent, opacity, map) {
+export function createBasicMaterial(color, transparent, opacity, map, side, alphaTest, depthWrite) {
   return new THREE.MeshBasicMaterial({
     color,
     transparent,
     opacity,
-    map: Option$isSome(map) ? Option$Some$0(map) : null
+    map: Option$isSome(map) ? Option$Some$0(map) : null,
+    side,
+    alphaTest,
+    depthWrite
   });
 }
 
@@ -1822,6 +1852,26 @@ export function applyCameraLookAt(camera, target) {
 }
 
 /**
+ * Make any Object3D look at a target position.
+ * Uses Three.js lookAt which rotates the object so its local -Z axis points at the target.
+ * @param {THREE.Object3D} object
+ * @param {Vec3} target - Gleam Vec3
+ */
+export function objectLookAt(object, target) {
+  object.lookAt(target.x, target.y, target.z);
+}
+
+/**
+ * Set only the Y rotation of an object (Euler angle in radians).
+ * Keeps X and Z rotation at 0.
+ * @param {THREE.Object3D} object
+ * @param {number} angleY - Rotation around Y axis in radians
+ */
+export function setRotationY(object, angleY) {
+  object.rotation.set(0, angleY, 0);
+}
+
+/**
  * Set shadow properties on an object
  * @param {THREE.Object3D} object
  * @param {boolean} castShadow
@@ -1854,43 +1904,47 @@ export function removeFromScene(_, object) {
   }
 }
 
+// ============================================================================
+// OBJECT3D USER DATA
+// ============================================================================
+
 /**
- * Set camera user data
- * @param {THREE.Camera} camera
+ * Set user data on any Object3D (works for cameras, meshes, etc.)
+ * @param {THREE.Object3D} object
  * @param {string} key
  * @param {any} value
  */
-export function setCameraUserData(camera, key, value) {
-  camera.userData[key] = value;
+export function setObjectUserData(object, key, value) {
+  object.userData[key] = value;
 }
 
 /**
- * Get camera user data
- * @param {THREE.Camera} camera
+ * Get user data from any Object3D
+ * @param {THREE.Object3D} object
  * @param {string} key
  * @returns {any}
  */
-export function getCameraUserData(camera, key) {
-  return camera.userData[key];
+export function getObjectUserData(object, key) {
+  return object.userData[key];
 }
 
 /**
- * Delete camera user data
- * @param {THREE.Camera} camera
+ * Delete user data from any Object3D
+ * @param {THREE.Object3D} object
  * @param {string} key
  */
-export function deleteCameraUserData(camera, key) {
-  delete camera.userData[key];
+export function deleteObjectUserData(object, key) {
+  delete object.userData[key];
 }
 
 /**
- * Check if camera has user data
- * @param {THREE.Camera} camera
+ * Check if Object3D has user data for a key
+ * @param {THREE.Object3D} object
  * @param {string} key
  * @returns {boolean}
  */
-export function hasCameraUserData(camera, key) {
-  return camera.userData && camera.userData[key] !== undefined;
+export function hasObjectUserData(object, key) {
+  return object.userData && object.userData[key] !== undefined;
 }
 
 /**
@@ -2185,11 +2239,15 @@ export function applyMaterialToObject(object, threeMaterial) {
  * Apply a texture to all materials in an Object3D
  * @param {THREE.Object3D} object
  * @param {THREE.Texture} texture
- * @param {string} filterMode - "LinearFilter" or "NearestFilter"
+ * @param {number} filterMode - THREE.NearestFilter or THREE.LinearFilter constant
  */
 export function applyTextureToObject(object, texture, filterMode) {
-  // Set texture filtering
-  setTextureFilter(texture, filterMode);
+  // Set texture filtering using the int constant directly
+  texture.minFilter = filterMode;
+  texture.magFilter = filterMode;
+  texture.generateMipmaps = (filterMode === THREE.LinearFilter);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.needsUpdate = true;
 
   let count = 0;
   object.traverse((child) => {
@@ -2755,6 +2813,25 @@ export function loadSTL(url) {
 export function centerGeometry(geometry) {
   geometry.center();
   return geometry;
+}
+
+/**
+ * Center an Object3D around its bounding box center.
+ * This computes the bounding box of all children and offsets
+ * the children so the object's local origin is at the geometric center.
+ * Useful for FBX/GLTF models that have their origin at a corner.
+ * @param {THREE.Object3D} object - The object to center
+ * @returns {THREE.Object3D} The same object (mutated)
+ */
+export function centerObject3D(object) {
+  const box = new THREE.Box3().setFromObject(object);
+  const center = box.getCenter(new THREE.Vector3());
+
+  object.children.forEach(child => {
+    child.position.sub(center);
+  });
+
+  return object;
 }
 
 /**

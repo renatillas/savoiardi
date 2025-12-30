@@ -558,6 +558,92 @@ pub type DomElement
 pub type RendererInfo
 
 // ============================================================================
+// ENUM TYPES
+// ============================================================================
+
+/// Which sides of faces to render.
+///
+/// See: [Material Constants](https://threejs.org/docs/#api/en/constants/Materials)
+pub type MaterialSide {
+  /// Render front faces only (default).
+  FrontSide
+  /// Render back faces only.
+  BackSide
+  /// Render both front and back faces.
+  DoubleSide
+}
+
+@external(javascript, "./savoiardi.ffi.mjs", "getFrontSide")
+fn get_front_side_constant() -> Int
+
+@external(javascript, "./savoiardi.ffi.mjs", "getBackSide")
+fn get_back_side_constant() -> Int
+
+@external(javascript, "./savoiardi.ffi.mjs", "getDoubleSide")
+fn get_double_side_constant() -> Int
+
+/// Convert a MaterialSide to its Three.js constant value.
+pub fn material_side_to_int(side: MaterialSide) -> Int {
+  case side {
+    FrontSide -> get_front_side_constant()
+    BackSide -> get_back_side_constant()
+    DoubleSide -> get_double_side_constant()
+  }
+}
+
+/// Texture filtering mode.
+///
+/// Controls how textures are sampled when scaled up or down.
+///
+/// See: [Texture Constants](https://threejs.org/docs/#api/en/constants/Textures)
+pub type FilterMode {
+  /// No interpolation, uses nearest pixel. Best for pixel art.
+  NearestFilter
+  /// Bilinear interpolation for smooth texture sampling. Default.
+  LinearFilter
+}
+
+/// Texture wrapping mode.
+///
+/// Controls how textures behave when UV coordinates exceed the 0-1 range.
+///
+/// See: [Texture Constants](https://threejs.org/docs/#api/en/constants/Textures)
+pub type WrapMode {
+  /// Texture repeats infinitely. Requires power-of-two dimensions.
+  RepeatWrapping
+  /// Edge pixels stretch infinitely. Works with any dimensions.
+  ClampToEdgeWrapping
+  /// Texture repeats with alternating mirrored copies.
+  MirroredRepeatWrapping
+}
+
+/// Material blending mode.
+///
+/// Controls how materials blend with the background.
+///
+/// See: [Material Constants](https://threejs.org/docs/#api/en/constants/Materials)
+pub type BlendingMode {
+  /// Adds source and destination colors. Creates glow effects.
+  AdditiveBlending
+  /// Standard alpha blending. Source replaces destination based on alpha.
+  NormalBlending
+}
+
+/// Animation loop mode.
+///
+/// Controls how animations repeat.
+///
+/// See: [Animation Constants](https://threejs.org/docs/#api/en/constants/Animation)
+pub type LoopMode {
+  /// Play once and stop.
+  LoopOnce
+  /// Loop continuously from start.
+  LoopRepeat
+  /// Play forward, then backward, then forward, etc.
+  LoopPingPong
+}
+
+// ============================================================================
 // CONFIGURATION TYPES
 // ============================================================================
 
@@ -1045,55 +1131,55 @@ pub fn set_camera_aspect(camera: Camera, aspect: Float) -> Nil
 @external(javascript, "./savoiardi.ffi.mjs", "isPerspectiveCamera")
 pub fn is_perspective_camera(object: Object3D) -> Bool
 
-/// Stores arbitrary user data on a camera.
+/// Stores arbitrary user data on any Object3D (meshes, cameras, etc.).
 ///
 /// Wraps [Object3D.userData](https://threejs.org/docs/#api/en/core/Object3D.userData).
-/// Useful for attaching game-specific data to cameras.
+/// Useful for attaching game-specific data like billboard targets.
 ///
 /// ## Parameters
 ///
-/// - `camera` - The camera to store data on
+/// - `object` - The Object3D to store data on
 /// - `key` - String key for the data
 /// - `value` - Any value to store
-@external(javascript, "./savoiardi.ffi.mjs", "setCameraUserData")
-pub fn set_camera_user_data(camera: Camera, key: String, value: a) -> Nil
+@external(javascript, "./savoiardi.ffi.mjs", "setObjectUserData")
+pub fn set_object_user_data(object: Object3D, key: String, value: a) -> Nil
 
-/// Retrieves user data from a camera.
+/// Retrieves user data from any Object3D.
 ///
 /// Wraps [Object3D.userData](https://threejs.org/docs/#api/en/core/Object3D.userData).
 ///
 /// ## Parameters
 ///
-/// - `camera` - The camera to get data from
+/// - `object` - The Object3D to get data from
 /// - `key` - String key for the data
 ///
 /// ## Returns
 ///
 /// The stored value, or undefined if not set.
-@external(javascript, "./savoiardi.ffi.mjs", "getCameraUserData")
-pub fn get_camera_user_data(camera: Camera, key: String) -> a
+@external(javascript, "./savoiardi.ffi.mjs", "getObjectUserData")
+pub fn get_object_user_data(object: Object3D, key: String) -> a
 
-/// Checks if a camera has user data for a specific key.
+/// Checks if an Object3D has user data for a specific key.
 ///
 /// ## Parameters
 ///
-/// - `camera` - The camera to check
+/// - `object` - The Object3D to check
 /// - `key` - String key to look for
 ///
 /// ## Returns
 ///
 /// `True` if the key exists in userData, `False` otherwise.
-@external(javascript, "./savoiardi.ffi.mjs", "hasCameraUserData")
-pub fn has_camera_user_data(camera: Camera, key: String) -> Bool
+@external(javascript, "./savoiardi.ffi.mjs", "hasObjectUserData")
+pub fn has_object_user_data(object: Object3D, key: String) -> Bool
 
-/// Deletes user data from a camera.
+/// Deletes user data from any Object3D.
 ///
 /// ## Parameters
 ///
-/// - `camera` - The camera to remove data from
+/// - `object` - The Object3D to remove data from
 /// - `key` - String key to delete
-@external(javascript, "./savoiardi.ffi.mjs", "deleteCameraUserData")
-pub fn delete_camera_user_data(camera: Camera, key: String) -> Nil
+@external(javascript, "./savoiardi.ffi.mjs", "deleteObjectUserData")
+pub fn delete_object_user_data(object: Object3D, key: String) -> Nil
 
 // ============================================================================
 // OBJECT3D
@@ -1569,15 +1655,24 @@ pub fn create_text_geometry(
 /// - `transparent` - Enable transparency (required for opacity < 1.0)
 /// - `opacity` - Opacity from 0.0 (invisible) to 1.0 (opaque)
 /// - `map` - Optional color texture
+/// - `side` - Which sides of faces to render (use `material_side_to_int` to convert)
+/// - `alpha_test` - Pixels with alpha below this value won't be rendered (0.0-1.0)
+/// - `depth_write` - Whether to write to depth buffer (set False for transparent objects)
 ///
 /// ## Example
 ///
 /// ```gleam
 /// // Solid red material
-/// let red = create_basic_material(0xff0000, False, 1.0, option.None)
+/// let red = create_basic_material(
+///   0xff0000, False, 1.0, option.None,
+///   material_side_to_int(FrontSide), 0.0, True,
+/// )
 ///
-/// // Textured with transparency
-/// let textured = create_basic_material(0xffffff, True, 0.8, option.Some(texture))
+/// // Transparent sprite with alpha cutoff
+/// let sprite = create_basic_material(
+///   0xffffff, True, 1.0, option.Some(texture),
+///   material_side_to_int(DoubleSide), 0.1, False,
+/// )
 /// ```
 @external(javascript, "./savoiardi.ffi.mjs", "createBasicMaterial")
 pub fn create_basic_material(
@@ -1585,6 +1680,9 @@ pub fn create_basic_material(
   transparent: Bool,
   opacity: Float,
   map: Option(Texture),
+  side: Int,
+  alpha_test: Float,
+  depth_write: Bool,
 ) -> Material
 
 /// Creates a [MeshStandardMaterial](https://threejs.org/docs/#api/en/materials/MeshStandardMaterial).
@@ -1759,20 +1857,40 @@ pub fn create_sprite_material(
 /// - `transparent` - Enable transparency
 /// - `opacity` - Opacity value
 /// - `depth_write` - Write to depth buffer (False for additive particles)
-/// - `blending` - Blending mode (use `get_additive_blending` or `get_normal_blending`)
+/// - `blending` - Blending mode (AdditiveBlending for glow, NormalBlending for standard)
 /// - `size_attenuation` - If True, points get smaller with distance
 ///
 /// ## Example
 ///
 /// ```gleam
-/// // Additive particle material
+/// // Additive particle material for glow effects
 /// let particles = create_points_material(
 ///   0.1, False, True, 0.8,
-///   False, get_additive_blending(), True
+///   False, AdditiveBlending, True
 /// )
 /// ```
-@external(javascript, "./savoiardi.ffi.mjs", "createPointsMaterial")
 pub fn create_points_material(
+  size: Float,
+  vertex_colors: Bool,
+  transparent: Bool,
+  opacity: Float,
+  depth_write: Bool,
+  blending: BlendingMode,
+  size_attenuation: Bool,
+) -> Material {
+  create_points_material_internal(
+    size,
+    vertex_colors,
+    transparent,
+    opacity,
+    depth_write,
+    blending_mode_to_int(blending),
+    size_attenuation,
+  )
+}
+
+@external(javascript, "./savoiardi.ffi.mjs", "createPointsMaterial")
+fn create_points_material_internal(
   size: Float,
   vertex_colors: Bool,
   transparent: Bool,
@@ -2084,9 +2202,19 @@ pub fn stop_action(action: AnimationAction) -> Nil
 /// Sets the loop mode of an animation action.
 ///
 /// Wraps [AnimationAction.loop](https://threejs.org/docs/#api/en/animation/AnimationAction.loop).
-/// Use `get_loop_once`, `get_loop_repeat`, or `get_loop_ping_pong` for mode values.
+///
+/// ## Example
+///
+/// ```gleam
+/// set_action_loop(action, LoopRepeat)  // Loop continuously
+/// set_action_loop(action, LoopOnce)    // Play once and stop
+/// ```
+pub fn set_action_loop(action: AnimationAction, loop_mode: LoopMode) -> Nil {
+  set_action_loop_internal(action, loop_mode_to_int(loop_mode))
+}
+
 @external(javascript, "./savoiardi.ffi.mjs", "setActionLoop")
-pub fn set_action_loop(action: AnimationAction, loop_mode: Int) -> Nil
+fn set_action_loop_internal(action: AnimationAction, loop_mode: Int) -> Nil
 
 /// Sets the time scale (playback speed) of an animation action.
 ///
@@ -2154,51 +2282,95 @@ pub fn set_texture_repeat(texture: Texture, x: Float, y: Float) -> Nil
 ///
 /// Wraps [Texture.wrapS](https://threejs.org/docs/#api/en/textures/Texture.wrapS) and
 /// [Texture.wrapT](https://threejs.org/docs/#api/en/textures/Texture.wrapT).
-/// Use `get_repeat_wrapping`, `get_clamp_to_edge_wrapping`, or `get_mirrored_repeat_wrapping`.
+///
+/// ## Example
+///
+/// ```gleam
+/// set_texture_wrap_mode(texture, RepeatWrapping, RepeatWrapping)
+/// ```
+pub fn set_texture_wrap_mode(
+  texture: Texture,
+  wrap_s: WrapMode,
+  wrap_t: WrapMode,
+) -> Nil {
+  set_texture_wrap_mode_internal(
+    texture,
+    wrap_mode_to_int(wrap_s),
+    wrap_mode_to_int(wrap_t),
+  )
+}
+
 @external(javascript, "./savoiardi.ffi.mjs", "setTextureWrapMode")
-pub fn set_texture_wrap_mode(texture: Texture, wrap_s: Int, wrap_t: Int) -> Nil
+fn set_texture_wrap_mode_internal(
+  texture: Texture,
+  wrap_s: Int,
+  wrap_t: Int,
+) -> Nil
 
 /// Sets the texture filtering mode.
 ///
 /// Wraps [Texture.minFilter](https://threejs.org/docs/#api/en/textures/Texture.minFilter) and
 /// [Texture.magFilter](https://threejs.org/docs/#api/en/textures/Texture.magFilter).
-/// Use `get_nearest_filter` for pixel art or `get_linear_filter` for smooth textures.
-@external(javascript, "./savoiardi.ffi.mjs", "setTextureFilterMode")
+///
+/// ## Example
+///
+/// ```gleam
+/// // For pixel art
+/// set_texture_filter_mode(texture, NearestFilter, NearestFilter)
+///
+/// // For smooth textures
+/// set_texture_filter_mode(texture, LinearFilter, LinearFilter)
+/// ```
 pub fn set_texture_filter_mode(
+  texture: Texture,
+  min_filter: FilterMode,
+  mag_filter: FilterMode,
+) -> Nil {
+  set_texture_filter_mode_internal(
+    texture,
+    filter_mode_to_int(min_filter),
+    filter_mode_to_int(mag_filter),
+  )
+}
+
+@external(javascript, "./savoiardi.ffi.mjs", "setTextureFilterMode")
+fn set_texture_filter_mode_internal(
   texture: Texture,
   min_filter: Int,
   mag_filter: Int,
 ) -> Nil
 
-/// Gets the [RepeatWrapping](https://threejs.org/docs/#api/en/constants/Textures) constant.
-///
-/// Texture repeats infinitely when UVs exceed 0-1 range.
+// Internal helpers for converting enum types to Three.js constants
+
 @external(javascript, "./savoiardi.ffi.mjs", "getRepeatWrapping")
-pub fn get_repeat_wrapping() -> Int
+fn get_repeat_wrapping_constant() -> Int
 
-/// Gets the [ClampToEdgeWrapping](https://threejs.org/docs/#api/en/constants/Textures) constant.
-///
-/// Texture edge pixels stretch infinitely when UVs exceed 0-1 range.
 @external(javascript, "./savoiardi.ffi.mjs", "getClampToEdgeWrapping")
-pub fn get_clamp_to_edge_wrapping() -> Int
+fn get_clamp_to_edge_wrapping_constant() -> Int
 
-/// Gets the [MirroredRepeatWrapping](https://threejs.org/docs/#api/en/constants/Textures) constant.
-///
-/// Texture repeats with alternating mirrored copies.
 @external(javascript, "./savoiardi.ffi.mjs", "getMirroredRepeatWrapping")
-pub fn get_mirrored_repeat_wrapping() -> Int
+fn get_mirrored_repeat_wrapping_constant() -> Int
 
-/// Gets the [NearestFilter](https://threejs.org/docs/#api/en/constants/Textures) constant.
-///
-/// No interpolation, nearest pixel is used. Best for pixel art.
 @external(javascript, "./savoiardi.ffi.mjs", "getNearestFilter")
-pub fn get_nearest_filter() -> Int
+fn get_nearest_filter_constant() -> Int
 
-/// Gets the [LinearFilter](https://threejs.org/docs/#api/en/constants/Textures) constant.
-///
-/// Bilinear interpolation for smooth texture sampling.
 @external(javascript, "./savoiardi.ffi.mjs", "getLinearFilter")
-pub fn get_linear_filter() -> Int
+fn get_linear_filter_constant() -> Int
+
+fn wrap_mode_to_int(mode: WrapMode) -> Int {
+  case mode {
+    RepeatWrapping -> get_repeat_wrapping_constant()
+    ClampToEdgeWrapping -> get_clamp_to_edge_wrapping_constant()
+    MirroredRepeatWrapping -> get_mirrored_repeat_wrapping_constant()
+  }
+}
+
+fn filter_mode_to_int(mode: FilterMode) -> Int {
+  case mode {
+    NearestFilter -> get_nearest_filter_constant()
+    LinearFilter -> get_linear_filter_constant()
+  }
+}
 
 // ============================================================================
 // AUDIO
@@ -2507,39 +2679,40 @@ pub fn create_color(hex: Int) -> Color
 pub fn lerp_color(color1: Color, color2: Color, t: Float) -> Color
 
 // ============================================================================
-// CONSTANTS
+// INTERNAL CONSTANTS
 // ============================================================================
 
-/// Gets the [LoopOnce](https://threejs.org/docs/#api/en/constants/Animation) constant.
-///
-/// Animation plays once and stops at the end.
+// Internal helpers for converting enum types to Three.js constants
+
 @external(javascript, "./savoiardi.ffi.mjs", "getLoopOnce")
-pub fn get_loop_once() -> Int
+fn get_loop_once_constant() -> Int
 
-/// Gets the [LoopRepeat](https://threejs.org/docs/#api/en/constants/Animation) constant.
-///
-/// Animation plays repeatedly, restarting from the beginning each time.
 @external(javascript, "./savoiardi.ffi.mjs", "getLoopRepeat")
-pub fn get_loop_repeat() -> Int
+fn get_loop_repeat_constant() -> Int
 
-/// Gets the [LoopPingPong](https://threejs.org/docs/#api/en/constants/Animation) constant.
-///
-/// Animation plays forward, then backward, then forward, etc.
 @external(javascript, "./savoiardi.ffi.mjs", "getLoopPingPong")
-pub fn get_loop_ping_pong() -> Int
+fn get_loop_ping_pong_constant() -> Int
 
-/// Gets the [AdditiveBlending](https://threejs.org/docs/#api/en/constants/Materials) constant.
-///
-/// Additive blending adds the source and destination colors together.
-/// Creates a "glow" effect, commonly used for particles and effects.
 @external(javascript, "./savoiardi.ffi.mjs", "getAdditiveBlending")
-pub fn get_additive_blending() -> Int
+fn get_additive_blending_constant() -> Int
 
-/// Gets the [NormalBlending](https://threejs.org/docs/#api/en/constants/Materials) constant.
-///
-/// Standard alpha blending where source replaces destination based on alpha.
 @external(javascript, "./savoiardi.ffi.mjs", "getNormalBlending")
-pub fn get_normal_blending() -> Int
+fn get_normal_blending_constant() -> Int
+
+fn loop_mode_to_int(mode: LoopMode) -> Int {
+  case mode {
+    LoopOnce -> get_loop_once_constant()
+    LoopRepeat -> get_loop_repeat_constant()
+    LoopPingPong -> get_loop_ping_pong_constant()
+  }
+}
+
+fn blending_mode_to_int(mode: BlendingMode) -> Int {
+  case mode {
+    AdditiveBlending -> get_additive_blending_constant()
+    NormalBlending -> get_normal_blending_constant()
+  }
+}
 
 // ============================================================================
 // PARTICLE SYSTEMS HELPERS
@@ -2676,6 +2849,33 @@ pub fn set_camera_look_at(
   camera camera: Camera,
   target target: Vec3(Float),
 ) -> Nil
+
+/// Makes any Object3D look at a target position.
+///
+/// Wraps [Object3D.lookAt](https://threejs.org/docs/#api/en/core/Object3D.lookAt).
+/// Rotates the object so its local -Z axis points at the target.
+///
+/// ## Parameters
+///
+/// - `object` - The object to rotate
+/// - `target` - The world position to look at
+@external(javascript, "./savoiardi.ffi.mjs", "objectLookAt")
+pub fn object_look_at(
+  object object: Object3D,
+  target target: Vec3(Float),
+) -> Nil
+
+/// Sets only the Y rotation of an object (keeps X and Z at 0).
+///
+/// Useful for cylindrical billboards that should face the camera horizontally
+/// but stay upright.
+///
+/// ## Parameters
+///
+/// - `object` - The object to rotate
+/// - `angle_y` - Rotation around Y axis in radians
+@external(javascript, "./savoiardi.ffi.mjs", "setRotationY")
+pub fn set_rotation_y(object object: Object3D, angle_y angle_y: Float) -> Nil
 
 /// Sets shadow casting and receiving properties on an object.
 ///
@@ -2857,12 +3057,31 @@ pub fn apply_material_to_object(object: Object3D, material: Material) -> Nil
 ///
 /// - `object` - The object hierarchy
 /// - `texture` - The texture to apply
-/// - `filter_mode` - "nearest" for pixel art, "linear" for smooth textures
-@external(javascript, "./savoiardi.ffi.mjs", "applyTextureToObject")
+/// - `filter_mode` - NearestFilter for pixel art, LinearFilter for smooth textures
+///
+/// ## Example
+///
+/// ```gleam
+/// // Apply pixel-art texture
+/// apply_texture_to_object(floor_model, dungeon_texture, NearestFilter)
+/// ```
 pub fn apply_texture_to_object(
   object: Object3D,
   texture: Texture,
-  filter_mode: String,
+  filter_mode: FilterMode,
+) -> Nil {
+  apply_texture_to_object_internal(
+    object,
+    texture,
+    filter_mode_to_int(filter_mode),
+  )
+}
+
+@external(javascript, "./savoiardi.ffi.mjs", "applyTextureToObject")
+fn apply_texture_to_object_internal(
+  object: Object3D,
+  texture: Texture,
+  filter_mode: Int,
 ) -> Nil
 
 // ============================================================================
@@ -3164,6 +3383,33 @@ pub fn load_stl(url: String) -> Promise(Result(Geometry, Nil))
 ///
 @external(javascript, "./savoiardi.ffi.mjs", "centerGeometry")
 pub fn center_geometry(geometry: Geometry) -> Geometry
+
+/// Centers an Object3D around its bounding box center.
+///
+/// This computes the bounding box of all children and offsets them so the
+/// object's local origin is at the geometric center. Useful for FBX/GLTF
+/// models that have their origin at a corner instead of the center.
+///
+/// ## Example
+///
+/// ```gleam
+/// use result <- promise.await(load_fbx("/models/floor.fbx"))
+/// case result {
+///   Ok(fbx) -> {
+///     // Center the model so it's at origin
+///     let centered = center_object_3d(fbx)
+///   }
+///   Error(Nil) -> io.println("Failed to load")
+/// }
+/// ```
+///
+/// ## Notes
+///
+/// - This mutates the object in place and returns it for convenience
+/// - The children's positions are adjusted so the bounding box center is at origin
+///
+@external(javascript, "./savoiardi.ffi.mjs", "centerObject3D")
+pub fn center_object_3d(object: Object3D) -> Object3D
 
 /// Loads a GLTF or GLB model from a URL.
 ///
