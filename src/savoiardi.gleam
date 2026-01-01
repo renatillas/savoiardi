@@ -414,11 +414,7 @@ pub type Light
 ///
 /// Contains basic shadow map settings that apply to all shadow-casting lights.
 pub type ShadowConfig {
-  ShadowConfig(
-    resolution: Int,
-    bias: Float,
-    normal_bias: Float,
-  )
+  ShadowConfig(resolution: Int, bias: Float, normal_bias: Float)
 }
 
 /// Shadow configuration for directional lights.
