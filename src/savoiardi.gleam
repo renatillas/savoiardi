@@ -40,12 +40,6 @@
 ////       "update_camera_projection_matrix",
 ////       "set_perspective_camera_params",
 ////       "set_orthographic_camera_params",
-////       "is_perspective_camera",
-////       "is_orthographic_camera",
-////       "set_camera_user_data",
-////       "get_camera_user_data",
-////       "has_camera_user_data",
-////       "delete_camera_user_data"
 ////     ]
 ////   },
 ////   {
@@ -82,7 +76,10 @@
 ////       "enable_transparency",
 ////       "apply_material_to_object",
 ////       "apply_texture_to_object",
-////       "extract_mesh_material_pairs"
+////       "extract_mesh_material_pairs",
+////       "center_object",
+////       "enable_shadows",
+////       "object_look_at",
 ////     ]
 ////   },
 ////   {
@@ -140,11 +137,6 @@
 ////       "set_texture_repeat",
 ////       "set_texture_wrap_mode",
 ////       "set_texture_filter_mode",
-////       "get_repeat_wrapping",
-////       "get_clamp_to_edge_wrapping",
-////       "get_mirrored_repeat_wrapping",
-////       "get_nearest_filter",
-////       "get_linear_filter",
 ////       "dispose_texture"
 ////     ]
 ////   },
@@ -161,9 +153,6 @@
 ////       "set_action_weight",
 ////       "get_clip_name",
 ////       "get_clip_duration",
-////       "get_loop_once",
-////       "get_loop_repeat",
-////       "get_loop_ping_pong"
 ////     ]
 ////   },
 ////   {
@@ -222,11 +211,8 @@
 ////       "add_lod_level",
 ////       "remove_lod_level",
 ////       "clear_lod_levels",
-////       "is_lod",
 ////       "create_instanced_mesh",
-////       "set_instance_matrix",
 ////       "update_instance_matrix",
-////       "is_instanced_mesh",
 ////       "update_instanced_mesh_transforms",
 ////       "update_group_instanced_meshes"
 ////     ]
@@ -251,8 +237,6 @@
 ////   {
 ////     header: "Math Utilities",
 ////     functions: [
-////       "create_matrix4",
-////       "compose_matrix",
 ////       "create_color",
 ////       "lerp_color",
 ////       "get_color_r",
@@ -281,13 +265,6 @@
 ////       "create_box_helper"
 ////     ]
 ////   },
-////   {
-////     header: "Constants",
-////     functions: [
-////       "get_additive_blending",
-////       "get_normal_blending"
-////     ]
-////   }
 //// ]
 ////
 //// const callback = () => {
@@ -554,12 +531,6 @@ pub type AudioBuffer
 /// in a typed array buffer. Used for custom geometry and particle systems.
 pub type BufferAttribute
 
-/// Opaque type wrapping Three.js [Matrix4](https://threejs.org/docs/#api/en/math/Matrix4).
-///
-/// A 4x4 matrix commonly used for 3D transformations (translation, rotation, scale).
-/// Represented internally as a column-major 16-element array.
-pub type Matrix4
-
 /// Opaque type wrapping Three.js [Color](https://threejs.org/docs/#api/en/math/Color).
 ///
 /// Represents a color. Can be created from hex values with `create_color`.
@@ -607,8 +578,8 @@ fn get_back_side_constant() -> Int
 @external(javascript, "./savoiardi.ffi.mjs", "getDoubleSide")
 fn get_double_side_constant() -> Int
 
-/// Convert a MaterialSide to its Three.js constant value.
-pub fn material_side_to_int(side: MaterialSide) -> Int {
+/// Convert a MaterialSide to its Three.js constant value (internal use only).
+fn material_side_to_int(side: MaterialSide) -> Int {
   case side {
     FrontSide -> get_front_side_constant()
     BackSide -> get_back_side_constant()
@@ -1146,66 +1117,6 @@ pub fn create_orthographic_camera(
 @external(javascript, "./savoiardi.ffi.mjs", "setCameraAspect")
 pub fn set_camera_aspect(camera: Camera, aspect: Float) -> Nil
 
-/// Checks if an object is a [PerspectiveCamera](https://threejs.org/docs/#api/en/cameras/PerspectiveCamera).
-///
-/// Uses Three.js's `isPerspectiveCamera` property for type checking.
-///
-/// ## Returns
-///
-/// `True` if the object is a PerspectiveCamera, `False` otherwise.
-@external(javascript, "./savoiardi.ffi.mjs", "isPerspectiveCamera")
-pub fn is_perspective_camera(object: Object3D) -> Bool
-
-/// Stores arbitrary user data on any Object3D (meshes, cameras, etc.).
-///
-/// Wraps [Object3D.userData](https://threejs.org/docs/#api/en/core/Object3D.userData).
-/// Useful for attaching game-specific data like billboard targets.
-///
-/// ## Parameters
-///
-/// - `object` - The Object3D to store data on
-/// - `key` - String key for the data
-/// - `value` - Any value to store
-@external(javascript, "./savoiardi.ffi.mjs", "setObjectUserData")
-pub fn set_object_user_data(object: Object3D, key: String, value: a) -> Nil
-
-/// Retrieves user data from any Object3D.
-///
-/// Wraps [Object3D.userData](https://threejs.org/docs/#api/en/core/Object3D.userData).
-///
-/// ## Parameters
-///
-/// - `object` - The Object3D to get data from
-/// - `key` - String key for the data
-///
-/// ## Returns
-///
-/// The stored value, or undefined if not set.
-@external(javascript, "./savoiardi.ffi.mjs", "getObjectUserData")
-pub fn get_object_user_data(object: Object3D, key: String) -> a
-
-/// Checks if an Object3D has user data for a specific key.
-///
-/// ## Parameters
-///
-/// - `object` - The Object3D to check
-/// - `key` - String key to look for
-///
-/// ## Returns
-///
-/// `True` if the key exists in userData, `False` otherwise.
-@external(javascript, "./savoiardi.ffi.mjs", "hasObjectUserData")
-pub fn has_object_user_data(object: Object3D, key: String) -> Bool
-
-/// Deletes user data from any Object3D.
-///
-/// ## Parameters
-///
-/// - `object` - The Object3D to remove data from
-/// - `key` - String key to delete
-@external(javascript, "./savoiardi.ffi.mjs", "deleteObjectUserData")
-pub fn delete_object_user_data(object: Object3D, key: String) -> Nil
-
 // ============================================================================
 // OBJECT3D
 // ============================================================================
@@ -1413,23 +1324,6 @@ pub fn create_instanced_mesh(
   material: Material,
   count: Int,
 ) -> InstancedMesh
-
-/// Sets the transform matrix for an instance.
-///
-/// Wraps [InstancedMesh.setMatrixAt](https://threejs.org/docs/#api/en/objects/InstancedMesh.setMatrixAt).
-/// After setting matrices, call `update_instance_matrix` to apply changes.
-///
-/// ## Parameters
-///
-/// - `mesh` - The instanced mesh
-/// - `index` - Instance index (0 to count-1)
-/// - `matrix` - 4x4 transformation matrix
-@external(javascript, "./savoiardi.ffi.mjs", "setInstanceMatrix")
-pub fn set_instance_matrix(
-  mesh: InstancedMesh,
-  index: Int,
-  matrix: Matrix4,
-) -> Nil
 
 /// Marks the instance matrix buffer for GPU upload.
 ///
@@ -1680,7 +1574,7 @@ pub fn create_text_geometry(
 /// - `transparent` - Enable transparency (required for opacity < 1.0)
 /// - `opacity` - Opacity from 0.0 (invisible) to 1.0 (opaque)
 /// - `map` - Optional color texture
-/// - `side` - Which sides of faces to render (use `material_side_to_int` to convert)
+/// - `side` - Which sides of faces to render (FrontSide, BackSide, or DoubleSide)
 /// - `alpha_test` - Pixels with alpha below this value won't be rendered (0.0-1.0)
 /// - `depth_write` - Whether to write to depth buffer (set False for transparent objects)
 ///
@@ -1690,17 +1584,37 @@ pub fn create_text_geometry(
 /// // Solid red material
 /// let red = create_basic_material(
 ///   0xff0000, False, 1.0, option.None,
-///   material_side_to_int(FrontSide), 0.0, True,
+///   FrontSide, 0.0, True,
 /// )
 ///
 /// // Transparent sprite with alpha cutoff
 /// let sprite = create_basic_material(
 ///   0xffffff, True, 1.0, option.Some(texture),
-///   material_side_to_int(DoubleSide), 0.1, False,
+///   DoubleSide, 0.1, False,
 /// )
 /// ```
-@external(javascript, "./savoiardi.ffi.mjs", "createBasicMaterial")
 pub fn create_basic_material(
+  color: Int,
+  transparent: Bool,
+  opacity: Float,
+  map: Option(Texture),
+  side: MaterialSide,
+  alpha_test: Float,
+  depth_write: Bool,
+) -> Material {
+  create_basic_material_ffi(
+    color,
+    transparent,
+    opacity,
+    map,
+    material_side_to_int(side),
+    alpha_test,
+    depth_write,
+  )
+}
+
+@external(javascript, "./savoiardi.ffi.mjs", "createBasicMaterial")
+fn create_basic_material_ffi(
   color: Int,
   transparent: Bool,
   opacity: Float,
@@ -2731,32 +2645,6 @@ pub fn set_draw_range(geometry: Geometry, start: Int, count: Int) -> Nil
 // MATH UTILITIES
 // ============================================================================
 
-/// Creates a new identity [Matrix4](https://threejs.org/docs/#api/en/math/Matrix4).
-///
-/// A 4x4 transformation matrix initialized to the identity matrix.
-/// Use `compose_matrix` to set translation, rotation, and scale.
-@external(javascript, "./savoiardi.ffi.mjs", "createMatrix4")
-pub fn create_matrix4() -> Matrix4
-
-/// Composes a transformation matrix from position, rotation, and scale.
-///
-/// Wraps [Matrix4.compose](https://threejs.org/docs/#api/en/math/Matrix4.compose).
-/// The resulting matrix can be used with `set_instance_matrix` for instanced rendering.
-///
-/// ## Parameters
-///
-/// - `matrix` - The matrix to modify
-/// - `position` - Translation as Vec3
-/// - `quaternion` - Rotation as Quaternion
-/// - `scale` - Scale factors as Vec3
-@external(javascript, "./savoiardi.ffi.mjs", "composeMatrix")
-pub fn compose_matrix(
-  matrix: Matrix4,
-  position: vec3.Vec3(Float),
-  quaternion: Quaternion,
-  scale: vec3.Vec3(Float),
-) -> Nil
-
 /// Creates a [Color](https://threejs.org/docs/#api/en/math/Color) from a hex value.
 ///
 /// ## Parameters
@@ -2965,18 +2853,6 @@ pub fn object_look_at(
   target target: Vec3(Float),
 ) -> Nil
 
-/// Sets only the Y rotation of an object (keeps X and Z at 0).
-///
-/// Useful for cylindrical billboards that should face the camera horizontally
-/// but stay upright.
-///
-/// ## Parameters
-///
-/// - `object` - The object to rotate
-/// - `angle_y` - Rotation around Y axis in radians
-@external(javascript, "./savoiardi.ffi.mjs", "setRotationY")
-pub fn set_rotation_y(object object: Object3D, angle_y angle_y: Float) -> Nil
-
 /// Sets shadow casting and receiving properties on an object.
 ///
 /// For shadows to work, you need:
@@ -3000,18 +2876,6 @@ pub fn set_shadow_properties(
 // ============================================================================
 // OBJECT3D UTILITIES
 // ============================================================================
-
-/// Checks if an object is an [OrthographicCamera](https://threejs.org/docs/#api/en/cameras/OrthographicCamera).
-@external(javascript, "./savoiardi.ffi.mjs", "isOrthographicCamera")
-pub fn is_orthographic_camera(object: Object3D) -> Bool
-
-/// Checks if an object is an [InstancedMesh](https://threejs.org/docs/#api/en/objects/InstancedMesh).
-@external(javascript, "./savoiardi.ffi.mjs", "isInstancedMesh")
-pub fn is_instanced_mesh(object: Object3D) -> Bool
-
-/// Checks if an object is a [LOD](https://threejs.org/docs/#api/en/objects/LOD).
-@external(javascript, "./savoiardi.ffi.mjs", "isLOD")
-pub fn is_lod(object: Object3D) -> Bool
 
 /// Removes all levels from a LOD object.
 @external(javascript, "./savoiardi.ffi.mjs", "clearLODLevels")
@@ -3507,7 +3371,7 @@ pub fn center_geometry(geometry: Geometry) -> Geometry
 /// case result {
 ///   Ok(fbx) -> {
 ///     // Center the model so it's at origin
-///     let centered = center_object_3d(fbx)
+///     let centered = center_object(fbx)
 ///   }
 ///   Error(Nil) -> io.println("Failed to load")
 /// }
@@ -3519,7 +3383,7 @@ pub fn center_geometry(geometry: Geometry) -> Geometry
 /// - The children's positions are adjusted so the bounding box center is at origin
 ///
 @external(javascript, "./savoiardi.ffi.mjs", "centerObject3D")
-pub fn center_object_3d(object: Object3D) -> Object3D
+pub fn center_object(object: Object3D) -> Object3D
 
 /// Loads a GLTF or GLB model from a URL.
 ///

@@ -1894,16 +1894,6 @@ export function objectLookAt(object, target) {
 }
 
 /**
- * Set only the Y rotation of an object (Euler angle in radians).
- * Keeps X and Z rotation at 0.
- * @param {THREE.Object3D} object
- * @param {number} angleY - Rotation around Y axis in radians
- */
-export function setRotationY(object, angleY) {
-  object.rotation.set(0, angleY, 0);
-}
-
-/**
  * Set shadow properties on an object
  * @param {THREE.Object3D} object
  * @param {boolean} castShadow
@@ -2011,43 +2001,6 @@ export function updateInstancedMeshTransforms(mesh, instances) {
 
   mesh.instanceMatrix.needsUpdate = true;
 }
-
-/**
- * Check if object is a PerspectiveCamera
- * @param {any} object
- * @returns {boolean}
- */
-export function isPerspectiveCamera(object) {
-  return object instanceof THREE.PerspectiveCamera;
-}
-
-/**
- * Check if object is an OrthographicCamera
- * @param {any} object
- * @returns {boolean}
- */
-export function isOrthographicCamera(object) {
-  return object instanceof THREE.OrthographicCamera;
-}
-
-/**
- * Check if object is an InstancedMesh
- * @param {any} object
- * @returns {boolean}
- */
-export function isInstancedMesh(object) {
-  return object instanceof THREE.InstancedMesh;
-}
-
-/**
- * Check if object is an LOD
- * @param {any} object
- * @returns {boolean}
- */
-export function isLOD(object) {
-  return object instanceof THREE.LOD;
-}
-
 /**
  * Clear all LOD levels
  * @param {THREE.LOD} lod
