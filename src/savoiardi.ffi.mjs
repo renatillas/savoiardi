@@ -15,6 +15,7 @@ import { FontLoader } from 'three/addons/loaders/FontLoader.js';
 import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
 import { STLLoader } from 'three/addons/loaders/STLLoader.js';
 import { FBXLoader } from 'three/addons/loaders/FBXLoader.js';
+
 import { Result$Ok, Result$Error } from './gleam.mjs';
 import { Vec3$Vec3 } from '../vec/vec/vec3.mjs';
 import { Vec2$Vec2 } from '../vec/vec/vec2.mjs';
@@ -83,7 +84,6 @@ export function createRenderer(options) {
   });
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-
 
   // Set renderer size based on dimensions or fullscreen
   const dimensions = Option$isSome(options.dimensions);
@@ -735,11 +735,41 @@ export function createDirectionalLight(color, intensity, castShadow, shadowResol
     light.shadow.mapSize.width = shadowResolution;
     light.shadow.mapSize.height = shadowResolution;
     light.shadow.bias = shadowBias;
+    // Default shadow camera bounds - can be overridden with setShadowCameraBounds
+    light.shadow.camera.left = -50;
+    light.shadow.camera.right = 50;
+    light.shadow.camera.top = 50;
+    light.shadow.camera.bottom = -50;
+    light.shadow.camera.near = 0.5;
+    light.shadow.camera.far = 500;
     light.shadow.camera.updateProjectionMatrix();
   }
 
   return light;
 }
+
+/**
+ * Set shadow camera bounds for a directional or spot light
+ * @param {THREE.Light} light
+ * @param {number} left
+ * @param {number} right
+ * @param {number} top
+ * @param {number} bottom
+ * @param {number} near
+ * @param {number} far
+ */
+export function setShadowCameraBounds(light, left, right, top, bottom, near, far) {
+  if (light.shadow && light.shadow.camera) {
+    light.shadow.camera.left = left;
+    light.shadow.camera.right = right;
+    light.shadow.camera.top = top;
+    light.shadow.camera.bottom = bottom;
+    light.shadow.camera.near = near;
+    light.shadow.camera.far = far;
+    light.shadow.camera.updateProjectionMatrix();
+  }
+}
+
 
 /**
  * Create point light
@@ -2207,6 +2237,21 @@ export function enableTransparency(object) {
         material.side = THREE.DoubleSide;
         material.needsUpdate = true;
       }
+    }
+  });
+}
+
+/**
+ * Enable shadow casting and receiving on all meshes in an Object3D
+ * @param {THREE.Object3D} object
+ * @param {boolean} castShadow
+ * @param {boolean} receiveShadow
+ */
+export function enableShadows(object, castShadow, receiveShadow) {
+  object.traverse((child) => {
+    if (child.isMesh) {
+      child.castShadow = castShadow;
+      child.receiveShadow = receiveShadow;
     }
   });
 }

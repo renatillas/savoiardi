@@ -3043,6 +3043,16 @@ pub fn set_object_quaternion(object: Object3D, quaternion: Quaternion) -> Nil
 @external(javascript, "./savoiardi.ffi.mjs", "enableTransparency")
 pub fn enable_transparency(object: Object3D) -> Nil
 
+/// Enables shadow casting and receiving on all meshes in an object hierarchy.
+///
+/// Traverses the object and all children, setting `castShadow` and `receiveShadow`.
+@external(javascript, "./savoiardi.ffi.mjs", "enableShadows")
+pub fn enable_shadows(
+  object: Object3D,
+  cast_shadow: Bool,
+  receive_shadow: Bool,
+) -> Nil
+
 /// Applies a material to all meshes in an object hierarchy.
 ///
 /// Traverses the object and all children, replacing their materials.
