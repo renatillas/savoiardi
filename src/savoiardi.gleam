@@ -410,6 +410,35 @@ pub type CubeTexture
 /// `create_ambient_light`, `create_directional_light`, `create_point_light`, etc.
 pub type Light
 
+/// Shadow configuration for point and spot lights.
+///
+/// Contains basic shadow map settings that apply to all shadow-casting lights.
+pub type ShadowConfig {
+  ShadowConfig(
+    resolution: Int,
+    bias: Float,
+    normal_bias: Float,
+  )
+}
+
+/// Shadow configuration for directional lights.
+///
+/// Extends basic shadow config with orthographic camera bounds for the shadow camera.
+/// The bounds define the area that can cast/receive shadows.
+pub type DirectionalShadowConfig {
+  DirectionalShadowConfig(
+    resolution: Int,
+    bias: Float,
+    normal_bias: Float,
+    camera_left: Float,
+    camera_right: Float,
+    camera_top: Float,
+    camera_bottom: Float,
+    camera_near: Float,
+    camera_far: Float,
+  )
+}
+
 /// Opaque type wrapping Three.js [AnimationClip](https://threejs.org/docs/#api/en/animation/AnimationClip).
 ///
 /// An AnimationClip is a reusable set of keyframe tracks which represent an animation.
@@ -1940,17 +1969,52 @@ pub fn create_ambient_light(color: Int, intensity: Float) -> Light
 /// ## Example
 ///
 /// ```gleam
-/// let sun = create_directional_light(0xffffff, 1.0, True, 2048, -0.0001)
-/// set_object_position(sun, vec3.new(10.0, 20.0, 10.0))
-/// add_to_scene(scene: scene, object: sun)
+/// let shadow_config = DirectionalShadowConfig(
+///   resolution: 2048,
+///   bias: -0.0001,
+///   normal_bias: 0.5,
+///   camera_left: -200.0, camera_right: 200.0,
+///   camera_top: 200.0, camera_bottom: -200.0,
+///   camera_near: 0.5, camera_far: 500.0,
+/// )
+/// let sun = create_directional_light(0xffffff, 1.0, True, shadow_config)
 /// ```
-@external(javascript, "./savoiardi.ffi.mjs", "createDirectionalLight")
 pub fn create_directional_light(
+  color: Int,
+  intensity: Float,
+  cast_shadow: Bool,
+  shadow_config: DirectionalShadowConfig,
+) -> Light {
+  create_directional_light_ffi(
+    color,
+    intensity,
+    cast_shadow,
+    shadow_config.resolution,
+    shadow_config.bias,
+    shadow_config.normal_bias,
+    shadow_config.camera_left,
+    shadow_config.camera_right,
+    shadow_config.camera_top,
+    shadow_config.camera_bottom,
+    shadow_config.camera_near,
+    shadow_config.camera_far,
+  )
+}
+
+@external(javascript, "./savoiardi.ffi.mjs", "createDirectionalLight")
+fn create_directional_light_ffi(
   color: Int,
   intensity: Float,
   cast_shadow: Bool,
   shadow_resolution: Int,
   shadow_bias: Float,
+  shadow_normal_bias: Float,
+  shadow_camera_left: Float,
+  shadow_camera_right: Float,
+  shadow_camera_top: Float,
+  shadow_camera_bottom: Float,
+  shadow_camera_near: Float,
+  shadow_camera_far: Float,
 ) -> Light
 
 /// Creates a [PointLight](https://threejs.org/docs/#api/en/lights/PointLight).
@@ -1964,16 +2028,34 @@ pub fn create_directional_light(
 /// - `intensity` - Light strength
 /// - `distance` - Maximum range (0 = no limit, light decays naturally)
 /// - `cast_shadow` - Enable shadow casting (uses cube shadow map, expensive)
-/// - `shadow_resolution` - Shadow map size
-/// - `shadow_bias` - Bias to prevent shadow acne
-@external(javascript, "./savoiardi.ffi.mjs", "createPointLight")
+/// - `shadow_config` - Shadow configuration (resolution, bias, normal_bias)
 pub fn create_point_light(
+  color: Int,
+  intensity: Float,
+  distance: Float,
+  cast_shadow: Bool,
+  shadow_config: ShadowConfig,
+) -> Light {
+  create_point_light_ffi(
+    color,
+    intensity,
+    distance,
+    cast_shadow,
+    shadow_config.resolution,
+    shadow_config.bias,
+    shadow_config.normal_bias,
+  )
+}
+
+@external(javascript, "./savoiardi.ffi.mjs", "createPointLight")
+fn create_point_light_ffi(
   color: Int,
   intensity: Float,
   distance: Float,
   cast_shadow: Bool,
   shadow_resolution: Int,
   shadow_bias: Float,
+  shadow_normal_bias: Float,
 ) -> Light
 
 /// Creates a [SpotLight](https://threejs.org/docs/#api/en/lights/SpotLight).
@@ -1989,10 +2071,31 @@ pub fn create_point_light(
 /// - `angle` - Maximum cone angle in radians (max: π/2)
 /// - `penumbra` - Soft edge percentage (0 = hard edge, 1 = fully soft)
 /// - `cast_shadow` - Enable shadow casting
-/// - `shadow_resolution` - Shadow map size
-/// - `shadow_bias` - Bias to prevent shadow acne
-@external(javascript, "./savoiardi.ffi.mjs", "createSpotLight")
+/// - `shadow_config` - Shadow configuration (resolution, bias, normal_bias)
 pub fn create_spot_light(
+  color: Int,
+  intensity: Float,
+  distance: Float,
+  angle: Float,
+  penumbra: Float,
+  cast_shadow: Bool,
+  shadow_config: ShadowConfig,
+) -> Light {
+  create_spot_light_ffi(
+    color,
+    intensity,
+    distance,
+    angle,
+    penumbra,
+    cast_shadow,
+    shadow_config.resolution,
+    shadow_config.bias,
+    shadow_config.normal_bias,
+  )
+}
+
+@external(javascript, "./savoiardi.ffi.mjs", "createSpotLight")
+fn create_spot_light_ffi(
   color: Int,
   intensity: Float,
   distance: Float,
@@ -2001,6 +2104,7 @@ pub fn create_spot_light(
   cast_shadow: Bool,
   shadow_resolution: Int,
   shadow_bias: Float,
+  shadow_normal_bias: Float,
 ) -> Light
 
 /// Creates a [HemisphereLight](https://threejs.org/docs/#api/en/lights/HemisphereLight).

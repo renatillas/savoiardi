@@ -727,7 +727,7 @@ export function createAmbientLight(color, intensity) {
  * @param {number} shadowBias
  * @returns {THREE.DirectionalLight}
  */
-export function createDirectionalLight(color, intensity, castShadow, shadowResolution, shadowBias) {
+export function createDirectionalLight(color, intensity, castShadow, shadowResolution, shadowBias, shadowNormalBias, shadowCameraLeft, shadowCameraRight, shadowCameraTop, shadowCameraBottom, shadowCameraNear, shadowCameraFar) {
   const light = new THREE.DirectionalLight(color, intensity);
   light.castShadow = castShadow;
 
@@ -735,13 +735,13 @@ export function createDirectionalLight(color, intensity, castShadow, shadowResol
     light.shadow.mapSize.width = shadowResolution;
     light.shadow.mapSize.height = shadowResolution;
     light.shadow.bias = shadowBias;
-    // Default shadow camera bounds - can be overridden with setShadowCameraBounds
-    light.shadow.camera.left = -50;
-    light.shadow.camera.right = 50;
-    light.shadow.camera.top = 50;
-    light.shadow.camera.bottom = -50;
-    light.shadow.camera.near = 0.5;
-    light.shadow.camera.far = 500;
+    light.shadow.normalBias = shadowNormalBias;
+    light.shadow.camera.left = shadowCameraLeft;
+    light.shadow.camera.right = shadowCameraRight;
+    light.shadow.camera.top = shadowCameraTop;
+    light.shadow.camera.bottom = shadowCameraBottom;
+    light.shadow.camera.near = shadowCameraNear;
+    light.shadow.camera.far = shadowCameraFar;
     light.shadow.camera.updateProjectionMatrix();
   }
 
@@ -781,7 +781,7 @@ export function setShadowCameraBounds(light, left, right, top, bottom, near, far
  * @param {number} shadowBias
  * @returns {THREE.PointLight}
  */
-export function createPointLight(color, intensity, distance, castShadow, shadowResolution, shadowBias) {
+export function createPointLight(color, intensity, distance, castShadow, shadowResolution, shadowBias, shadowNormalBias) {
   const light = new THREE.PointLight(color, intensity, distance);
   light.castShadow = castShadow;
 
@@ -789,6 +789,7 @@ export function createPointLight(color, intensity, distance, castShadow, shadowR
     light.shadow.mapSize.width = shadowResolution;
     light.shadow.mapSize.height = shadowResolution;
     light.shadow.bias = shadowBias;
+    light.shadow.normalBias = shadowNormalBias;
     light.shadow.camera.updateProjectionMatrix();
   }
 
@@ -807,7 +808,7 @@ export function createPointLight(color, intensity, distance, castShadow, shadowR
  * @param {number} shadowBias
  * @returns {THREE.SpotLight}
  */
-export function createSpotLight(color, intensity, distance, angle, penumbra, castShadow, shadowResolution, shadowBias) {
+export function createSpotLight(color, intensity, distance, angle, penumbra, castShadow, shadowResolution, shadowBias, shadowNormalBias) {
   const light = new THREE.SpotLight(color, intensity, distance, angle, penumbra);
   light.castShadow = castShadow;
 
@@ -815,6 +816,7 @@ export function createSpotLight(color, intensity, distance, angle, penumbra, cas
     light.shadow.mapSize.width = shadowResolution;
     light.shadow.mapSize.height = shadowResolution;
     light.shadow.bias = shadowBias;
+    light.shadow.normalBias = shadowNormalBias;
     light.shadow.camera.updateProjectionMatrix();
   }
 
