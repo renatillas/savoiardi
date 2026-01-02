@@ -1656,7 +1656,6 @@ export function setCSS2DObjectPosition(object, position) {
  */
 export function updateCSS2DObjectHTML(object, html) {
   // Update the actual DOM element
-  console.log(object.element)
   if (object.element) {
     object.element.innerHTML = html;
   }
