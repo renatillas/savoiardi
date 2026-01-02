@@ -1651,13 +1651,14 @@ export function setCSS2DObjectPosition(object, position) {
 
 /**
  * Update CSS2DObject HTML content
- * @param {THREE.Object3D} object
+ * @param {CSS2DObject} object
  * @param {string} html
  */
 export function updateCSS2DObjectHTML(object, html) {
-  // Store in userData since we're not using real CSS2DObject
-  if (object.userData) {
-    object.userData.css2dHtml = html;
+  // Update the actual DOM element
+  console.log(object.element)
+  if (object.element) {
+    object.element.innerHTML = html;
   }
 }
 
@@ -1684,13 +1685,13 @@ export function setCSS3DObjectPosition(object, position) {
 
 /**
  * Update CSS3DObject HTML content
- * @param {THREE.Object3D} object
+ * @param {CSS3DObject} object
  * @param {string} html
  */
 export function updateCSS3DObjectHTML(object, html) {
-  // Store in userData since we're not using real CSS3DObject
-  if (object.userData) {
-    object.userData.css3dHtml = html;
+  // Update the actual DOM element
+  if (object.element) {
+    object.element.innerHTML = html;
   }
 }
 
