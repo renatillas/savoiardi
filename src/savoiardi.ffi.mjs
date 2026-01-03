@@ -90,7 +90,7 @@ export function createRenderer(options) {
   if (dimensions) {
     const dimensions = Option$Some$0(dimensions)
     // Fixed size
-    renderer.setSize(dimensions.width, dimensions.height);
+    renderer.setSize(dimensions.x, dimensions.y);
     renderer.setPixelRatio(window.devicePixelRatio || 1);
   } else {
     // Fullscreen mode
