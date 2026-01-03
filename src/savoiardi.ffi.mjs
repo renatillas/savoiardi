@@ -86,9 +86,9 @@ export function createRenderer(options) {
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
   // Set renderer size based on dimensions or fullscreen
-  const dimensions = Option$isSome(options.dimensions);
-  if (dimensions) {
-    const dimensions = Option$Some$0(dimensions)
+  const maybe_dimensions = Option$isSome(options.dimensions);
+  if (maybe_dimensions) {
+    const dimensions = Option$Some$0(maybe_dimensions)
     // Fixed size
     renderer.setSize(dimensions.x, dimensions.y);
     renderer.setPixelRatio(window.devicePixelRatio || 1);
