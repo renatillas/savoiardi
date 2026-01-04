@@ -513,6 +513,12 @@ pub type CSS2DObject
 /// can be rotated and transformed in 3D.
 pub type CSS3DObject
 
+/// Opaque type wrapping [CSS3DRenderer](https://threejs.org/docs/#examples/en/renderers/CSS3DRenderer).
+///
+/// Renders DOM elements as full 3D objects that can be rotated and transformed.
+/// Unlike CSS2DRenderer, CSS3D elements exist in true 3D space with depth.
+pub type CSS3DRenderer
+
 /// Opaque type for fonts loaded via [FontLoader](https://threejs.org/docs/#examples/en/loaders/FontLoader).
 ///
 /// Fonts are required for creating 3D text geometry with `create_text_geometry`.
@@ -3116,6 +3122,43 @@ pub fn get_css2d_renderer_dom_element(renderer: CSS2DRenderer) -> DomElement
 @external(javascript, "./savoiardi.ffi.mjs", "renderCSS2D")
 pub fn render_css2d(
   renderer: CSS2DRenderer,
+  scene: Scene,
+  camera: Camera,
+) -> Nil
+
+// ============================================================================
+// CSS3D RENDERER
+// ============================================================================
+
+/// Creates a [CSS3DRenderer](https://threejs.org/docs/#examples/en/renderers/CSS3DRenderer).
+///
+/// CSS3D renders DOM elements as full 3D objects that can be rotated and transformed.
+/// Unlike CSS2D, CSS3D elements exist in true 3D space with depth and occlusion.
+@external(javascript, "./savoiardi.ffi.mjs", "createCSS3DRenderer")
+pub fn create_css3d_renderer() -> CSS3DRenderer
+
+/// Sets the size of a CSS3DRenderer.
+///
+/// Should match the WebGL renderer size.
+@external(javascript, "./savoiardi.ffi.mjs", "setCSS3DRendererSize")
+pub fn set_css3d_renderer_size(
+  renderer: CSS3DRenderer,
+  width: Int,
+  height: Int,
+) -> Nil
+
+/// Gets the DOM element of a CSS3DRenderer.
+///
+/// The DOM element should be positioned over the WebGL canvas.
+@external(javascript, "./savoiardi.ffi.mjs", "getCSS3DRendererDomElement")
+pub fn get_css3d_renderer_dom_element(renderer: CSS3DRenderer) -> DomElement
+
+/// Renders CSS3D objects in the scene.
+///
+/// Call this after `render()` in your render loop.
+@external(javascript, "./savoiardi.ffi.mjs", "renderCSS3D")
+pub fn render_css3d(
+  renderer: CSS3DRenderer,
   scene: Scene,
   camera: Camera,
 ) -> Nil

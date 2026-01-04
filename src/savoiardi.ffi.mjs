@@ -8,7 +8,7 @@
 
 import * as THREE from 'three';
 import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
-import { CSS3DObject } from 'three/addons/renderers/CSS3DRenderer.js';
+import { CSS3DRenderer, CSS3DObject } from 'three/addons/renderers/CSS3DRenderer.js';
 import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { FontLoader } from 'three/addons/loaders/FontLoader.js';
@@ -1659,6 +1659,47 @@ export function updateCSS2DObjectHTML(object, html) {
   if (object.element) {
     object.element.innerHTML = html;
   }
+}
+
+// ============================================================================
+// UI - CSS3DRenderer
+// ============================================================================
+
+/**
+ * Create CSS3DRenderer
+ * @returns {CSS3DRenderer}
+ */
+export function createCSS3DRenderer() {
+  return new CSS3DRenderer();
+}
+
+/**
+ * Set CSS3DRenderer size
+ * @param {CSS3DRenderer} renderer
+ * @param {number} width
+ * @param {number} height
+ */
+export function setCSS3DRendererSize(renderer, width, height) {
+  renderer.setSize(width, height);
+}
+
+/**
+ * Get CSS3DRenderer DOM element
+ * @param {CSS3DRenderer} renderer
+ * @returns {HTMLElement}
+ */
+export function getCSS3DRendererDomElement(renderer) {
+  return renderer.domElement;
+}
+
+/**
+ * Render CSS3D
+ * @param {CSS3DRenderer} renderer
+ * @param {THREE.Scene} scene
+ * @param {THREE.Camera} camera
+ */
+export function renderCSS3D(renderer, scene, camera) {
+  renderer.render(scene, camera);
 }
 
 /**
