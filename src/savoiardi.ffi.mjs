@@ -18,7 +18,7 @@ import { FBXLoader } from 'three/addons/loaders/FBXLoader.js';
 
 import { Result$Ok, Result$Error } from './gleam.mjs';
 import { Vec3$Vec3 } from '../vec/vec/vec3.mjs';
-import { Vec2$Vec2 } from '../vec/vec/vec2.mjs';
+import { Vec2$Vec2, Vec2$Vec2$x, Vec2$Vec2$y } from '../vec/vec/vec2.mjs';
 import { Option$isSome, Option$Some$0 } from '../gleam_stdlib/gleam/option.mjs';
 import { Quaternion$Quaternion } from '../quaterni/quaternion.mjs';
 
@@ -86,11 +86,11 @@ export function createRenderer(options) {
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
   // Set renderer size based on dimensions or fullscreen
-  const maybe_dimensions = Option$isSome(options.dimensions);
-  if (maybe_dimensions) {
-    const dimensions = Option$Some$0(maybe_dimensions)
+  const is_some = Option$isSome(options.dimensions);
+  if (is_some) {
+    const dimensions = Option$Some$0(options.dimensions)
     // Fixed size
-    renderer.setSize(dimensions.x, dimensions.y);
+    renderer.setSize(Vec2$Vec2$x(dimensions), Vec2$Vec2$y(dimensions));
     renderer.setPixelRatio(window.devicePixelRatio || 1);
   } else {
     // Fullscreen mode
@@ -2755,13 +2755,13 @@ export function disposeObject3D(object) {
  * @returns {Promise<Result<THREE.Texture, undefined>>}
  */
 export function loadTexture(url) {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     const loader = new THREE.TextureLoader();
     loader.load(
       url,
       (texture) => resolve(Result$Ok(texture)),
       undefined,
-      (_) => reject(Result$Error())
+      (_) => resolve(Result$Error())
     );
   });
 }
@@ -2789,7 +2789,7 @@ export function loadAudio(url) {
  * @returns {Promise<Result<THREE.BufferGeometry, undefined>>}
  */
 export function loadSTL(url) {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     const loader = new STLLoader();
     loader.load(
       url,
@@ -2799,7 +2799,7 @@ export function loadSTL(url) {
         resolve(Result$Ok(geometry));
       },
       undefined,
-      (_) => reject(Result$Error())
+      (_) => resolve(Result$Error())
     );
   });
 }
@@ -2841,12 +2841,12 @@ export function centerObject3D(object) {
  */
 export function loadGLTF(url) {
   const loader = new GLTFLoader();
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     loader.load(
       url,
       (gltf) => resolve(Result$Ok(gltf)),
       undefined,
-      (_) => reject(Result$Error())
+      (_) => resolve(Result$Error())
     );
   });
 }
@@ -2858,12 +2858,12 @@ export function loadGLTF(url) {
  */
 export function loadOBJ(url) {
   const loader = new OBJLoader();
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     loader.load(
       url,
       (obj) => resolve(Result$Ok(obj)),
       undefined,
-      (_) => reject(Result$Error())
+      (_) => resolve(Result$Error())
     );
   });
 }
@@ -2875,12 +2875,12 @@ export function loadOBJ(url) {
  */
 export function loadFBX(url) {
   const loader = new FBXLoader();
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     loader.load(
       url,
       (fbx) => resolve(Result$Ok(fbx)),
       undefined,
-      (_) => reject(Result$Error())
+      (_) => resolve(Result$Error())
     );
   });
 }
@@ -2892,12 +2892,12 @@ export function loadFBX(url) {
  */
 export function loadFont(url) {
   const loader = new FontLoader();
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     loader.load(
       url,
       (font) => resolve(Result$Ok(font)),
       undefined,
-      (_) => reject(Result$Error())
+      (_) => resolve(Result$Error())
     );
   });
 }
@@ -2909,7 +2909,7 @@ export function loadFont(url) {
  */
 export function loadEquirectangularTexture(url) {
   const loader = new THREE.TextureLoader();
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     loader.load(
       url,
       (texture) => {
@@ -2917,7 +2917,7 @@ export function loadEquirectangularTexture(url) {
         resolve(Result$Ok(texture));
       },
       undefined,
-      (error) => reject(Result$Error(error))
+      (_) => resolve(Result$Error())
     );
   });
 }
@@ -2929,12 +2929,12 @@ export function loadEquirectangularTexture(url) {
  */
 export function loadCubeTexture(urls) {
   const loader = new THREE.CubeTextureLoader();
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     loader.load(
       urls,
       (cubeTexture) => resolve(Result$Ok(cubeTexture)),
       undefined,
-      (error) => reject(Result$Error(error))
+      (_) => resolve(Result$Error())
     );
   });
 }
