@@ -16,6 +16,7 @@
 ////     functions: [
 ////       "default_renderer_options",
 ////       "create_renderer",
+////       "enable_renderer_shadow_map",
 ////       "get_renderer_dom_element",
 ////       "set_renderer_size",
 ////       "set_renderer_pixel_ratio",
@@ -123,7 +124,10 @@
 ////       "create_directional_light",
 ////       "create_point_light",
 ////       "create_spot_light",
-////       "create_hemisphere_light"
+////       "create_hemisphere_light",
+////       "set_light_cast_shadow",
+////       "configure_shadow",
+////       "configure_directional_shadow_camera"
 ////     ]
 ////   },
 ////   {
@@ -137,6 +141,7 @@
 ////       "set_texture_repeat",
 ////       "set_texture_wrap_mode",
 ////       "set_texture_filter_mode",
+////       "set_texture_color_space",
 ////       "dispose_texture"
 ////     ]
 ////   },
@@ -394,15 +399,12 @@ pub type ShadowConfig {
   ShadowConfig(resolution: Int, bias: Float, normal_bias: Float)
 }
 
-/// Shadow configuration for directional lights.
+/// Shadow camera bounds configuration for directional lights.
 ///
-/// Extends basic shadow config with orthographic camera bounds for the shadow camera.
+/// Defines the orthographic camera bounds for the shadow camera.
 /// The bounds define the area that can cast/receive shadows.
 pub type DirectionalShadowConfig {
   DirectionalShadowConfig(
-    resolution: Int,
-    bias: Float,
-    normal_bias: Float,
     camera_left: Float,
     camera_right: Float,
     camera_top: Float,
@@ -617,6 +619,18 @@ pub type WrapMode {
   ClampToEdgeWrapping
   /// Texture repeats with alternating mirrored copies.
   MirroredRepeatWrapping
+}
+
+/// Texture color space.
+///
+/// Controls how texture colors are interpreted.
+///
+/// See: [Texture Constants](https://threejs.org/docs/#api/en/constants/Textures)
+pub type ColorSpace {
+  /// Standard sRGB color space. Use for color/albedo textures.
+  SRGBColorSpace
+  /// Linear sRGB color space. Use for data textures (normal maps, etc).
+  LinearSRGBColorSpace
 }
 
 /// Material blending mode.
@@ -854,6 +868,17 @@ pub fn get_canvas_dimensions(renderer: Renderer) -> vec2.Vec2(Float)
 /// ```
 @external(javascript, "./savoiardi.ffi.mjs", "createRenderer")
 pub fn create_renderer(options: RendererOptions) -> Renderer
+
+/// Enables or disables the shadow map on a renderer.
+///
+/// When enabled, uses PCFSoftShadowMap for smooth shadow edges.
+///
+/// ## Parameters
+///
+/// - `renderer` - The renderer to configure
+/// - `enabled` - Whether shadow mapping is enabled
+@external(javascript, "./savoiardi.ffi.mjs", "enableRendererShadowMap")
+pub fn enable_renderer_shadow_map(renderer: Renderer, enabled: Bool) -> Nil
 
 /// Gets the canvas DOM element from the renderer.
 ///
@@ -1652,6 +1677,7 @@ fn create_basic_material_ffi(
 /// - `metalness_map` - Per-pixel metalness
 /// - `emissive` - Emissive (glow) color
 /// - `emissive_intensity` - Emissive strength
+/// - `alpha_test` - Alpha cutoff threshold (pixels below this are discarded)
 ///
 /// ## Example
 ///
@@ -1663,7 +1689,8 @@ fn create_basic_material_ffi(
 ///   option.None, option.None, option.None,  // No textures
 ///   option.None, 0.0, 0.0,  // No displacement
 ///   option.None, option.None,  // No maps
-///   0x000000, 0.0         // No emission
+///   0x000000, 0.0,        // No emission
+///   0.0,                  // No alpha test
 /// )
 /// ```
 @external(javascript, "./savoiardi.ffi.mjs", "createStandardMaterial")
@@ -1683,6 +1710,7 @@ pub fn create_standard_material(
   metalness_map: Option(Texture),
   emissive: Int,
   emissive_intensity: Float,
+  alpha_test: Float,
 ) -> Material
 
 /// Creates a [MeshPhongMaterial](https://threejs.org/docs/#api/en/materials/MeshPhongMaterial).
@@ -1726,7 +1754,7 @@ pub fn create_phong_material(
 /// - `transparent` - Enable transparency
 /// - `opacity` - Opacity value
 /// - `alpha_test` - Alpha cutoff threshold
-@external(javascript, "./savoiardi.ffi.mjs", "createLambertMaterial")
+/// - `side` - Which sides of faces to render (FrontSide, BackSide, or DoubleSide)
 pub fn create_lambert_material(
   color: Int,
   map: Option(Texture),
@@ -1735,6 +1763,30 @@ pub fn create_lambert_material(
   transparent: Bool,
   opacity: Float,
   alpha_test: Float,
+  side: MaterialSide,
+) -> Material {
+  create_lambert_material_ffi(
+    color,
+    map,
+    normal_map,
+    ao_map,
+    transparent,
+    opacity,
+    alpha_test,
+    material_side_to_int(side),
+  )
+}
+
+@external(javascript, "./savoiardi.ffi.mjs", "createLambertMaterial")
+fn create_lambert_material_ffi(
+  color: Int,
+  map: Option(Texture),
+  normal_map: Option(Texture),
+  ao_map: Option(Texture),
+  transparent: Bool,
+  opacity: Float,
+  alpha_test: Float,
+  side: Int,
 ) -> Material
 
 /// Creates a [MeshToonMaterial](https://threejs.org/docs/#api/en/materials/MeshToonMaterial).
@@ -1878,60 +1930,21 @@ pub fn create_ambient_light(color: Int, intensity: Float) -> Light
 ///
 /// - `color` - Light color as hex
 /// - `intensity` - Light strength
-/// - `cast_shadow` - Enable shadow casting
-/// - `shadow_resolution` - Shadow map size (e.g., 1024, 2048). Higher = sharper shadows
-/// - `shadow_bias` - Bias to prevent shadow acne. Typical: -0.0001 to -0.001
 ///
 /// ## Example
 ///
 /// ```gleam
-/// let shadow_config = DirectionalShadowConfig(
-///   resolution: 2048,
-///   bias: -0.0001,
-///   normal_bias: 0.5,
+/// let sun = create_directional_light(0xffffff, 1.0)
+/// set_light_cast_shadow(sun, True)
+/// configure_shadow(sun, ShadowConfig(2048, -0.0001, 0.5))
+/// configure_directional_shadow_camera(sun, DirectionalShadowConfig(
 ///   camera_left: -200.0, camera_right: 200.0,
 ///   camera_top: 200.0, camera_bottom: -200.0,
 ///   camera_near: 0.5, camera_far: 500.0,
-/// )
-/// let sun = create_directional_light(0xffffff, 1.0, True, shadow_config)
+/// ))
 /// ```
-pub fn create_directional_light(
-  color: Int,
-  intensity: Float,
-  cast_shadow: Bool,
-  shadow_config: DirectionalShadowConfig,
-) -> Light {
-  create_directional_light_ffi(
-    color,
-    intensity,
-    cast_shadow,
-    shadow_config.resolution,
-    shadow_config.bias,
-    shadow_config.normal_bias,
-    shadow_config.camera_left,
-    shadow_config.camera_right,
-    shadow_config.camera_top,
-    shadow_config.camera_bottom,
-    shadow_config.camera_near,
-    shadow_config.camera_far,
-  )
-}
-
 @external(javascript, "./savoiardi.ffi.mjs", "createDirectionalLight")
-fn create_directional_light_ffi(
-  color: Int,
-  intensity: Float,
-  cast_shadow: Bool,
-  shadow_resolution: Int,
-  shadow_bias: Float,
-  shadow_normal_bias: Float,
-  shadow_camera_left: Float,
-  shadow_camera_right: Float,
-  shadow_camera_top: Float,
-  shadow_camera_bottom: Float,
-  shadow_camera_near: Float,
-  shadow_camera_far: Float,
-) -> Light
+pub fn create_directional_light(color: Int, intensity: Float) -> Light
 
 /// Creates a [PointLight](https://threejs.org/docs/#api/en/lights/PointLight).
 ///
@@ -1943,35 +1956,11 @@ fn create_directional_light_ffi(
 /// - `color` - Light color as hex
 /// - `intensity` - Light strength
 /// - `distance` - Maximum range (0 = no limit, light decays naturally)
-/// - `cast_shadow` - Enable shadow casting (uses cube shadow map, expensive)
-/// - `shadow_config` - Shadow configuration (resolution, bias, normal_bias)
+@external(javascript, "./savoiardi.ffi.mjs", "createPointLight")
 pub fn create_point_light(
   color: Int,
   intensity: Float,
   distance: Float,
-  cast_shadow: Bool,
-  shadow_config: ShadowConfig,
-) -> Light {
-  create_point_light_ffi(
-    color,
-    intensity,
-    distance,
-    cast_shadow,
-    shadow_config.resolution,
-    shadow_config.bias,
-    shadow_config.normal_bias,
-  )
-}
-
-@external(javascript, "./savoiardi.ffi.mjs", "createPointLight")
-fn create_point_light_ffi(
-  color: Int,
-  intensity: Float,
-  distance: Float,
-  cast_shadow: Bool,
-  shadow_resolution: Int,
-  shadow_bias: Float,
-  shadow_normal_bias: Float,
 ) -> Light
 
 /// Creates a [SpotLight](https://threejs.org/docs/#api/en/lights/SpotLight).
@@ -1986,42 +1975,73 @@ fn create_point_light_ffi(
 /// - `distance` - Maximum range (0 = no limit)
 /// - `angle` - Maximum cone angle in radians (max: π/2)
 /// - `penumbra` - Soft edge percentage (0 = hard edge, 1 = fully soft)
-/// - `cast_shadow` - Enable shadow casting
-/// - `shadow_config` - Shadow configuration (resolution, bias, normal_bias)
+@external(javascript, "./savoiardi.ffi.mjs", "createSpotLight")
 pub fn create_spot_light(
   color: Int,
   intensity: Float,
   distance: Float,
   angle: Float,
   penumbra: Float,
-  cast_shadow: Bool,
-  shadow_config: ShadowConfig,
-) -> Light {
-  create_spot_light_ffi(
-    color,
-    intensity,
-    distance,
-    angle,
-    penumbra,
-    cast_shadow,
-    shadow_config.resolution,
-    shadow_config.bias,
-    shadow_config.normal_bias,
+) -> Light
+
+/// Sets whether a light casts shadows.
+///
+/// ## Parameters
+///
+/// - `light` - The light to configure
+/// - `cast_shadow` - Whether the light should cast shadows
+@external(javascript, "./savoiardi.ffi.mjs", "setLightCastShadow")
+pub fn set_light_cast_shadow(light: Light, cast_shadow: Bool) -> Nil
+
+/// Configures shadow map resolution and bias for a shadow-casting light.
+///
+/// ## Parameters
+///
+/// - `light` - The light to configure
+/// - `config` - Shadow configuration (resolution, bias, normal_bias)
+pub fn configure_shadow(light: Light, config: ShadowConfig) -> Nil {
+  configure_shadow_ffi(light, config.resolution, config.bias, config.normal_bias)
+}
+
+@external(javascript, "./savoiardi.ffi.mjs", "configureShadow")
+fn configure_shadow_ffi(
+  light: Light,
+  resolution: Int,
+  bias: Float,
+  normal_bias: Float,
+) -> Nil
+
+/// Configures the shadow camera bounds for a directional light.
+///
+/// ## Parameters
+///
+/// - `light` - The directional light to configure
+/// - `config` - Directional shadow camera bounds
+pub fn configure_directional_shadow_camera(
+  light: Light,
+  config: DirectionalShadowConfig,
+) -> Nil {
+  configure_directional_shadow_camera_ffi(
+    light,
+    config.camera_left,
+    config.camera_right,
+    config.camera_top,
+    config.camera_bottom,
+    config.camera_near,
+    config.camera_far,
   )
 }
 
-@external(javascript, "./savoiardi.ffi.mjs", "createSpotLight")
-fn create_spot_light_ffi(
-  color: Int,
-  intensity: Float,
-  distance: Float,
-  angle: Float,
-  penumbra: Float,
-  cast_shadow: Bool,
-  shadow_resolution: Int,
-  shadow_bias: Float,
-  shadow_normal_bias: Float,
-) -> Light
+@external(javascript, "./savoiardi.ffi.mjs", "configureDirectionalShadowCamera")
+fn configure_directional_shadow_camera_ffi(
+  light: Light,
+  left: Float,
+  right: Float,
+  top: Float,
+  bottom: Float,
+  near: Float,
+  far: Float,
+) -> Nil
 
 /// Creates a [HemisphereLight](https://threejs.org/docs/#api/en/lights/HemisphereLight).
 ///
@@ -2048,6 +2068,28 @@ pub fn create_hemisphere_light(
   ground_color: Int,
   intensity: Float,
 ) -> Light
+
+/// Updates a light's color.
+///
+/// Works with all light types (Ambient, Directional, Point, Spot, Hemisphere).
+///
+/// ## Parameters
+///
+/// - `light` - The light to update
+/// - `color` - Hex color value (e.g., `0xffffff` for white)
+@external(javascript, "./savoiardi.ffi.mjs", "updateLightColor")
+pub fn update_light_color(light: Light, color: Int) -> Nil
+
+/// Updates a light's intensity.
+///
+/// Works with all light types.
+///
+/// ## Parameters
+///
+/// - `light` - The light to update
+/// - `intensity` - Light intensity (typically 0.0 to 2.0+)
+@external(javascript, "./savoiardi.ffi.mjs", "updateLightIntensity")
+pub fn update_light_intensity(light: Light, intensity: Float) -> Nil
 
 // ============================================================================
 // OBJECTS
@@ -2392,6 +2434,35 @@ fn filter_mode_to_int(mode: FilterMode) -> Int {
   }
 }
 
+@external(javascript, "./savoiardi.ffi.mjs", "getSRGBColorSpace")
+fn get_srgb_color_space_constant() -> String
+
+@external(javascript, "./savoiardi.ffi.mjs", "getLinearSRGBColorSpace")
+fn get_linear_srgb_color_space_constant() -> String
+
+fn color_space_to_string(space: ColorSpace) -> String {
+  case space {
+    SRGBColorSpace -> get_srgb_color_space_constant()
+    LinearSRGBColorSpace -> get_linear_srgb_color_space_constant()
+  }
+}
+
+/// Sets a texture's color space.
+///
+/// ## Parameters
+///
+/// - `texture` - The texture to configure
+/// - `color_space` - The color space (SRGBColorSpace for color textures, LinearSRGBColorSpace for data)
+pub fn set_texture_color_space(
+  texture: Texture,
+  color_space: ColorSpace,
+) -> Nil {
+  set_texture_color_space_ffi(texture, color_space_to_string(color_space))
+}
+
+@external(javascript, "./savoiardi.ffi.mjs", "setTextureColorSpace")
+fn set_texture_color_space_ffi(texture: Texture, color_space: String) -> Nil
+
 // ============================================================================
 // AUDIO
 // ============================================================================
@@ -2424,6 +2495,23 @@ pub fn create_audio(listener: AudioListener) -> Audio
 /// - `listener` - The AudioListener for the scene
 @external(javascript, "./savoiardi.ffi.mjs", "createPositionalAudio")
 pub fn create_positional_audio(listener: AudioListener) -> PositionalAudio
+
+/// Convert a PositionalAudio to Object3D for use with scene functions.
+///
+/// PositionalAudio extends Object3D in Three.js, so this is a safe cast.
+/// Use this when you need to add positional audio to a scene or set its
+/// position using Object3D functions.
+///
+/// ## Example
+///
+/// ```gleam
+/// let audio = create_positional_audio(listener)
+/// let obj = positional_audio_to_object3d(audio)
+/// add_to_scene(scene: scene, object: obj)
+/// set_object_position(obj, vec3.Vec3(5.0, 0.0, 0.0))
+/// ```
+@external(javascript, "./savoiardi.ffi.mjs", "identity")
+pub fn positional_audio_to_object3d(audio: PositionalAudio) -> Object3D
 
 /// Sets the audio buffer for an Audio object.
 ///
@@ -2865,7 +2953,7 @@ pub fn object_look_at(
 /// 1. A light with `cast_shadow: True`
 /// 2. Objects with `cast_shadow: True`
 /// 3. Objects with `receive_shadow: True`
-/// 4. `renderer.shadowMap.enabled = true` (automatic in create_renderer)
+/// 4. `renderer.shadowMap.enabled = true` (via `enable_renderer_shadow_map`)
 ///
 /// ## Parameters
 ///
@@ -2976,6 +3064,129 @@ pub fn set_object_geometry(object: Object3D, geometry: Geometry) -> Nil
 @external(javascript, "./savoiardi.ffi.mjs", "setObjectMaterial")
 pub fn set_object_material(object: Object3D, material: Material) -> Nil
 
+/// Updates a material's color.
+///
+/// Sets the color property of any material that has one (Basic, Standard, Phong, etc.).
+///
+/// ## Parameters
+///
+/// - `material` - The material to update
+/// - `color` - Hex color value (e.g., `0xff0000` for red)
+@external(javascript, "./savoiardi.ffi.mjs", "updateMaterialColor")
+pub fn update_material_color(material: Material, color: Int) -> Nil
+
+/// Updates a standard material's metalness.
+///
+/// Only affects MeshStandardMaterial and MeshPhysicalMaterial.
+///
+/// ## Parameters
+///
+/// - `material` - The material to update
+/// - `metalness` - Metalness value (0.0 = dielectric, 1.0 = metal)
+@external(javascript, "./savoiardi.ffi.mjs", "updateMaterialMetalness")
+pub fn update_material_metalness(material: Material, metalness: Float) -> Nil
+
+/// Updates a standard material's roughness.
+///
+/// Only affects MeshStandardMaterial, MeshPhysicalMaterial, and similar PBR materials.
+///
+/// ## Parameters
+///
+/// - `material` - The material to update
+/// - `roughness` - Roughness value (0.0 = mirror, 1.0 = diffuse)
+@external(javascript, "./savoiardi.ffi.mjs", "updateMaterialRoughness")
+pub fn update_material_roughness(material: Material, roughness: Float) -> Nil
+
+/// Updates a material's opacity.
+///
+/// ## Parameters
+///
+/// - `material` - The material to update
+/// - `opacity` - Opacity value (0.0 = invisible, 1.0 = opaque)
+@external(javascript, "./savoiardi.ffi.mjs", "updateMaterialOpacity")
+pub fn update_material_opacity(material: Material, opacity: Float) -> Nil
+
+/// Sets a material's transparent flag.
+///
+/// ## Parameters
+///
+/// - `material` - The material to update
+/// - `transparent` - Whether the material should be transparent
+@external(javascript, "./savoiardi.ffi.mjs", "setMaterialTransparent")
+pub fn set_material_transparent(material: Material, transparent: Bool) -> Nil
+
+/// Sets the normal scale on a material with a normal map.
+///
+/// ## Parameters
+///
+/// - `material` - The material to update
+/// - `x` - Normal scale X component
+/// - `y` - Normal scale Y component
+@external(javascript, "./savoiardi.ffi.mjs", "setMaterialNormalScale")
+pub fn set_material_normal_scale(
+  material: Material,
+  x: Float,
+  y: Float,
+) -> Nil
+
+/// Updates a material's wireframe mode.
+///
+/// ## Parameters
+///
+/// - `material` - The material to update
+/// - `wireframe` - Whether to render as wireframe
+@external(javascript, "./savoiardi.ffi.mjs", "updateMaterialWireframe")
+pub fn update_material_wireframe(material: Material, wireframe: Bool) -> Nil
+
+/// Sets a texture on a named material property.
+///
+/// Property names use Three.js convention:
+/// - `"map"` — color/albedo texture
+/// - `"normalMap"` — normal map
+/// - `"aoMap"` — ambient occlusion map
+/// - `"roughnessMap"` — roughness map
+/// - `"metalnessMap"` — metalness map
+/// - `"displacementMap"` — displacement map
+///
+/// ## Parameters
+///
+/// - `material` - The material to update
+/// - `property_name` - Three.js texture property name
+/// - `texture` - The texture to set
+@external(javascript, "./savoiardi.ffi.mjs", "setMaterialTexture")
+pub fn set_material_texture(
+  material: Material,
+  property_name: String,
+  texture: Texture,
+) -> Nil
+
+/// Clears a texture from a material property, setting it to null.
+///
+/// ## Parameters
+///
+/// - `material` - The material to update
+/// - `property_name` - Three.js texture property name to clear
+@external(javascript, "./savoiardi.ffi.mjs", "clearMaterialTexture")
+pub fn clear_material_texture(
+  material: Material,
+  property_name: String,
+) -> Nil
+
+/// Updates a material's rendering side after creation.
+///
+/// Controls which sides of geometry faces are rendered.
+///
+/// ## Parameters
+///
+/// - `material` - The material to update
+/// - `side` - Which sides to render (FrontSide, BackSide, or DoubleSide)
+pub fn update_material_side(material: Material, side: MaterialSide) -> Nil {
+  update_material_side_ffi(material, material_side_to_int(side))
+}
+
+@external(javascript, "./savoiardi.ffi.mjs", "updateMaterialSide")
+fn update_material_side_ffi(material: Material, side: Int) -> Nil
+
 /// Gets the object's local position.
 ///
 /// Accesses [Object3D.position](https://threejs.org/docs/#api/en/core/Object3D.position).
@@ -3032,37 +3243,22 @@ pub fn apply_material_to_object(object: Object3D, material: Material) -> Nil
 /// Applies a texture to all materials in an object hierarchy.
 ///
 /// Traverses the object and sets the texture as the `map` property on all materials.
+/// Configure texture properties (filter mode, color space) separately before calling.
 ///
 /// ## Parameters
 ///
 /// - `object` - The object hierarchy
 /// - `texture` - The texture to apply
-/// - `filter_mode` - NearestFilter for pixel art, LinearFilter for smooth textures
 ///
 /// ## Example
 ///
 /// ```gleam
-/// // Apply pixel-art texture
-/// apply_texture_to_object(floor_model, dungeon_texture, NearestFilter)
+/// // Configure texture, then apply
+/// set_texture_filter_mode(dungeon_texture, NearestFilter, NearestFilter)
+/// apply_texture_to_object(floor_model, dungeon_texture)
 /// ```
-pub fn apply_texture_to_object(
-  object: Object3D,
-  texture: Texture,
-  filter_mode: FilterMode,
-) -> Nil {
-  apply_texture_to_object_internal(
-    object,
-    texture,
-    filter_mode_to_int(filter_mode),
-  )
-}
-
 @external(javascript, "./savoiardi.ffi.mjs", "applyTextureToObject")
-fn apply_texture_to_object_internal(
-  object: Object3D,
-  texture: Texture,
-  filter_mode: Int,
-) -> Nil
+pub fn apply_texture_to_object(object: Object3D, texture: Texture) -> Nil
 
 // ============================================================================
 // RESOURCE DISPOSAL
@@ -3543,6 +3739,125 @@ pub fn load_obj(url: String) -> Promise(Result(Object3D, Nil))
 @external(javascript, "./savoiardi.ffi.mjs", "loadFBX")
 pub fn load_fbx(url: String) -> Promise(Result(FBXData, Nil))
 
+// ============================================================================
+// GLTF/FBX DATA ACCESSORS
+// ============================================================================
+
+/// Get the root scene/group from loaded GLTF data.
+///
+/// GLTF files contain a scene hierarchy. This function extracts the root
+/// Object3D that contains all meshes, lights, cameras, and other objects.
+///
+/// ## Parameters
+///
+/// - `data`: The GLTFData returned from `load_gltf`
+///
+/// ## Example
+///
+/// ```gleam
+/// use gltf <- promise.await(load_gltf("/models/character.glb"))
+/// case gltf {
+///   Ok(data) -> {
+///     let scene = get_gltf_scene(data)
+///     add_to_scene(main_scene, scene)
+///   }
+///   Error(Nil) -> io.println("Failed to load GLTF")
+/// }
+/// ```
+///
+@external(javascript, "./savoiardi.ffi.mjs", "getGltfScene")
+pub fn get_gltf_scene(data: GLTFData) -> Object3D
+
+/// Get the animations from loaded GLTF data.
+///
+/// Returns a list of AnimationClips that can be played using an AnimationMixer.
+/// GLTF is the preferred format for animated 3D content on the web.
+///
+/// ## Parameters
+///
+/// - `data`: The GLTFData returned from `load_gltf`
+///
+/// ## Example
+///
+/// ```gleam
+/// use gltf <- promise.await(load_gltf("/models/character.glb"))
+/// case gltf {
+///   Ok(data) -> {
+///     let scene = get_gltf_scene(data)
+///     let clips = get_gltf_animations(data)
+///     let mixer = create_animation_mixer(scene)
+///     // Play first animation
+///     case list.first(clips) {
+///       Ok(clip) -> {
+///         let action = clip_action(mixer, clip)
+///         play_action(action)
+///       }
+///       Error(_) -> Nil
+///     }
+///   }
+///   Error(Nil) -> io.println("Failed to load GLTF")
+/// }
+/// ```
+///
+@external(javascript, "./savoiardi.ffi.mjs", "getGltfAnimations")
+pub fn get_gltf_animations(data: GLTFData) -> List(AnimationClip)
+
+/// Get the root scene/group from loaded FBX data.
+///
+/// Unlike GLTF where data is wrapped, FBX loader returns the scene directly.
+/// This function provides a consistent API for accessing the scene.
+///
+/// ## Parameters
+///
+/// - `data`: The FBXData returned from `load_fbx`
+///
+/// ## Example
+///
+/// ```gleam
+/// use fbx <- promise.await(load_fbx("/models/character.fbx"))
+/// case fbx {
+///   Ok(data) -> {
+///     let scene = get_fbx_scene(data)
+///     add_to_scene(main_scene, scene)
+///   }
+///   Error(Nil) -> io.println("Failed to load FBX")
+/// }
+/// ```
+///
+@external(javascript, "./savoiardi.ffi.mjs", "getFbxScene")
+pub fn get_fbx_scene(data: FBXData) -> Object3D
+
+/// Get the animations from loaded FBX data.
+///
+/// Returns a list of AnimationClips that can be played using an AnimationMixer.
+/// FBX files often contain multiple animations (idle, walk, run, etc.).
+///
+/// ## Parameters
+///
+/// - `data`: The FBXData returned from `load_fbx`
+///
+/// ## Example
+///
+/// ```gleam
+/// use fbx <- promise.await(load_fbx("/models/animated_character.fbx"))
+/// case fbx {
+///   Ok(data) -> {
+///     let scene = get_fbx_scene(data)
+///     let clips = get_fbx_animations(data)
+///     let mixer = create_animation_mixer(scene)
+///     // Play all animations
+///     list.each(clips, fn(clip) {
+///       let action = clip_action(mixer, clip)
+///       play_action(action)
+///     })
+///   }
+///   Error(Nil) -> io.println("Failed to load FBX")
+/// }
+/// ```
+///
+@external(javascript, "./savoiardi.ffi.mjs", "getFbxAnimations")
+pub fn get_fbx_animations(data: FBXData) -> List(AnimationClip)
+
 /// Loads a font file for use with TextGeometry.
 ///
 /// Fonts must be in Three.js JSON format (converted from TTF/OTF).
@@ -3961,3 +4276,86 @@ pub fn has_positional_audio_buffer(audio: PositionalAudio) -> Bool
 ///
 @external(javascript, "./savoiardi.ffi.mjs", "getAudioLoop")
 pub fn get_positional_audio_loop(audio: PositionalAudio) -> Bool
+
+// INSTANCE-SCOPED REGISTRY HELPERS --------------------------------------------
+
+/// Set an object's visibility.
+///
+/// Sets [Object3D.visible](https://threejs.org/docs/#api/en/core/Object3D.visible).
+@external(javascript, "./savoiardi.ffi.mjs", "setObjectVisible")
+pub fn set_object_visible(object: Object3D, visible: Bool) -> Nil
+
+/// Set an object's name.
+///
+/// Sets [Object3D.name](https://threejs.org/docs/#api/en/core/Object3D.name).
+@external(javascript, "./savoiardi.ffi.mjs", "setObjectName")
+pub fn set_object_name(object: Object3D, name: String) -> Nil
+
+/// Set the renderer's clear color.
+///
+/// Calls [WebGLRenderer.setClearColor](https://threejs.org/docs/#api/en/renderers/WebGLRenderer.setClearColor).
+@external(javascript, "./savoiardi.ffi.mjs", "setRendererClearColor")
+pub fn set_renderer_clear_color(renderer: Renderer, color: Int) -> Nil
+
+/// Check if a camera is a perspective camera.
+///
+/// Reads [Camera.isPerspectiveCamera](https://threejs.org/docs/#api/en/cameras/PerspectiveCamera.isPerspectiveCamera).
+@external(javascript, "./savoiardi.ffi.mjs", "isPerspectiveCamera")
+pub fn is_perspective_camera(camera: Camera) -> Bool
+
+/// Set an object's quaternion using raw x, y, z, w components.
+///
+/// Directly calls `object.quaternion.set(x, y, z, w)` without constructing
+/// a Quaternion record. Useful for performance-sensitive code paths.
+@external(javascript, "./savoiardi.ffi.mjs", "setObjectQuaternionXyzw")
+pub fn set_object_quaternion_xyzw(
+  object: Object3D,
+  x: Float,
+  y: Float,
+  z: Float,
+  w: Float,
+) -> Nil
+
+/// Cast a Scene to Object3D.
+///
+/// Scene extends Object3D in Three.js, so this is a safe identity cast.
+/// Useful when you need to use a Scene where an Object3D is expected
+/// (e.g., as a parent for add_child).
+@external(javascript, "./savoiardi.ffi.mjs", "identity")
+pub fn scene_to_object3d(scene: Scene) -> Object3D
+
+/// Cast a Camera to Object3D.
+///
+/// Camera extends Object3D in Three.js, so this is a safe identity cast.
+@external(javascript, "./savoiardi.ffi.mjs", "identity")
+pub fn camera_to_object3d(camera: Camera) -> Object3D
+
+/// Cast an AudioListener to Object3D.
+///
+/// AudioListener extends Object3D in Three.js, so this is a safe identity cast.
+@external(javascript, "./savoiardi.ffi.mjs", "identity")
+pub fn audio_listener_to_object3d(listener: AudioListener) -> Object3D
+
+/// Cast an Audio to Object3D.
+///
+/// Audio extends Object3D in Three.js, so this is a safe identity cast.
+@external(javascript, "./savoiardi.ffi.mjs", "identity")
+pub fn audio_to_object3d(audio: Audio) -> Object3D
+
+/// Cast a Light to Object3D.
+///
+/// Light extends Object3D in Three.js, so this is a safe identity cast.
+@external(javascript, "./savoiardi.ffi.mjs", "identity")
+pub fn light_to_object3d(light: Light) -> Object3D
+
+/// Cast an Object3D to Light (unsafe — caller must ensure it's actually a Light).
+@external(javascript, "./savoiardi.ffi.mjs", "identity")
+pub fn object3d_to_light(object: Object3D) -> Light
+
+/// Cast an Object3D to Audio (unsafe — caller must ensure it's actually Audio).
+@external(javascript, "./savoiardi.ffi.mjs", "identity")
+pub fn object3d_to_audio(object: Object3D) -> Audio
+
+/// Cast an Object3D to PositionalAudio (unsafe — caller must ensure it's actually PositionalAudio).
+@external(javascript, "./savoiardi.ffi.mjs", "identity")
+pub fn object3d_to_positional_audio(object: Object3D) -> PositionalAudio

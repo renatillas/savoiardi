@@ -1,5 +1,5 @@
 name = "savoiardi"
-version = "2.1.0"
+version = "3.0.0"
 target = "javascript"
 description = "Three.js bindings for Gleam - part of the tiramisu game engine ecosystem"
 repository = { type = "github", user = "renatillas", repo = "savoiardi" }

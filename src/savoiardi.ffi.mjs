@@ -16,12 +16,25 @@ import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
 import { STLLoader } from 'three/addons/loaders/STLLoader.js';
 import { FBXLoader } from 'three/addons/loaders/FBXLoader.js';
 
-import { Result$Ok, Result$Error } from './gleam.mjs';
+import { Result$Ok, Result$Error, toList } from './gleam.mjs';
 import { Vec3$Vec3 } from '../vec/vec/vec3.mjs';
 import { Vec2$Vec2, Vec2$Vec2$x, Vec2$Vec2$y } from '../vec/vec/vec2.mjs';
 import { Option$isSome, Option$Some$0 } from '../gleam_stdlib/gleam/option.mjs';
 import { Quaternion$Quaternion } from '../quaterni/quaternion.mjs';
 
+
+// ============================================================================
+// UTILITIES
+// ============================================================================
+
+/**
+ * Identity function for type casting between compatible types.
+ * @param {any} value
+ * @returns {any}
+ */
+export function identity(value) {
+  return value;
+}
 
 // ============================================================================
 // CORE - Scene, Renderer, Camera
@@ -78,27 +91,20 @@ export function getCanvasDimensions(renderer) {
  * @returns {THREE.WebGLRenderer}
  */
 export function createRenderer(options) {
-  const renderer = new THREE.WebGLRenderer({
+  return new THREE.WebGLRenderer({
     antialias: options.antialias,
     alpha: options.alpha
   });
-  renderer.shadowMap.enabled = true;
+}
+
+/**
+ * Enable/disable shadow map on a renderer
+ * @param {THREE.WebGLRenderer} renderer
+ * @param {boolean} enabled
+ */
+export function enableRendererShadowMap(renderer, enabled) {
+  renderer.shadowMap.enabled = enabled;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-
-  // Set renderer size based on dimensions or fullscreen
-  const is_some = Option$isSome(options.dimensions);
-  if (is_some) {
-    const dimensions = Option$Some$0(options.dimensions)
-    // Fixed size
-    renderer.setSize(Vec2$Vec2$x(dimensions), Vec2$Vec2$y(dimensions));
-    renderer.setPixelRatio(window.devicePixelRatio || 1);
-  } else {
-    // Fullscreen mode
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setPixelRatio(window.devicePixelRatio || 1);
-  }
-
-  return renderer;
 }
 
 /**
@@ -523,6 +529,7 @@ export function createStandardMaterial(
   metalnessMap,
   emissive,
   emissiveIntensity,
+  alphaTest,
 ) {
   const validMap = Option$isSome(map) ? Option$Some$0(map) : null;
   const validNormalMap = Option$isSome(normalMap) ? Option$Some$0(normalMap) : null;
@@ -537,6 +544,7 @@ export function createStandardMaterial(
     roughness,
     transparent,
     opacity,
+    alphaTest,
     map: validMap,
     normalMap: validNormalMap,
     aoMap: validAoMap,
@@ -548,10 +556,6 @@ export function createStandardMaterial(
     emissive,
     emissiveIntensity,
   });
-
-  if (validNormalMap) {
-    material.normalScale.set(1.0, 1.0);
-  }
 
   return material;
 }
@@ -584,10 +588,6 @@ export function createPhongMaterial(color, shininess, map, normalMap, aoMap, tra
     alphaTest
   });
 
-  if (validNormalMap) {
-    material.normalScale.set(1.0, 1.0);
-  }
-
   return material;
 }
 
@@ -599,7 +599,7 @@ export function createPhongMaterial(color, shininess, map, normalMap, aoMap, tra
  * @param {THREE.Texture|null} aoMap
  * @returns {THREE.MeshLambertMaterial}
  */
-export function createLambertMaterial(color, map, normalMap, aoMap, transparent, opacity, alphaTest) {
+export function createLambertMaterial(color, map, normalMap, aoMap, transparent, opacity, alphaTest, side) {
   const validMap = Option$isSome(map) ? Option$Some$0(map) : null;
   const validNormalMap = Option$isSome(normalMap) ? Option$Some$0(normalMap) : null;
   const validAoMap = Option$isSome(aoMap) ? Option$Some$0(aoMap) : null;
@@ -612,18 +612,8 @@ export function createLambertMaterial(color, map, normalMap, aoMap, transparent,
     transparent,
     opacity,
     alphaTest,
-    side: THREE.DoubleSide,
+    side,
   });
-
-  // Ensure texture is configured for transparency
-  if (validMap && transparent) {
-    validMap.format = THREE.RGBAFormat;
-    validMap.needsUpdate = true;
-  }
-
-  if (validNormalMap) {
-    material.normalScale.set(1.0, 1.0);
-  }
 
   return material;
 }
@@ -727,25 +717,52 @@ export function createAmbientLight(color, intensity) {
  * @param {number} shadowBias
  * @returns {THREE.DirectionalLight}
  */
-export function createDirectionalLight(color, intensity, castShadow, shadowResolution, shadowBias, shadowNormalBias, shadowCameraLeft, shadowCameraRight, shadowCameraTop, shadowCameraBottom, shadowCameraNear, shadowCameraFar) {
-  const light = new THREE.DirectionalLight(color, intensity);
+export function createDirectionalLight(color, intensity) {
+  return new THREE.DirectionalLight(color, intensity);
+}
+
+/**
+ * Set whether a light casts shadows
+ * @param {THREE.Light} light
+ * @param {boolean} castShadow
+ */
+export function setLightCastShadow(light, castShadow) {
   light.castShadow = castShadow;
+}
 
-  if (castShadow) {
-    light.shadow.mapSize.width = shadowResolution;
-    light.shadow.mapSize.height = shadowResolution;
-    light.shadow.bias = shadowBias;
-    light.shadow.normalBias = shadowNormalBias;
-    light.shadow.camera.left = shadowCameraLeft;
-    light.shadow.camera.right = shadowCameraRight;
-    light.shadow.camera.top = shadowCameraTop;
-    light.shadow.camera.bottom = shadowCameraBottom;
-    light.shadow.camera.near = shadowCameraNear;
-    light.shadow.camera.far = shadowCameraFar;
-    light.shadow.camera.updateProjectionMatrix();
-  }
+/**
+ * Configure shadow map resolution and bias
+ * @param {THREE.Light} light
+ * @param {number} resolution
+ * @param {number} bias
+ * @param {number} normalBias
+ */
+export function configureShadow(light, resolution, bias, normalBias) {
+  light.shadow.mapSize.width = resolution;
+  light.shadow.mapSize.height = resolution;
+  light.shadow.bias = bias;
+  light.shadow.normalBias = normalBias;
+  light.shadow.camera.updateProjectionMatrix();
+}
 
-  return light;
+/**
+ * Configure directional light shadow camera bounds
+ * @param {THREE.Light} light
+ * @param {number} left
+ * @param {number} right
+ * @param {number} top
+ * @param {number} bottom
+ * @param {number} near
+ * @param {number} far
+ */
+export function configureDirectionalShadowCamera(light, left, right, top, bottom, near, far) {
+  light.shadow.camera.left = left;
+  light.shadow.camera.right = right;
+  light.shadow.camera.top = top;
+  light.shadow.camera.bottom = bottom;
+  light.shadow.camera.near = near;
+  light.shadow.camera.far = far;
+  light.shadow.camera.updateProjectionMatrix();
 }
 
 /**
@@ -781,19 +798,8 @@ export function setShadowCameraBounds(light, left, right, top, bottom, near, far
  * @param {number} shadowBias
  * @returns {THREE.PointLight}
  */
-export function createPointLight(color, intensity, distance, castShadow, shadowResolution, shadowBias, shadowNormalBias) {
-  const light = new THREE.PointLight(color, intensity, distance);
-  light.castShadow = castShadow;
-
-  if (castShadow) {
-    light.shadow.mapSize.width = shadowResolution;
-    light.shadow.mapSize.height = shadowResolution;
-    light.shadow.bias = shadowBias;
-    light.shadow.normalBias = shadowNormalBias;
-    light.shadow.camera.updateProjectionMatrix();
-  }
-
-  return light;
+export function createPointLight(color, intensity, distance) {
+  return new THREE.PointLight(color, intensity, distance);
 }
 
 /**
@@ -808,19 +814,8 @@ export function createPointLight(color, intensity, distance, castShadow, shadowR
  * @param {number} shadowBias
  * @returns {THREE.SpotLight}
  */
-export function createSpotLight(color, intensity, distance, angle, penumbra, castShadow, shadowResolution, shadowBias, shadowNormalBias) {
-  const light = new THREE.SpotLight(color, intensity, distance, angle, penumbra);
-  light.castShadow = castShadow;
-
-  if (castShadow) {
-    light.shadow.mapSize.width = shadowResolution;
-    light.shadow.mapSize.height = shadowResolution;
-    light.shadow.bias = shadowBias;
-    light.shadow.normalBias = shadowNormalBias;
-    light.shadow.camera.updateProjectionMatrix();
-  }
-
-  return light;
+export function createSpotLight(color, intensity, distance, angle, penumbra) {
+  return new THREE.SpotLight(color, intensity, distance, angle, penumbra);
 }
 
 /**
@@ -832,6 +827,26 @@ export function createSpotLight(color, intensity, distance, angle, penumbra, cas
  */
 export function createHemisphereLight(skyColor, groundColor, intensity) {
   return new THREE.HemisphereLight(skyColor, groundColor, intensity);
+}
+
+/**
+ * Update light color
+ * @param {THREE.Light} light
+ * @param {number} color - Hex color value
+ */
+export function updateLightColor(light, color) {
+  if (light.color) {
+    light.color.setHex(color);
+  }
+}
+
+/**
+ * Update light intensity
+ * @param {THREE.Light} light
+ * @param {number} intensity
+ */
+export function updateLightIntensity(light, intensity) {
+  light.intensity = intensity;
 }
 
 // ============================================================================
@@ -1290,6 +1305,22 @@ export function getNearestFilter() {
  */
 export function getLinearFilter() {
   return THREE.LinearFilter;
+}
+
+/**
+ * Get THREE.SRGBColorSpace constant
+ * @returns {string}
+ */
+export function getSRGBColorSpace() {
+  return THREE.SRGBColorSpace;
+}
+
+/**
+ * Get THREE.LinearSRGBColorSpace constant
+ * @returns {string}
+ */
+export function getLinearSRGBColorSpace() {
+  return THREE.LinearSRGBColorSpace;
 }
 
 
@@ -2136,6 +2167,117 @@ export function setObjectMaterial(object, material) {
 }
 
 /**
+ * Update material color
+ * @param {THREE.Material} material
+ * @param {number} color - Hex color value
+ */
+export function updateMaterialColor(material, color) {
+  if (material.color) {
+    material.color.setHex(color);
+    material.needsUpdate = true;
+  }
+}
+
+/**
+ * Update material metalness (for StandardMaterial)
+ * @param {THREE.Material} material
+ * @param {number} metalness
+ */
+export function updateMaterialMetalness(material, metalness) {
+  if (material.metalness !== undefined) {
+    material.metalness = metalness;
+    material.needsUpdate = true;
+  }
+}
+
+/**
+ * Update material roughness (for StandardMaterial)
+ * @param {THREE.Material} material
+ * @param {number} roughness
+ */
+export function updateMaterialRoughness(material, roughness) {
+  if (material.roughness !== undefined) {
+    material.roughness = roughness;
+    material.needsUpdate = true;
+  }
+}
+
+/**
+ * Update material opacity
+ * @param {THREE.Material} material
+ * @param {number} opacity
+ */
+export function updateMaterialOpacity(material, opacity) {
+  material.opacity = opacity;
+  material.needsUpdate = true;
+}
+
+/**
+ * Set material transparent flag
+ * @param {THREE.Material} material
+ * @param {boolean} transparent
+ */
+export function setMaterialTransparent(material, transparent) {
+  material.transparent = transparent;
+  material.needsUpdate = true;
+}
+
+/**
+ * Set material normal scale
+ * @param {THREE.Material} material
+ * @param {number} x
+ * @param {number} y
+ */
+export function setMaterialNormalScale(material, x, y) {
+  material.normalScale.set(x, y);
+  material.needsUpdate = true;
+}
+
+/**
+ * Update material wireframe mode
+ * @param {THREE.Material} material
+ * @param {boolean} wireframe
+ */
+export function updateMaterialWireframe(material, wireframe) {
+  if (material.wireframe !== undefined) {
+    material.wireframe = wireframe;
+    material.needsUpdate = true;
+  }
+}
+
+/**
+ * Set a texture on a named material property.
+ * Property names use Three.js convention (e.g., "map", "normalMap", "aoMap").
+ * @param {THREE.Material} material
+ * @param {string} propertyName
+ * @param {THREE.Texture} texture
+ */
+export function setMaterialTexture(material, propertyName, texture) {
+  material[propertyName] = texture;
+  material.needsUpdate = true;
+}
+
+/**
+ * Clear a texture from a material property.
+ * @param {THREE.Material} material
+ * @param {string} propertyName
+ */
+export function clearMaterialTexture(material, propertyName) {
+  material[propertyName] = null;
+  material.needsUpdate = true;
+}
+
+/**
+ * Update material rendering side.
+ * @param {THREE.Material} material
+ * @param {number} side - Three.js side constant (FrontSide=0, BackSide=1, DoubleSide=2)
+ */
+export function updateMaterialSide(material, side) {
+  material.side = side;
+  material.needsUpdate = true;
+}
+
+/**
  * Get object position
  * @param {THREE.Object3D} object
  * @returns {Vec3} - Gleam Vec3
@@ -2223,14 +2365,10 @@ export function enableTransparency(object) {
       if (Array.isArray(material)) {
         material.forEach(mat => {
           mat.transparent = true;
-          mat.alphaTest = 0.5;
-          mat.side = THREE.DoubleSide;
           mat.needsUpdate = true;
         });
       } else if (material) {
         material.transparent = true;
-        material.alphaTest = 0.5;
-        material.side = THREE.DoubleSide;
         material.needsUpdate = true;
       }
     }
@@ -2282,37 +2420,31 @@ export function applyMaterialToObject(object, threeMaterial) {
  * @param {THREE.Texture} texture
  * @param {number} filterMode - THREE.NearestFilter or THREE.LinearFilter constant
  */
-export function applyTextureToObject(object, texture, filterMode) {
-  // Set texture filtering using the int constant directly
-  texture.minFilter = filterMode;
-  texture.magFilter = filterMode;
-  texture.generateMipmaps = (filterMode === THREE.LinearFilter);
-  texture.colorSpace = THREE.SRGBColorSpace;
-  texture.needsUpdate = true;
-
-  let count = 0;
+export function applyTextureToObject(object, texture) {
   object.traverse((child) => {
     if (child.isMesh) {
       const material = child.material;
       if (Array.isArray(material)) {
         material.forEach(mat => {
           mat.map = texture;
-          mat.transparent = true;
-          mat.alphaTest = 0.5;
-          mat.side = THREE.DoubleSide; // Render both sides for vegetation
           mat.needsUpdate = true;
-          count++;
         });
       } else if (material) {
         material.map = texture;
-        material.transparent = true;
-        material.alphaTest = 0.5;
-        material.side = THREE.DoubleSide; // Render both sides for vegetation
         material.needsUpdate = true;
-        count++;
       }
     }
   });
+}
+
+/**
+ * Set a texture's color space
+ * @param {THREE.Texture} texture
+ * @param {string} colorSpace - e.g. "srgb" for THREE.SRGBColorSpace
+ */
+export function setTextureColorSpace(texture, colorSpace) {
+  texture.colorSpace = colorSpace;
+  texture.needsUpdate = true;
 }
 
 /**
@@ -2926,6 +3058,48 @@ export function loadFBX(url) {
   });
 }
 
+// ============================================================================
+// GLTF/FBX DATA ACCESSORS
+// ============================================================================
+
+/**
+ * Get the scene from loaded GLTF data.
+ * @param {Object} gltfData - GLTF data from GLTFLoader
+ * @returns {THREE.Object3D} The root scene/group
+ */
+export function getGltfScene(gltfData) {
+  return gltfData.scene;
+}
+
+/**
+ * Get animations from loaded GLTF data.
+ * @param {Object} gltfData - GLTF data from GLTFLoader
+ * @returns {List} Gleam list of AnimationClips
+ */
+export function getGltfAnimations(gltfData) {
+  return toList(gltfData.animations || []);
+}
+
+/**
+ * Get the scene from loaded FBX data.
+ * FBX loader returns the scene directly as the root object.
+ * @param {THREE.Object3D} fbxData - FBX data from FBXLoader
+ * @returns {THREE.Object3D} The root scene/group
+ */
+export function getFbxScene(fbxData) {
+  return fbxData;
+}
+
+/**
+ * Get animations from loaded FBX data.
+ * FBX stores animations in the object's animations array.
+ * @param {THREE.Object3D} fbxData - FBX data from FBXLoader
+ * @returns {List} Gleam list of AnimationClips
+ */
+export function getFbxAnimations(fbxData) {
+  return toList(fbxData.animations || []);
+}
+
 /**
  * Load font for text geometry
  * @param {string} url - URL to typeface.json font file
@@ -2978,4 +3152,28 @@ export function loadCubeTexture(urls) {
       (_) => resolve(Result$Error())
     );
   });
+}
+
+// ============================================================================
+// INSTANCE-SCOPED REGISTRY HELPERS
+// ============================================================================
+
+export function setObjectVisible(object, visible) {
+  object.visible = visible;
+}
+
+export function setObjectName(object, name) {
+  object.name = name;
+}
+
+export function setRendererClearColor(renderer, color) {
+  renderer.setClearColor(color);
+}
+
+export function isPerspectiveCamera(camera) {
+  return !!camera.isPerspectiveCamera;
+}
+
+export function setObjectQuaternionXyzw(object, x, y, z, w) {
+  object.quaternion.set(x, y, z, w);
 }
