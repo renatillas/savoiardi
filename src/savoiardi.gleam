@@ -4359,3 +4359,43 @@ pub fn object3d_to_audio(object: Object3D) -> Audio
 /// Cast an Object3D to PositionalAudio (unsafe — caller must ensure it's actually PositionalAudio).
 @external(javascript, "./savoiardi.ffi.mjs", "identity")
 pub fn object3d_to_positional_audio(object: Object3D) -> PositionalAudio
+
+/// Cast a CSS2DObject to Object3D.
+///
+/// CSS2DObject extends Object3D in Three.js, so this is a safe identity cast.
+@external(javascript, "./savoiardi.ffi.mjs", "identity")
+pub fn css2d_object_to_object3d(object: CSS2DObject) -> Object3D
+
+/// Cast an Object3D to CSS2DObject (unsafe — caller must ensure it's actually a CSS2DObject).
+@external(javascript, "./savoiardi.ffi.mjs", "identity")
+pub fn object3d_to_css2d_object(object: Object3D) -> CSS2DObject
+
+/// Cast a CSS3DObject to Object3D.
+///
+/// CSS3DObject extends Object3D in Three.js, so this is a safe identity cast.
+@external(javascript, "./savoiardi.ffi.mjs", "identity")
+pub fn css3d_object_to_object3d(object: CSS3DObject) -> Object3D
+
+/// Cast an Object3D to CSS3DObject (unsafe — caller must ensure it's actually a CSS3DObject).
+@external(javascript, "./savoiardi.ffi.mjs", "identity")
+pub fn object3d_to_css3d_object(object: Object3D) -> CSS3DObject
+
+/// Cast a LOD to Object3D.
+///
+/// LOD extends Object3D in Three.js, so this is a safe identity cast.
+@external(javascript, "./savoiardi.ffi.mjs", "identity")
+pub fn lod_to_object3d(lod: LOD) -> Object3D
+
+/// Cast an Object3D to LOD (unsafe — caller must ensure it's actually a LOD).
+@external(javascript, "./savoiardi.ffi.mjs", "identity")
+pub fn object3d_to_lod(object: Object3D) -> LOD
+
+/// Cast an InstancedMesh to Object3D.
+///
+/// InstancedMesh extends Mesh extends Object3D in Three.js, so this is a safe identity cast.
+@external(javascript, "./savoiardi.ffi.mjs", "identity")
+pub fn instanced_mesh_to_object3d(mesh: InstancedMesh) -> Object3D
+
+/// Cast an Object3D to InstancedMesh (unsafe — caller must ensure it's actually an InstancedMesh).
+@external(javascript, "./savoiardi.ffi.mjs", "identity")
+pub fn object3d_to_instanced_mesh(object: Object3D) -> InstancedMesh
