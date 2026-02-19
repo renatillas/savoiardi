@@ -1415,6 +1415,15 @@ export function setAudioPlaybackRate(audio, rate) {
 }
 
 /**
+ * Set audio detune in cents (100 cents = 1 semitone, 1200 cents = 1 octave).
+ * @param {THREE.Audio|THREE.PositionalAudio} audio
+ * @param {number} cents
+ */
+export function setAudioDetune(audio, cents) {
+  audio.setDetune(cents);
+}
+
+/**
  * Check if audio is playing
  * @param {THREE.Audio} audio
  * @returns {boolean}

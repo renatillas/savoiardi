@@ -174,6 +174,7 @@
 ////       "set_audio_volume",
 ////       "set_audio_loop",
 ////       "set_audio_playback_rate",
+////       "set_audio_detune",
 ////       "is_audio_playing",
 ////       "has_audio_buffer",
 ////       "get_audio_loop",
@@ -188,6 +189,7 @@
 ////       "set_positional_audio_volume",
 ////       "set_positional_audio_loop",
 ////       "set_positional_audio_playback_rate",
+////       "set_positional_audio_detune",
 ////       "play_positional_audio",
 ////       "pause_positional_audio",
 ////       "stop_positional_audio",
@@ -2565,6 +2567,14 @@ pub fn set_audio_loop(audio: Audio, loop: Bool) -> Nil
 @external(javascript, "./savoiardi.ffi.mjs", "setAudioPlaybackRate")
 pub fn set_audio_playback_rate(audio: Audio, rate: Float) -> Nil
 
+/// Sets the detune for a global audio source in cents.
+///
+/// Wraps [Audio.setDetune](https://threejs.org/docs/#api/en/audio/Audio.setDetune).
+/// 100 cents = 1 semitone, 1200 cents = 1 octave up, -1200 = 1 octave down.
+/// Default is 0.0 (no pitch shift).
+@external(javascript, "./savoiardi.ffi.mjs", "setAudioDetune")
+pub fn set_audio_detune(audio: Audio, cents: Float) -> Nil
+
 /// Checks if audio is currently playing.
 ///
 /// Accesses [Audio.isPlaying](https://threejs.org/docs/#api/en/audio/Audio.isPlaying).
@@ -4109,6 +4119,17 @@ pub fn set_positional_audio_loop(audio: PositionalAudio, loop: Bool) -> Nil
 pub fn set_positional_audio_playback_rate(
   audio: PositionalAudio,
   rate: Float,
+) -> Nil
+
+/// Sets the detune for a positional audio source in cents.
+///
+/// Wraps [PositionalAudio.setDetune](https://threejs.org/docs/#api/en/audio/PositionalAudio.setDetune).
+/// 100 cents = 1 semitone, 1200 cents = 1 octave up, -1200 = 1 octave down.
+/// Default is 0.0 (no pitch shift).
+@external(javascript, "./savoiardi.ffi.mjs", "setAudioDetune")
+pub fn set_positional_audio_detune(
+  audio: PositionalAudio,
+  cents: Float,
 ) -> Nil
 
 /// Starts playback of a positional audio source.
