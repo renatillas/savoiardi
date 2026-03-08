@@ -18,7 +18,7 @@ import { FBXLoader } from 'three/addons/loaders/FBXLoader.js';
 
 import { Result$Ok, Result$Error, toList } from './gleam.mjs';
 import { Vec3$Vec3 } from '../vec/vec/vec3.mjs';
-import { Vec2$Vec2, Vec2$Vec2$x, Vec2$Vec2$y } from '../vec/vec/vec2.mjs';
+import { Vec2$Vec2 } from '../vec/vec/vec2.mjs';
 import { Option$isSome, Option$Some$0 } from '../gleam_stdlib/gleam/option.mjs';
 import { Quaternion$Quaternion } from '../quaterni/quaternion.mjs';
 
@@ -91,10 +91,17 @@ export function getCanvasDimensions(renderer) {
  * @returns {THREE.WebGLRenderer}
  */
 export function createRenderer(options) {
-  return new THREE.WebGLRenderer({
+  const renderer = new THREE.WebGLRenderer({
     antialias: options.antialias,
-    alpha: options.alpha
+    alpha: options.alpha,
   });
+  if (Option$isSome(options.dimensions)) {
+    renderer.setSize(
+      Option$Some$0(options.dimensions).x,
+      Option$Some$0(options.dimensions).y
+    );
+  }
+  return renderer;
 }
 
 /**
@@ -599,7 +606,7 @@ export function createPhongMaterial(color, shininess, map, normalMap, aoMap, tra
  * @param {THREE.Texture|null} aoMap
  * @returns {THREE.MeshLambertMaterial}
  */
-export function createLambertMaterial(color, map, normalMap, aoMap, transparent, opacity, alphaTest, side) {
+export function createLambertMaterial(color, map, normalMap, aoMap, transparent, opacity, alphaTest,) {
   const validMap = Option$isSome(map) ? Option$Some$0(map) : null;
   const validNormalMap = Option$isSome(normalMap) ? Option$Some$0(normalMap) : null;
   const validAoMap = Option$isSome(aoMap) ? Option$Some$0(aoMap) : null;
@@ -612,7 +619,6 @@ export function createLambertMaterial(color, map, normalMap, aoMap, transparent,
     transparent,
     opacity,
     alphaTest,
-    side,
   });
 
   return material;
@@ -856,13 +862,10 @@ export function updateLightIntensity(light, intensity) {
 /**
  * Create a mesh
  * @param {THREE.BufferGeometry} geometry
- * @param {THREE.Material} material
  * @returns {THREE.Mesh}
  */
-export function createMesh(geometry, material) {
-  const mesh = new THREE.Mesh(geometry, material);
-  mesh.castShadow = true;
-  mesh.receiveShadow = true;
+export function createMesh(geometry) {
+  const mesh = new THREE.Mesh(geometry);
   return mesh;
 }
 
@@ -2154,6 +2157,7 @@ export function getObjectGeometry(object) {
  * @returns {THREE.Material|THREE.Material[]|undefined}
  */
 export function getObjectMaterial(object) {
+  // TODO: This may return undefined
   return object.material;
 }
 
@@ -3185,4 +3189,83 @@ export function isPerspectiveCamera(camera) {
 
 export function setObjectQuaternionXyzw(object, x, y, z, w) {
   object.quaternion.set(x, y, z, w);
+}
+
+// ============================================================================
+// INSTANCED MESH COUNT
+// ============================================================================
+
+/**
+ * Set the rendered instance count on an InstancedMesh.
+ * Three.js creates InstancedMesh with a fixed capacity, but .count controls
+ * how many are actually rendered (must be <= capacity).
+ */
+export function setInstancedMeshCount(mesh, count) {
+  mesh.count = count;
+}
+
+/**
+ * Get the max capacity of an InstancedMesh (the count passed to constructor).
+ */
+export function getInstancedMeshMaxCount(mesh) {
+  return mesh.instanceMatrix.count;
+}
+
+// ============================================================================
+// OBJECT MODEL REPLACEMENT
+// ============================================================================
+
+/**
+ * Replace an existing object's 3D model with a newly loaded one.
+ * Preserves position, rotation, scale, and visibility from the old object.
+ */
+export function replaceObjectModel(oldObject, newObject, name) {
+  newObject.position.copy(oldObject.position);
+  newObject.quaternion.copy(oldObject.quaternion);
+  newObject.scale.copy(oldObject.scale);
+  newObject.visible = oldObject.visible;
+  newObject.name = name;
+
+  if (oldObject.parent) {
+    oldObject.parent.add(newObject);
+    oldObject.parent.remove(oldObject);
+  }
+
+  // Dispose old geometry/materials
+  oldObject.traverse((obj) => {
+    if (obj.geometry) obj.geometry.dispose();
+    if (obj.material) {
+      if (Array.isArray(obj.material))
+        obj.material.forEach((m) => m.dispose());
+      else obj.material.dispose();
+    }
+  });
+
+  return newObject;
+}
+
+// ============================================================================
+// 3D → SCREEN PROJECTION
+// ============================================================================
+
+// Reusable Vector3 to avoid per-frame allocation
+const _projectWorldPos = new THREE.Vector3();
+
+/**
+ * Project a 3D object's world position to screen pixel coordinates.
+ * Returns Ok(#(x, y, z)) or Error(Nil) if behind camera.
+ */
+export function projectToScreen(camera, object3d, canvasWidth, canvasHeight) {
+  object3d.getWorldPosition(_projectWorldPos);
+  _projectWorldPos.project(camera);
+
+  // Behind camera check (z > 1 in NDC)
+  if (_projectWorldPos.z > 1) {
+    return Result$Error();
+  }
+
+  const x = (_projectWorldPos.x * 0.5 + 0.5) * canvasWidth;
+  const y = (-_projectWorldPos.y * 0.5 + 0.5) * canvasHeight;
+
+  return Result$Ok([x, y, _projectWorldPos.z]);
 }

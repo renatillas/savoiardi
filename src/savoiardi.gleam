@@ -1087,10 +1087,10 @@ pub fn get_render_stats(renderer: Renderer) -> #(Int, Int)
 /// ```
 @external(javascript, "./savoiardi.ffi.mjs", "createPerspectiveCamera")
 pub fn create_perspective_camera(
-  fov: Float,
-  aspect: Float,
-  near: Float,
-  far: Float,
+  fov fov: Float,
+  aspect aspect: Float,
+  near near: Float,
+  far far: Float,
 ) -> Camera
 
 /// Creates an [OrthographicCamera](https://threejs.org/docs/#api/en/cameras/OrthographicCamera).
@@ -1121,12 +1121,12 @@ pub fn create_perspective_camera(
 /// ```
 @external(javascript, "./savoiardi.ffi.mjs", "createOrthographicCamera")
 pub fn create_orthographic_camera(
-  left: Float,
-  right: Float,
-  top: Float,
-  bottom: Float,
-  near: Float,
-  far: Float,
+  left left: Float,
+  right right: Float,
+  top top: Float,
+  bottom bottom: Float,
+  near near: Float,
+  far far: Float,
 ) -> Camera
 
 /// Sets the aspect ratio of a perspective camera.
@@ -1202,7 +1202,7 @@ pub fn create_group() -> Object3D
 /// add_to_scene(scene: scene, object: cube)
 /// ```
 @external(javascript, "./savoiardi.ffi.mjs", "createMesh")
-pub fn create_mesh(geometry: Geometry, material: Material) -> Object3D
+pub fn create_mesh(geometry: Geometry) -> Object3D
 
 /// Adds a child to an [Object3D](https://threejs.org/docs/#api/en/core/Object3D.add).
 ///
@@ -1266,6 +1266,30 @@ pub fn update_matrix_world_force(object: Object3D, force: Bool) -> Nil
 /// See [How to dispose of objects](https://threejs.org/docs/#manual/en/introduction/How-to-dispose-of-objects).
 @external(javascript, "./savoiardi.ffi.mjs", "disposeObject3D")
 pub fn dispose_object(object: Object3D) -> Nil
+
+/// Replace an existing object's 3D model with a newly loaded one.
+///
+/// Preserves position, rotation, scale, and visibility from the old object.
+/// Reparents the new object under the old object's parent. Disposes old
+/// geometry and materials.
+@external(javascript, "./savoiardi.ffi.mjs", "replaceObjectModel")
+pub fn replace_object_model(
+  old_object: Object3D,
+  new_object: Object3D,
+  name: String,
+) -> Object3D
+
+/// Project a 3D object's world position to screen pixel coordinates.
+///
+/// Returns `Ok(#(x, y, z))` where x/y are pixel positions and z is NDC depth.
+/// Returns `Error(Nil)` if the object is behind the camera (z > 1 in NDC).
+@external(javascript, "./savoiardi.ffi.mjs", "projectToScreen")
+pub fn project_to_screen(
+  camera: Camera,
+  object: Object3D,
+  canvas_width: Float,
+  canvas_height: Float,
+) -> Result(#(Float, Float, Float), Nil)
 
 /// Extracts all geometries and materials from an Object3D hierarchy.
 ///
@@ -1364,6 +1388,17 @@ pub fn create_instanced_mesh(
 /// Call this after modifying instance matrices with `set_instance_matrix`.
 @external(javascript, "./savoiardi.ffi.mjs", "updateInstanceMatrix")
 pub fn update_instance_matrix(mesh: InstancedMesh) -> Nil
+
+/// Set how many instances are rendered.
+///
+/// Three.js creates InstancedMesh with a fixed capacity, but `.count` controls
+/// how many are actually rendered (must be <= capacity).
+@external(javascript, "./savoiardi.ffi.mjs", "setInstancedMeshCount")
+pub fn set_instanced_mesh_count(mesh: InstancedMesh, count: Int) -> Nil
+
+/// Get the max capacity of an InstancedMesh (the count passed to the constructor).
+@external(javascript, "./savoiardi.ffi.mjs", "getInstancedMeshMaxCount")
+pub fn get_instanced_mesh_max_count(mesh: InstancedMesh) -> Int
 
 // ============================================================================
 // GEOMETRIES
@@ -1627,13 +1662,13 @@ pub fn create_text_geometry(
 /// )
 /// ```
 pub fn create_basic_material(
-  color: Int,
-  transparent: Bool,
-  opacity: Float,
-  map: Option(Texture),
-  side: MaterialSide,
-  alpha_test: Float,
-  depth_write: Bool,
+  color color: Int,
+  transparent transparent: Bool,
+  opacity opacity: Float,
+  color_map map: Option(Texture),
+  side side: MaterialSide,
+  alpha_test alpha_test: Float,
+  depth_write depth_write: Bool,
 ) -> Material {
   create_basic_material_ffi(
     color,
@@ -1697,22 +1732,22 @@ fn create_basic_material_ffi(
 /// ```
 @external(javascript, "./savoiardi.ffi.mjs", "createStandardMaterial")
 pub fn create_standard_material(
-  color: Int,
-  metalness: Float,
-  roughness: Float,
-  transparent: Bool,
-  opacity: Float,
-  map: Option(Texture),
-  normal_map: Option(Texture),
-  ao_map: Option(Texture),
-  displacement_map: Option(Texture),
-  displacement_scale: Float,
-  displacement_bias: Float,
-  roughness_map: Option(Texture),
-  metalness_map: Option(Texture),
-  emissive: Int,
-  emissive_intensity: Float,
-  alpha_test: Float,
+  color color: Int,
+  metalness metalness: Float,
+  roughness roughness: Float,
+  transparent transparent: Bool,
+  opacity opacity: Float,
+  color_map map: Option(Texture),
+  normal_map normal_map: Option(Texture),
+  ambient_occlusion_map ao_map: Option(Texture),
+  displacement_map displacement_map: Option(Texture),
+  displacement_scale displacement_scale: Float,
+  displacement_bias displacement_bias: Float,
+  roughness_map roughness_map: Option(Texture),
+  metalness_map metalness_map: Option(Texture),
+  emissive emissive: Int,
+  emissive_intensity emissive_intensity: Float,
+  alpha_test alpha_test: Float,
 ) -> Material
 
 /// Creates a [MeshPhongMaterial](https://threejs.org/docs/#api/en/materials/MeshPhongMaterial).
@@ -1720,26 +1755,16 @@ pub fn create_standard_material(
 /// A material for shiny surfaces with specular highlights. Less realistic than
 /// StandardMaterial but faster to render. Good for stylized graphics.
 ///
-/// ## Parameters
-///
-/// - `color` - Base color as hex
-/// - `shininess` - Specular highlight size (higher = smaller, sharper highlights)
-/// - `map` - Color texture
-/// - `normal_map` - Normal map
-/// - `ao_map` - Ambient occlusion map
-/// - `transparent` - Enable transparency
-/// - `opacity` - Opacity value
-/// - `alpha_test` - Alpha cutoff threshold (pixels below this are discarded)
 @external(javascript, "./savoiardi.ffi.mjs", "createPhongMaterial")
 pub fn create_phong_material(
-  color: Int,
-  shininess: Float,
-  map: Option(Texture),
-  normal_map: Option(Texture),
-  ao_map: Option(Texture),
-  transparent: Bool,
-  opacity: Float,
-  alpha_test: Float,
+  color color: Int,
+  shininess shininess: Float,
+  color_map map: Option(Texture),
+  normal_map normal_map: Option(Texture),
+  ambient_occlusion_map ao_map: Option(Texture),
+  transparent transparent: Bool,
+  opacity opacity: Float,
+  alpha_test alpha_test: Float,
 ) -> Material
 
 /// Creates a [MeshLambertMaterial](https://threejs.org/docs/#api/en/materials/MeshLambertMaterial).
@@ -1756,16 +1781,14 @@ pub fn create_phong_material(
 /// - `transparent` - Enable transparency
 /// - `opacity` - Opacity value
 /// - `alpha_test` - Alpha cutoff threshold
-/// - `side` - Which sides of faces to render (FrontSide, BackSide, or DoubleSide)
 pub fn create_lambert_material(
-  color: Int,
-  map: Option(Texture),
-  normal_map: Option(Texture),
-  ao_map: Option(Texture),
-  transparent: Bool,
-  opacity: Float,
-  alpha_test: Float,
-  side: MaterialSide,
+  color color: Int,
+  color_map map: Option(Texture),
+  normal_map normal_map: Option(Texture),
+  ambient_occlusion_map ao_map: Option(Texture),
+  transparent transparent: Bool,
+  opacity opacity: Float,
+  alpha_test alpha_test: Float,
 ) -> Material {
   create_lambert_material_ffi(
     color,
@@ -1775,7 +1798,6 @@ pub fn create_lambert_material(
     transparent,
     opacity,
     alpha_test,
-    material_side_to_int(side),
   )
 }
 
@@ -1788,7 +1810,6 @@ fn create_lambert_material_ffi(
   transparent: Bool,
   opacity: Float,
   alpha_test: Float,
-  side: Int,
 ) -> Material
 
 /// Creates a [MeshToonMaterial](https://threejs.org/docs/#api/en/materials/MeshToonMaterial).
@@ -1807,13 +1828,13 @@ fn create_lambert_material_ffi(
 /// - `alpha_test` - Alpha cutoff threshold
 @external(javascript, "./savoiardi.ffi.mjs", "createToonMaterial")
 pub fn create_toon_material(
-  color: Int,
-  map: Option(Texture),
-  normal_map: Option(Texture),
-  ao_map: Option(Texture),
-  transparent: Bool,
-  opacity: Float,
-  alpha_test: Float,
+  color color: Int,
+  color_map map: Option(Texture),
+  normal_map normal_map: Option(Texture),
+  ambient_occlusion_map ao_map: Option(Texture),
+  transparent transparent: Bool,
+  opacity opacity: Float,
+  alpha_test alpha_test: Float,
 ) -> Material
 
 /// Creates a [LineBasicMaterial](https://threejs.org/docs/#api/en/materials/LineBasicMaterial).
@@ -1921,7 +1942,10 @@ fn create_points_material_internal(
 /// add_to_scene(scene: scene, object: ambient)
 /// ```
 @external(javascript, "./savoiardi.ffi.mjs", "createAmbientLight")
-pub fn create_ambient_light(color: Int, intensity: Float) -> Light
+pub fn create_ambient_light(
+  color color: Int,
+  intensity intensity: Float,
+) -> Light
 
 /// Creates a [DirectionalLight](https://threejs.org/docs/#api/en/lights/DirectionalLight).
 ///
@@ -1946,7 +1970,10 @@ pub fn create_ambient_light(color: Int, intensity: Float) -> Light
 /// ))
 /// ```
 @external(javascript, "./savoiardi.ffi.mjs", "createDirectionalLight")
-pub fn create_directional_light(color: Int, intensity: Float) -> Light
+pub fn create_directional_light(
+  color color: Int,
+  intensity intensity: Float,
+) -> Light
 
 /// Creates a [PointLight](https://threejs.org/docs/#api/en/lights/PointLight).
 ///
@@ -1960,9 +1987,9 @@ pub fn create_directional_light(color: Int, intensity: Float) -> Light
 /// - `distance` - Maximum range (0 = no limit, light decays naturally)
 @external(javascript, "./savoiardi.ffi.mjs", "createPointLight")
 pub fn create_point_light(
-  color: Int,
-  intensity: Float,
-  distance: Float,
+  color color: Int,
+  intensity intensity: Float,
+  distance distance: Float,
 ) -> Light
 
 /// Creates a [SpotLight](https://threejs.org/docs/#api/en/lights/SpotLight).
@@ -1979,11 +2006,11 @@ pub fn create_point_light(
 /// - `penumbra` - Soft edge percentage (0 = hard edge, 1 = fully soft)
 @external(javascript, "./savoiardi.ffi.mjs", "createSpotLight")
 pub fn create_spot_light(
-  color: Int,
-  intensity: Float,
-  distance: Float,
-  angle: Float,
-  penumbra: Float,
+  color color: Int,
+  intensity intensity: Float,
+  distance distance: Float,
+  angle angle: Float,
+  penumbra penumbra: Float,
 ) -> Light
 
 /// Sets whether a light casts shadows.
@@ -2002,7 +2029,12 @@ pub fn set_light_cast_shadow(light: Light, cast_shadow: Bool) -> Nil
 /// - `light` - The light to configure
 /// - `config` - Shadow configuration (resolution, bias, normal_bias)
 pub fn configure_shadow(light: Light, config: ShadowConfig) -> Nil {
-  configure_shadow_ffi(light, config.resolution, config.bias, config.normal_bias)
+  configure_shadow_ffi(
+    light,
+    config.resolution,
+    config.bias,
+    config.normal_bias,
+  )
 }
 
 @external(javascript, "./savoiardi.ffi.mjs", "configureShadow")
@@ -2066,9 +2098,9 @@ fn configure_directional_shadow_camera_ffi(
 /// ```
 @external(javascript, "./savoiardi.ffi.mjs", "createHemisphereLight")
 pub fn create_hemisphere_light(
-  sky_color: Int,
-  ground_color: Int,
-  intensity: Float,
+  sky_color sky_color: Int,
+  ground_color ground_color: Int,
+  intensity intensity: Float,
 ) -> Light
 
 /// Updates a light's color.
@@ -2455,10 +2487,7 @@ fn color_space_to_string(space: ColorSpace) -> String {
 ///
 /// - `texture` - The texture to configure
 /// - `color_space` - The color space (SRGBColorSpace for color textures, LinearSRGBColorSpace for data)
-pub fn set_texture_color_space(
-  texture: Texture,
-  color_space: ColorSpace,
-) -> Nil {
+pub fn set_texture_color_space(texture: Texture, color_space: ColorSpace) -> Nil {
   set_texture_color_space_ffi(texture, color_space_to_string(color_space))
 }
 
@@ -3029,10 +3058,10 @@ pub fn update_camera_projection_matrix(camera: Camera) -> Nil
 @external(javascript, "./savoiardi.ffi.mjs", "setPerspectiveCameraParams")
 pub fn set_perspective_camera_params(
   camera: Camera,
-  fov: Float,
-  aspect: Float,
-  near: Float,
-  far: Float,
+  fov fov: Float,
+  aspect aspect: Float,
+  near near: Float,
+  far far: Float,
 ) -> Nil
 
 /// Sets all parameters of an orthographic camera.
@@ -3042,12 +3071,12 @@ pub fn set_perspective_camera_params(
 @external(javascript, "./savoiardi.ffi.mjs", "setOrthographicCameraParams")
 pub fn set_orthographic_camera_params(
   camera: Camera,
-  left: Float,
-  right: Float,
-  top: Float,
-  bottom: Float,
-  near: Float,
-  far: Float,
+  left left: Float,
+  right right: Float,
+  top top: Float,
+  bottom bottom: Float,
+  near near: Float,
+  far far: Float,
 ) -> Nil
 
 /// Gets the geometry from a mesh.
@@ -3133,11 +3162,7 @@ pub fn set_material_transparent(material: Material, transparent: Bool) -> Nil
 /// - `x` - Normal scale X component
 /// - `y` - Normal scale Y component
 @external(javascript, "./savoiardi.ffi.mjs", "setMaterialNormalScale")
-pub fn set_material_normal_scale(
-  material: Material,
-  x: Float,
-  y: Float,
-) -> Nil
+pub fn set_material_normal_scale(material: Material, x: Float, y: Float) -> Nil
 
 /// Updates a material's wireframe mode.
 ///
@@ -3177,10 +3202,7 @@ pub fn set_material_texture(
 /// - `material` - The material to update
 /// - `property_name` - Three.js texture property name to clear
 @external(javascript, "./savoiardi.ffi.mjs", "clearMaterialTexture")
-pub fn clear_material_texture(
-  material: Material,
-  property_name: String,
-) -> Nil
+pub fn clear_material_texture(material: Material, property_name: String) -> Nil
 
 /// Updates a material's rendering side after creation.
 ///
@@ -3240,8 +3262,8 @@ pub fn enable_transparency(object: Object3D) -> Nil
 @external(javascript, "./savoiardi.ffi.mjs", "enableShadows")
 pub fn enable_shadows(
   object: Object3D,
-  cast_shadow: Bool,
-  receive_shadow: Bool,
+  cast_shadow cast_shadow: Bool,
+  receive_shadow receive_shadow: Bool,
 ) -> Nil
 
 /// Applies a material to all meshes in an object hierarchy.
@@ -4127,10 +4149,7 @@ pub fn set_positional_audio_playback_rate(
 /// 100 cents = 1 semitone, 1200 cents = 1 octave up, -1200 = 1 octave down.
 /// Default is 0.0 (no pitch shift).
 @external(javascript, "./savoiardi.ffi.mjs", "setAudioDetune")
-pub fn set_positional_audio_detune(
-  audio: PositionalAudio,
-  cents: Float,
-) -> Nil
+pub fn set_positional_audio_detune(audio: PositionalAudio, cents: Float) -> Nil
 
 /// Starts playback of a positional audio source.
 ///
@@ -4369,15 +4388,23 @@ pub fn audio_to_object3d(audio: Audio) -> Object3D
 @external(javascript, "./savoiardi.ffi.mjs", "identity")
 pub fn light_to_object3d(light: Light) -> Object3D
 
+/// Cast an Object3D to Camera (unsafe — caller must ensure it's actually a Camera).
+/// TODO: This should return a Result
+@external(javascript, "./savoiardi.ffi.mjs", "identity")
+pub fn object3d_to_camera(object: Object3D) -> Camera
+
 /// Cast an Object3D to Light (unsafe — caller must ensure it's actually a Light).
+/// TODO: This should return a Result
 @external(javascript, "./savoiardi.ffi.mjs", "identity")
 pub fn object3d_to_light(object: Object3D) -> Light
 
 /// Cast an Object3D to Audio (unsafe — caller must ensure it's actually Audio).
+/// TODO: This should return a Result
 @external(javascript, "./savoiardi.ffi.mjs", "identity")
 pub fn object3d_to_audio(object: Object3D) -> Audio
 
 /// Cast an Object3D to PositionalAudio (unsafe — caller must ensure it's actually PositionalAudio).
+/// TODO: This should return a Result
 @external(javascript, "./savoiardi.ffi.mjs", "identity")
 pub fn object3d_to_positional_audio(object: Object3D) -> PositionalAudio
 
@@ -4388,6 +4415,7 @@ pub fn object3d_to_positional_audio(object: Object3D) -> PositionalAudio
 pub fn css2d_object_to_object3d(object: CSS2DObject) -> Object3D
 
 /// Cast an Object3D to CSS2DObject (unsafe — caller must ensure it's actually a CSS2DObject).
+/// TODO: This should return a Result
 @external(javascript, "./savoiardi.ffi.mjs", "identity")
 pub fn object3d_to_css2d_object(object: Object3D) -> CSS2DObject
 
@@ -4398,6 +4426,7 @@ pub fn object3d_to_css2d_object(object: Object3D) -> CSS2DObject
 pub fn css3d_object_to_object3d(object: CSS3DObject) -> Object3D
 
 /// Cast an Object3D to CSS3DObject (unsafe — caller must ensure it's actually a CSS3DObject).
+/// TODO: This should return a Result
 @external(javascript, "./savoiardi.ffi.mjs", "identity")
 pub fn object3d_to_css3d_object(object: Object3D) -> CSS3DObject
 
@@ -4408,6 +4437,7 @@ pub fn object3d_to_css3d_object(object: Object3D) -> CSS3DObject
 pub fn lod_to_object3d(lod: LOD) -> Object3D
 
 /// Cast an Object3D to LOD (unsafe — caller must ensure it's actually a LOD).
+/// TODO: This should return a Result
 @external(javascript, "./savoiardi.ffi.mjs", "identity")
 pub fn object3d_to_lod(object: Object3D) -> LOD
 
@@ -4418,5 +4448,6 @@ pub fn object3d_to_lod(object: Object3D) -> LOD
 pub fn instanced_mesh_to_object3d(mesh: InstancedMesh) -> Object3D
 
 /// Cast an Object3D to InstancedMesh (unsafe — caller must ensure it's actually an InstancedMesh).
+/// TODO: This should return a Result
 @external(javascript, "./savoiardi.ffi.mjs", "identity")
 pub fn object3d_to_instanced_mesh(object: Object3D) -> InstancedMesh
