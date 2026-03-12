@@ -14,7 +14,6 @@
 ////   {
 ////     header: "Renderer",
 ////     functions: [
-////       "default_renderer_options",
 ////       "create_renderer",
 ////       "enable_renderer_shadow_map",
 ////       "get_renderer_dom_element",
@@ -662,52 +661,6 @@ pub type LoopMode {
 }
 
 // ============================================================================
-// CONFIGURATION TYPES
-// ============================================================================
-
-/// Options for creating a [WebGLRenderer](https://threejs.org/docs/#api/en/renderers/WebGLRenderer).
-///
-/// ## Fields
-///
-/// - `antialias` - Whether to perform antialiasing. Smooths jagged edges but has
-///   a performance cost. Default: `True`
-/// - `alpha` - Whether the canvas contains an alpha (transparency) buffer.
-///   Set to `True` if you need the canvas background to be transparent. Default: `False`
-/// - `dimensions` - Fixed canvas size, or `None` for fullscreen mode
-///
-/// ## Example
-///
-/// ```gleam
-/// // Fixed size renderer
-/// let options = RendererOptions(
-///   antialias: True,
-///   alpha: False,
-///   dimensions: option.Some(Dimensions(800.0, 600.0)),
-/// )
-/// let renderer = create_renderer(options)
-/// ```
-pub type RendererOptions {
-  RendererOptions(
-    /// Enable antialiasing (smooths jagged edges, costs performance)
-    antialias: Bool,
-    /// Enable alpha channel (transparent canvas background)
-    alpha: Bool,
-    /// Canvas dimensions (None for fullscreen mode)
-    dimensions: Option(vec2.Vec2(Float)),
-  )
-}
-
-/// Returns default renderer options: fullscreen, antialiased, opaque background.
-///
-/// Equivalent to `RendererOptions(antialias: True, alpha: False, dimensions: option.None)`.
-///
-/// See [WebGLRenderer](https://threejs.org/docs/#api/en/renderers/WebGLRenderer)
-/// for all available options in Three.js.
-pub fn default_renderer_options() -> RendererOptions {
-  RendererOptions(antialias: True, alpha: False, dimensions: option.None)
-}
-
-// ============================================================================
 // SCENE
 // ============================================================================
 
@@ -800,6 +753,13 @@ pub fn set_scene_background_cube_texture(
   cube_texture: CubeTexture,
 ) -> Scene
 
+/// Clears the scene background.
+///
+/// Wraps [Scene.background](https://threejs.org/docs/#api/en/scenes/Scene.background)
+/// by setting it back to `null`.
+@external(javascript, "./savoiardi.ffi.mjs", "clearSceneBackground")
+pub fn clear_scene_background(scene: Scene) -> Scene
+
 /// Adds an object to the scene.
 ///
 /// Wraps [Object3D.add](https://threejs.org/docs/#api/en/core/Object3D.add).
@@ -859,17 +819,10 @@ pub fn get_canvas_dimensions(renderer: Renderer) -> vec2.Vec2(Float)
 ///
 /// ```gleam
 /// // Fullscreen with antialiasing
-/// let renderer = create_renderer(default_renderer_options())
-///
-/// // Fixed size, transparent background
-/// let renderer = create_renderer(RendererOptions(
-///   antialias: True,
-///   alpha: True,
-///   dimensions: option.Some(Dimensions(1280.0, 720.0)),
-/// ))
+/// let renderer = create_renderer()
 /// ```
 @external(javascript, "./savoiardi.ffi.mjs", "createRenderer")
-pub fn create_renderer(options: RendererOptions) -> Renderer
+pub fn create_renderer() -> Renderer
 
 /// Enables or disables the shadow map on a renderer.
 ///
@@ -937,6 +890,15 @@ pub fn set_renderer_size(renderer: Renderer, width: Int, height: Int) -> Nil
 @external(javascript, "./savoiardi.ffi.mjs", "setRendererPixelRatio")
 pub fn set_renderer_pixel_ratio(renderer: Renderer, ratio: Float) -> Nil
 
+/// Syncs the renderer's internal drawing buffer to its displayed canvas size.
+///
+/// Uses the renderer DOM element's current CSS size and the device pixel ratio
+/// to keep rendering sharp when the canvas is resized by external CSS.
+///
+/// Returns the CSS pixel size that was applied.
+@external(javascript, "./savoiardi.ffi.mjs", "syncRendererToDisplaySize")
+pub fn sync_renderer_to_display_size(renderer: Renderer) -> #(Int, Int)
+
 /// Renders the scene using the given camera.
 ///
 /// Wraps [WebGLRenderer.render](https://threejs.org/docs/#api/en/renderers/WebGLRenderer.render).
@@ -966,6 +928,16 @@ pub fn render(renderer: Renderer, scene: Scene, camera: Camera) -> Nil
 /// Useful when manually compositing multiple render passes.
 @external(javascript, "./savoiardi.ffi.mjs", "clearRenderer")
 pub fn clear_renderer(renderer: Renderer) -> Nil
+
+/// Clears only the depth buffer.
+///
+/// Useful when compositing multiple camera passes into the same canvas.
+@external(javascript, "./savoiardi.ffi.mjs", "clearDepth")
+pub fn clear_depth(renderer: Renderer) -> Nil
+
+/// Enables or disables automatic clearing before each render.
+@external(javascript, "./savoiardi.ffi.mjs", "setRendererAutoClear")
+pub fn set_renderer_auto_clear(renderer: Renderer, enabled: Bool) -> Nil
 
 /// Sets the viewport for rendering.
 ///
@@ -2183,7 +2155,7 @@ pub fn remove_child(parent: Object3D, child: Object3D) -> Nil
 /// - `object` - The object to position
 /// - `position` - Position as Vec3 (x, y, z)
 @external(javascript, "./savoiardi.ffi.mjs", "setPosition")
-pub fn set_object_position(object: Object3D, position: Vec3(Float)) -> Nil
+pub fn set_object_position(object: Object3D, position: Vec3(Float)) -> Object3D
 
 /// Sets the object's local rotation using Euler angles.
 ///
@@ -2195,7 +2167,7 @@ pub fn set_object_position(object: Object3D, position: Vec3(Float)) -> Nil
 /// - `object` - The object to rotate
 /// - `rotation` - Rotation in radians as Vec3 (x, y, z)
 @external(javascript, "./savoiardi.ffi.mjs", "setRotation")
-pub fn set_object_rotation(object: Object3D, rotation: Vec3(Float)) -> Nil
+pub fn set_object_rotation(object: Object3D, rotation: Vec3(Float)) -> Object3D
 
 /// Sets the object's local scale.
 ///
@@ -2206,7 +2178,7 @@ pub fn set_object_rotation(object: Object3D, rotation: Vec3(Float)) -> Nil
 /// - `object` - The object to scale
 /// - `scale` - Scale factors as Vec3 (1.0 = original size)
 @external(javascript, "./savoiardi.ffi.mjs", "setScale")
-pub fn set_object_scale(object: Object3D, scale: Vec3(Float)) -> Nil
+pub fn set_object_scale(object: Object3D, scale: Vec3(Float)) -> Object3D
 
 /// Gets the object's world position.
 ///
@@ -3068,8 +3040,8 @@ pub fn set_perspective_camera_params(
 ///
 /// Updates left, right, top, bottom, near, and far planes. Call
 /// `update_camera_projection_matrix` afterward to apply the changes.
-@external(javascript, "./savoiardi.ffi.mjs", "setOrthographicCameraParams")
-pub fn set_orthographic_camera_params(
+@external(javascript, "./savoiardi.ffi.mjs", "updateOrthographicCamera")
+pub fn update_orthograpic(
   camera: Camera,
   left left: Float,
   right right: Float,

@@ -76,6 +76,14 @@ export function setSceneBackgroundCubeTexture(scene, cubeTexture) {
 }
 
 /**
+ * Clear scene background
+ * @param {THREE.Scene} scene
+ */
+export function clearSceneBackground(scene) {
+  scene.background = null;
+}
+
+/**
  * Get the current canvas dimensions from the renderer
  * @param {THREE.WebGLRenderer} renderer
  * @returns {[number, number]} [width, height] as a tuple
@@ -87,21 +95,10 @@ export function getCanvasDimensions(renderer) {
 
 /**
  * Create a WebGLRenderer
- * @param {Object} options - {antialias: boolean, alpha: boolean, dimensions: Option<{width, height}>}
  * @returns {THREE.WebGLRenderer}
  */
-export function createRenderer(options) {
-  const renderer = new THREE.WebGLRenderer({
-    antialias: options.antialias,
-    alpha: options.alpha,
-  });
-  if (Option$isSome(options.dimensions)) {
-    renderer.setSize(
-      Option$Some$0(options.dimensions).x,
-      Option$Some$0(options.dimensions).y
-    );
-  }
-  return renderer;
+export function createRenderer() {
+  return new THREE.WebGLRenderer();
 }
 
 /**
@@ -131,6 +128,24 @@ export function setRendererSize(renderer, width, height) {
  */
 export function setRendererPixelRatio(renderer, ratio) {
   renderer.setPixelRatio(ratio);
+}
+
+/**
+ * Sync renderer buffer size to displayed canvas size and device pixel ratio.
+ * Returns [cssWidth, cssHeight] in CSS pixels.
+ * @param {THREE.WebGLRenderer} renderer
+ * @returns {[number, number]}
+ */
+export function syncRendererToDisplaySize(renderer) {
+  const canvas = renderer.domElement;
+  const width = Math.max(1, canvas.clientWidth || 1);
+  const height = Math.max(1, canvas.clientHeight || 1);
+  const pixelRatio = window.devicePixelRatio || 1;
+
+  renderer.setPixelRatio(pixelRatio);
+  renderer.setSize(width, height, false);
+
+  return [width, height];
 }
 
 /**
@@ -176,6 +191,23 @@ export function render(renderer, scene, camera) {
  */
 export function clearRenderer(renderer) {
   renderer.clear();
+}
+
+/**
+ * Clear only the depth buffer
+ * @param {THREE.WebGLRenderer} renderer
+ */
+export function clearDepth(renderer) {
+  renderer.clearDepth();
+}
+
+/**
+ * Enable/disable automatic clearing
+ * @param {THREE.WebGLRenderer} renderer
+ * @param {boolean} enabled
+ */
+export function setRendererAutoClear(renderer, enabled) {
+  renderer.autoClear = enabled;
 }
 
 /**
@@ -271,11 +303,6 @@ export function createPerspectiveCamera(fov, aspect, near, far) {
  */
 export function createOrthographicCamera(left, right, top, bottom, near, far) {
   const camera = new THREE.OrthographicCamera(left, right, top, bottom, near, far);
-  // Store original bounds as custom properties for aspect ratio preservation during resize
-  camera._originalLeft = left;
-  camera._originalRight = right;
-  camera._originalTop = top;
-  camera._originalBottom = bottom;
   return camera;
 }
 
@@ -1000,6 +1027,7 @@ export function removeChild(parent, child) {
  */
 export function setPosition(object, position) {
   object.position.set(position.x, position.y, position.z);
+  return object;
 }
 
 /**
@@ -1009,6 +1037,7 @@ export function setPosition(object, position) {
  */
 export function setRotation(object, rotation) {
   object.rotation.set(rotation.x, rotation.y, rotation.z);
+  return object;
 }
 
 /**
@@ -1018,6 +1047,7 @@ export function setRotation(object, rotation) {
  */
 export function setScale(object, scale) {
   object.scale.set(scale.x, scale.y, scale.z);
+  return object;
 }
 
 /**
@@ -1088,32 +1118,6 @@ export function copyScale(object, source) {
   object.scale.copy(source.scale);
 }
 
-/**
- * Set object position from a dynamic position object
- * @param {THREE.Object3D} object
- * @param {Object} position - {x, y, z}
- */
-export function setObjectPosition(object, position) {
-  object.position.set(position.x, position.y, position.z);
-}
-
-/**
- * Set object rotation from a dynamic rotation object
- * @param {THREE.Object3D} object
- * @param {Object} rotation - {x, y, z}
- */
-export function setObjectRotation(object, rotation) {
-  object.rotation.set(rotation.x, rotation.y, rotation.z);
-}
-
-/**
- * Set object scale from a dynamic scale object
- * @param {THREE.Object3D} object
- * @param {Object} scale - {x, y, z}
- */
-export function setObjectScale(object, scale) {
-  object.scale.set(scale.x, scale.y, scale.z);
-}
 
 // ============================================================================
 // ANIMATION
@@ -2128,18 +2132,13 @@ export function setPerspectiveCameraParams(camera, fov, aspect, near, far) {
  * @param {number} near
  * @param {number} far
  */
-export function setOrthographicCameraParams(camera, left, right, top, bottom, near, far) {
+export function updateOrthographicCamera(camera, left, right, top, bottom, near, far) {
   camera.left = left;
   camera.right = right;
   camera.top = top;
   camera.bottom = bottom;
   camera.near = near;
   camera.far = far;
-  // Update stored original bounds for aspect ratio preservation during resize
-  camera._originalLeft = left;
-  camera._originalRight = right;
-  camera._originalTop = top;
-  camera._originalBottom = bottom;
 }
 
 /**
