@@ -84,6 +84,35 @@ export function clearSceneBackground(scene) {
 }
 
 /**
+ * Set linear scene fog
+ * @param {THREE.Scene} scene
+ * @param {number} color
+ * @param {number} near
+ * @param {number} far
+ */
+export function setSceneFog(scene, color, near, far) {
+  scene.fog = new THREE.Fog(color, near, far);
+}
+
+/**
+ * Set exponential scene fog
+ * @param {THREE.Scene} scene
+ * @param {number} color
+ * @param {number} density
+ */
+export function setSceneFogExp2(scene, color, density) {
+  scene.fog = new THREE.FogExp2(color, density);
+}
+
+/**
+ * Clear scene fog
+ * @param {THREE.Scene} scene
+ */
+export function clearSceneFog(scene) {
+  scene.fog = null;
+}
+
+/**
  * Get the current canvas dimensions from the renderer
  * @param {THREE.WebGLRenderer} renderer
  * @returns {[number, number]} [width, height] as a tuple
@@ -95,10 +124,12 @@ export function getCanvasDimensions(renderer) {
 
 /**
  * Create a WebGLRenderer
+ * @param {boolean} antialias
+ * @param {boolean} alpha
  * @returns {THREE.WebGLRenderer}
  */
-export function createRenderer() {
-  return new THREE.WebGLRenderer();
+export function createRenderer(antialias, alpha) {
+  return new THREE.WebGLRenderer({ antialias, alpha });
 }
 
 /**
@@ -183,6 +214,23 @@ export function getCanvasClientHeight(canvas) {
  */
 export function render(renderer, scene, camera) {
   renderer.render(scene, camera);
+}
+
+/**
+ * Set the renderer animation loop callback.
+ * @param {THREE.WebGLRenderer} renderer
+ * @param {(timestamp:number) => void} onFrame
+ */
+export function setAnimationLoop(renderer, onFrame) {
+  renderer.setAnimationLoop(onFrame);
+}
+
+/**
+ * Clear the renderer animation loop callback.
+ * @param {THREE.WebGLRenderer} renderer
+ */
+export function clearAnimationLoop(renderer) {
+  renderer.setAnimationLoop(null);
 }
 
 /**

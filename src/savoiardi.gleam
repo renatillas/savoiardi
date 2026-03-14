@@ -760,6 +760,27 @@ pub fn set_scene_background_cube_texture(
 @external(javascript, "./savoiardi.ffi.mjs", "clearSceneBackground")
 pub fn clear_scene_background(scene: Scene) -> Scene
 
+/// Sets linear fog on the scene.
+///
+/// Wraps [Scene.fog](https://threejs.org/docs/#api/en/scenes/Scene.fog)
+/// with a Three.js `Fog`.
+@external(javascript, "./savoiardi.ffi.mjs", "setSceneFog")
+pub fn set_scene_fog(scene: Scene, color: Int, near: Float, far: Float) -> Scene
+
+/// Sets exponential fog on the scene.
+///
+/// Wraps [Scene.fog](https://threejs.org/docs/#api/en/scenes/Scene.fog)
+/// with a Three.js `FogExp2`.
+@external(javascript, "./savoiardi.ffi.mjs", "setSceneFogExp2")
+pub fn set_scene_fog_exp2(scene: Scene, color: Int, density: Float) -> Scene
+
+/// Clears fog from the scene.
+///
+/// Wraps [Scene.fog](https://threejs.org/docs/#api/en/scenes/Scene.fog)
+/// by setting it back to `null`.
+@external(javascript, "./savoiardi.ffi.mjs", "clearSceneFog")
+pub fn clear_scene_fog(scene: Scene) -> Scene
+
 /// Adds an object to the scene.
 ///
 /// Wraps [Object3D.add](https://threejs.org/docs/#api/en/core/Object3D.add).
@@ -822,7 +843,7 @@ pub fn get_canvas_dimensions(renderer: Renderer) -> vec2.Vec2(Float)
 /// let renderer = create_renderer()
 /// ```
 @external(javascript, "./savoiardi.ffi.mjs", "createRenderer")
-pub fn create_renderer() -> Renderer
+pub fn create_renderer(antialias antialias: Bool, alpha alpha: Bool) -> Renderer
 
 /// Enables or disables the shadow map on a renderer.
 ///
@@ -921,6 +942,17 @@ pub fn sync_renderer_to_display_size(renderer: Renderer) -> #(Int, Int)
 /// ```
 @external(javascript, "./savoiardi.ffi.mjs", "render")
 pub fn render(renderer: Renderer, scene: Scene, camera: Camera) -> Nil
+
+/// Sets the renderer animation loop callback.
+///
+/// Wraps [WebGLRenderer.setAnimationLoop](https://threejs.org/docs/#api/en/renderers/WebGLRenderer.setAnimationLoop).
+/// The callback receives the raw timestamp from Three.js.
+@external(javascript, "./savoiardi.ffi.mjs", "setAnimationLoop")
+pub fn set_animation_loop(renderer: Renderer, on_frame: fn(Float) -> Nil) -> Nil
+
+/// Clears the renderer animation loop callback.
+@external(javascript, "./savoiardi.ffi.mjs", "clearAnimationLoop")
+pub fn clear_animation_loop(renderer: Renderer) -> Nil
 
 /// Clears the renderer's color, depth, and stencil buffers.
 ///
