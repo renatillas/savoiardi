@@ -940,6 +940,23 @@ export function loadFBX(url) {
   });
 }
 
+/**
+ * Load a font definition compatible with TextGeometry.
+ * @param {string} url
+ * @returns {Promise<Result<Object, undefined>>}
+ */
+export function loadFont(url) {
+  const loader = new FontLoader();
+  return new Promise((resolve) => {
+    loader.load(
+      url,
+      (font) => resolve(Result$Ok(font)),
+      undefined,
+      (_) => resolve(Result$Error())
+    );
+  });
+}
+
 // ============================================================================
 // GLTF/FBX DATA ACCESSORS
 // ============================================================================
@@ -997,6 +1014,39 @@ export function loadCubeTexture(urls) {
       undefined,
       (_) => resolve(Result$Error())
     );
+  });
+}
+
+/**
+ * Create 3D text geometry from a loaded font.
+ * @param {string} text
+ * @param {Object} font
+ * @param {number} size
+ * @param {number} depth
+ * @param {number} curveSegments
+ * @param {boolean} bevelEnabled
+ * @param {number} bevelThickness
+ * @param {number} bevelSize
+ * @returns {THREE.BufferGeometry}
+ */
+export function createTextGeometry(
+  text,
+  font,
+  size,
+  depth,
+  curveSegments,
+  bevelEnabled,
+  bevelThickness,
+  bevelSize,
+) {
+  return new TextGeometry(text, {
+    font,
+    size,
+    depth,
+    curveSegments,
+    bevelEnabled,
+    bevelThickness,
+    bevelSize,
   });
 }
 
