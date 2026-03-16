@@ -18,36 +18,53 @@ import savoiardi
 import gleam/option
 
 pub fn main() {
-  let renderer = savoiardi.create_renderer(savoiardi.default_renderer_options())
+  let renderer = savoiardi.create_renderer(antialias: True, alpha: False)
+  savoiardi.set_renderer_size(renderer, 1280, 720)
 
   let scene = savoiardi.create_scene()
     |> savoiardi.set_scene_background_color(0x1a1a2e)
 
-  let camera = savoiardi.create_perspective_camera(75.0, 16.0 /. 9.0, 0.1, 1000.0)
+  let camera = savoiardi.create_perspective_camera(
+    fov: 75.0,
+    aspect: 16.0 /. 9.0,
+    near: 0.1,
+    far: 1000.0,
+  )
 
   let geometry = savoiardi.create_box_geometry(1.0, 1.0, 1.0)
-  let material = savoiardi.create_basic_material(0xff0000, False, 1.0, option.None)
-  let cube = savoiardi.create_mesh(geometry, material)
+  let material =
+    savoiardi.create_basic_material(
+      color: 0xff0000,
+      transparent: False,
+      opacity: 1.0,
+      map: option.None,
+      side: savoiardi.FrontSide,
+      alpha_test: 0.0,
+      depth_write: True,
+    )
+  let cube = savoiardi.create_mesh(geometry)
+  savoiardi.set_object_material(cube, material)
+  savoiardi.set_object_position(cube, #(0.0, 0.0, -5.0))
 
-  savoiardi.add_to_scene(scene: scene, object: cube)
+  savoiardi.add_child(
+    parent: savoiardi.scene_to_object3d(scene),
+    child: cube,
+  )
   savoiardi.render(renderer, scene, camera)
 }
 ```
 
 ## Features
 
-- **Scene & Renderer** - WebGL rendering with configurable options
-- **Cameras** - Perspective and orthographic
-- **Geometries** - Box, sphere, plane, cylinder, torus, text, and more
-- **Materials** - Basic, PBR, phong, lambert, toon
-- **Lights** - Ambient, directional, point, spot, hemisphere
-- **Textures** - Loading, filtering, wrapping modes
-- **Animation** - Mixers and actions for skeletal/keyframe animation
-- **Audio** - Global and positional 3D audio with fade effects
-- **Asset Loading** - GLTF, FBX, OBJ, STL, fonts
-- **LOD & Instancing** - Level of detail and instanced rendering
-- **Particles** - Points-based particle systems
-- **CSS Renderers** - CSS2D and CSS3D overlays
+- **Scene & Renderer** - Scene creation, background control, fog, and WebGL rendering
+- **Cameras** - Perspective and orthographic cameras with projection updates
+- **Objects** - Groups, meshes, transforms, naming, visibility, and scene graph composition
+- **Geometries** - Box, sphere, cone, plane, cylinder, torus, and STL geometry support
+- **Materials** - Basic, standard, phong, lambert, and toon materials
+- **Lights** - Ambient, directional, point, spot, and hemisphere lights
+- **Textures** - Texture loading plus color-space assignment for rendered assets
+- **Model Loading** - GLTF, FBX, OBJ, and STL loading helpers
+- **Material/Object Updates** - Swap geometry/materials and update material side or wireframe state
 
 ## Related Packages
 
