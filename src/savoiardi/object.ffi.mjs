@@ -34,6 +34,12 @@ export function removeChild(parent, child) {
   return parent;
 }
 
+/** @param {THREE.Object3D} parent @param {THREE.Object3D} child @returns {THREE.Object3D} */
+export function attachChild(parent, child) {
+  parent.attach(child);
+  return parent;
+}
+
 /** @param {THREE.Object3D} object @returns {THREE.Object3D} */
 export function removeFromParent(object) {
   object.removeFromParent();
@@ -110,6 +116,29 @@ export function setRotation(object, rotation) {
   return object;
 }
 
+/** @param {THREE.Object3D} object @returns {import("../../build/dev/javascript/vec/vec/vec3.mjs").Vec3} */
+export function getRotation(object) {
+  return vec3_from_three(object.rotation);
+}
+
+/** @param {THREE.Object3D} object @param {number} angle @returns {THREE.Object3D} */
+export function rotateX(object, angle) {
+  object.rotateX(angle);
+  return object;
+}
+
+/** @param {THREE.Object3D} object @param {number} angle @returns {THREE.Object3D} */
+export function rotateY(object, angle) {
+  object.rotateY(angle);
+  return object;
+}
+
+/** @param {THREE.Object3D} object @param {number} angle @returns {THREE.Object3D} */
+export function rotateZ(object, angle) {
+  object.rotateZ(angle);
+  return object;
+}
+
 /** @param {THREE.Object3D} object @param {{ x: number, y: number, z: number, w: number }} quaternion @returns {THREE.Object3D} */
 export function setQuaternion(object, quaternion) {
   object.quaternion.set(quaternion.x, quaternion.y, quaternion.z, quaternion.w);
@@ -174,6 +203,24 @@ export function getObjectName(object) {
 /** @param {THREE.Object3D} object @param {boolean} frustumCulled @returns {THREE.Object3D} */
 export function setFrustumCulled(object, frustumCulled) {
   object.frustumCulled = frustumCulled;
+  return object;
+}
+
+/** @param {THREE.Object3D} object @param {number} renderOrder @returns {THREE.Object3D} */
+export function setRenderOrder(object, renderOrder) {
+  object.renderOrder = renderOrder;
+  return object;
+}
+
+/** @param {THREE.Object3D} object @param {boolean} matrixAutoUpdate @returns {THREE.Object3D} */
+export function setMatrixAutoUpdate(object, matrixAutoUpdate) {
+  object.matrixAutoUpdate = matrixAutoUpdate;
+  return object;
+}
+
+/** @param {THREE.Object3D} object @param {boolean} matrixWorldAutoUpdate @returns {THREE.Object3D} */
+export function setMatrixWorldAutoUpdate(object, matrixWorldAutoUpdate) {
+  object.matrixWorldAutoUpdate = matrixWorldAutoUpdate;
   return object;
 }
 

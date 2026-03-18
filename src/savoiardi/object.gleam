@@ -23,6 +23,9 @@ pub fn add_child(parent parent: Object3D, child child: Object3D) -> Object3D
 @external(javascript, "./object.ffi.mjs", "removeChild")
 pub fn remove_child(parent parent: Object3D, child child: Object3D) -> Object3D
 
+@external(javascript, "./object.ffi.mjs", "attachChild")
+pub fn attach_child(parent parent: Object3D, child child: Object3D) -> Object3D
+
 @external(javascript, "./object.ffi.mjs", "removeFromParent")
 pub fn remove_from_parent(object: Object3D) -> Object3D
 
@@ -53,6 +56,18 @@ pub fn get_scale(object: Object3D) -> Vec3(Float)
 
 @external(javascript, "./object.ffi.mjs", "setRotation")
 pub fn set_rotation(object: Object3D, rotation: Vec3(Float)) -> Object3D
+
+@external(javascript, "./object.ffi.mjs", "getRotation")
+pub fn get_rotation(object: Object3D) -> Vec3(Float)
+
+@external(javascript, "./object.ffi.mjs", "rotateX")
+pub fn rotate_x(object: Object3D, angle: Float) -> Object3D
+
+@external(javascript, "./object.ffi.mjs", "rotateY")
+pub fn rotate_y(object: Object3D, angle: Float) -> Object3D
+
+@external(javascript, "./object.ffi.mjs", "rotateZ")
+pub fn rotate_z(object: Object3D, angle: Float) -> Object3D
 
 @external(javascript, "./object.ffi.mjs", "setQuaternion")
 pub fn set_quaternion(object: Object3D, quaternion: Quaternion) -> Object3D
@@ -90,6 +105,18 @@ pub fn get_name(object: Object3D) -> String
 
 @external(javascript, "./object.ffi.mjs", "setFrustumCulled")
 pub fn set_frustum_culled(object: Object3D, frustum_culled: Bool) -> Object3D
+
+@external(javascript, "./object.ffi.mjs", "setRenderOrder")
+pub fn set_render_order(object: Object3D, render_order: Int) -> Object3D
+
+@external(javascript, "./object.ffi.mjs", "setMatrixAutoUpdate")
+pub fn set_matrix_auto_update(object: Object3D, matrix_auto_update: Bool) -> Object3D
+
+@external(javascript, "./object.ffi.mjs", "setMatrixWorldAutoUpdate")
+pub fn set_matrix_world_auto_update(
+  object: Object3D,
+  matrix_world_auto_update: Bool,
+) -> Object3D
 
 @external(javascript, "./object.ffi.mjs", "clearChildren")
 pub fn clear(object: Object3D) -> Object3D

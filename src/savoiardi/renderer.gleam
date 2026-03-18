@@ -22,6 +22,7 @@ pub type ToneMapping {
 pub type ShadowMapType {
   BasicShadowMap
   PCFShadowMap
+  PCFSoftShadowMap
   VSMShadowMap
 }
 
@@ -67,10 +68,14 @@ fn get_pcf_shadow_map_constant() -> Int
 @external(javascript, "./renderer.ffi.mjs", "getVSMShadowMap")
 fn get_vsm_shadow_map_constant() -> Int
 
+@external(javascript, "./renderer.ffi.mjs", "getPCFSoftShadowMap")
+fn get_pcf_soft_shadow_map_constant() -> Int
+
 fn shadow_map_type_to_int(shadow_map_type: ShadowMapType) -> Int {
   case shadow_map_type {
     BasicShadowMap -> get_basic_shadow_map_constant()
     PCFShadowMap -> get_pcf_shadow_map_constant()
+    PCFSoftShadowMap -> get_pcf_soft_shadow_map_constant()
     VSMShadowMap -> get_vsm_shadow_map_constant()
   }
 }
@@ -97,6 +102,27 @@ pub fn set_drawing_buffer_size(
   height: Int,
   pixel_ratio: Float,
 ) -> Renderer
+
+@external(javascript, "./renderer.ffi.mjs", "setViewport")
+pub fn set_viewport(
+  renderer: Renderer,
+  x x: Int,
+  y y: Int,
+  width width: Int,
+  height height: Int,
+) -> Renderer
+
+@external(javascript, "./renderer.ffi.mjs", "setScissor")
+pub fn set_scissor(
+  renderer: Renderer,
+  x x: Int,
+  y y: Int,
+  width width: Int,
+  height height: Int,
+) -> Renderer
+
+@external(javascript, "./renderer.ffi.mjs", "setScissorTest")
+pub fn set_scissor_test(renderer: Renderer, enabled: Bool) -> Renderer
 
 @external(javascript, "./renderer.ffi.mjs", "render")
 pub fn render(renderer: Renderer, scene: Scene, camera: Camera) -> Nil
@@ -128,10 +154,16 @@ pub fn set_clear_color(renderer: Renderer, color: Int, alpha: Float) -> Renderer
 pub fn set_auto_clear(renderer: Renderer, auto_clear: Bool) -> Renderer
 
 @external(javascript, "./renderer.ffi.mjs", "setAutoClearColor")
-pub fn set_auto_clear_color(renderer: Renderer, auto_clear_color: Bool) -> Renderer
+pub fn set_auto_clear_color(
+  renderer: Renderer,
+  auto_clear_color: Bool,
+) -> Renderer
 
 @external(javascript, "./renderer.ffi.mjs", "setAutoClearDepth")
-pub fn set_auto_clear_depth(renderer: Renderer, auto_clear_depth: Bool) -> Renderer
+pub fn set_auto_clear_depth(
+  renderer: Renderer,
+  auto_clear_depth: Bool,
+) -> Renderer
 
 @external(javascript, "./renderer.ffi.mjs", "setAutoClearStencil")
 pub fn set_auto_clear_stencil(
@@ -156,7 +188,10 @@ fn set_output_color_space_ffi(
   output_color_space: String,
 ) -> Renderer
 
-pub fn set_tone_mapping(renderer: Renderer, tone_mapping: ToneMapping) -> Renderer {
+pub fn set_tone_mapping(
+  renderer: Renderer,
+  tone_mapping: ToneMapping,
+) -> Renderer {
   set_tone_mapping_ffi(renderer, tone_mapping_to_int(tone_mapping))
   renderer
 }
@@ -165,7 +200,10 @@ pub fn set_tone_mapping(renderer: Renderer, tone_mapping: ToneMapping) -> Render
 fn set_tone_mapping_ffi(renderer: Renderer, tone_mapping: Int) -> Renderer
 
 @external(javascript, "./renderer.ffi.mjs", "setToneMappingExposure")
-pub fn set_tone_mapping_exposure(renderer: Renderer, exposure: Float) -> Renderer
+pub fn set_tone_mapping_exposure(
+  renderer: Renderer,
+  exposure: Float,
+) -> Renderer
 
 @external(javascript, "./renderer.ffi.mjs", "setTransmissionResolutionScale")
 pub fn set_transmission_resolution_scale(
@@ -204,4 +242,10 @@ pub fn compile_async(
 pub fn reset_state(renderer: Renderer) -> Renderer
 
 @external(javascript, "./renderer.ffi.mjs", "setAnimationLoop")
-pub fn set_animation_loop(renderer: Renderer, on_frame: fn(Float) -> Nil) -> Renderer
+pub fn set_animation_loop(
+  renderer: Renderer,
+  on_frame: fn(Float) -> Nil,
+) -> Renderer
+
+@external(javascript, "./renderer.ffi.mjs", "dispose")
+pub fn dispose(renderer: Renderer) -> Nil

@@ -67,6 +67,11 @@ export function getVSMShadowMap() {
   return THREE.VSMShadowMap;
 }
 
+/** @returns {number} */
+export function getPCFSoftShadowMap() {
+  return THREE.PCFSoftShadowMap;
+}
+
 /** @param {THREE.WebGLRenderer} renderer @returns {HTMLCanvasElement} */
 export function getRendererDomElement(renderer) {
   return renderer.domElement;
@@ -87,6 +92,24 @@ export function setPixelRatio(renderer, pixelRatio) {
 /** @param {THREE.WebGLRenderer} renderer @param {number} width @param {number} height @param {number} pixelRatio @returns {THREE.WebGLRenderer} */
 export function setDrawingBufferSize(renderer, width, height, pixelRatio) {
   renderer.setDrawingBufferSize(width, height, pixelRatio);
+  return renderer;
+}
+
+/** @param {THREE.WebGLRenderer} renderer @param {number} x @param {number} y @param {number} width @param {number} height @returns {THREE.WebGLRenderer} */
+export function setViewport(renderer, x, y, width, height) {
+  renderer.setViewport(x, y, width, height);
+  return renderer;
+}
+
+/** @param {THREE.WebGLRenderer} renderer @param {number} x @param {number} y @param {number} width @param {number} height @returns {THREE.WebGLRenderer} */
+export function setScissor(renderer, x, y, width, height) {
+  renderer.setScissor(x, y, width, height);
+  return renderer;
+}
+
+/** @param {THREE.WebGLRenderer} renderer @param {boolean} enabled @returns {THREE.WebGLRenderer} */
+export function setScissorTest(renderer, enabled) {
+  renderer.setScissorTest(enabled);
   return renderer;
 }
 
@@ -213,4 +236,9 @@ export function resetState(renderer) {
 export function setAnimationLoop(renderer, onFrame) {
   renderer.setAnimationLoop(onFrame);
   return renderer;
+}
+
+/** @param {THREE.WebGLRenderer} renderer @returns {void} */
+export function dispose(renderer) {
+  renderer.dispose();
 }
