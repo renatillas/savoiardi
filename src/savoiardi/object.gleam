@@ -1,7 +1,8 @@
 import gleam/javascript/promise.{type Promise}
 import quaternion.{type Quaternion}
-import savoiardi/geometries.{type Geometry}
-import savoiardi/materials.{type Material}
+import savoiardi/geometry.{type Geometry}
+import savoiardi/loader.{type FBXLoader, type GLTFLoader, type OBJLoader}
+import savoiardi/material.{type Material}
 import vec/vec3.{type Vec3}
 
 pub type Object3D
@@ -10,70 +11,185 @@ pub type GLTFData
 
 pub type FBXData
 
-@external(javascript, "../savoiardi.ffi.mjs", "createGroup")
+@external(javascript, "./object.ffi.mjs", "createGroup")
 pub fn group() -> Object3D
 
-@external(javascript, "../savoiardi.ffi.mjs", "createMesh")
+@external(javascript, "./object.ffi.mjs", "createMesh")
 pub fn mesh(geometry: Geometry) -> Object3D
 
-@external(javascript, "../savoiardi.ffi.mjs", "addChild")
-pub fn add_child(parent parent: Object3D, child child: Object3D) -> Nil
+@external(javascript, "./object.ffi.mjs", "addChild")
+pub fn add_child(parent parent: Object3D, child child: Object3D) -> Object3D
 
-@external(javascript, "../savoiardi.ffi.mjs", "removeChild")
-pub fn remove_child(parent parent: Object3D, child child: Object3D) -> Nil
+@external(javascript, "./object.ffi.mjs", "removeChild")
+pub fn remove_child(parent parent: Object3D, child child: Object3D) -> Object3D
 
-@external(javascript, "../savoiardi.ffi.mjs", "disposeObject3D")
+@external(javascript, "./object.ffi.mjs", "removeFromParent")
+pub fn remove_from_parent(object: Object3D) -> Object3D
+
+@external(javascript, "./object.ffi.mjs", "disposeObject3D")
 pub fn dispose(object: Object3D) -> Nil
 
-@external(javascript, "../savoiardi.ffi.mjs", "replaceObjectModel")
+@external(javascript, "./object.ffi.mjs", "replaceObjectModel")
 pub fn replace_model(
   old_object: Object3D,
   new_object: Object3D,
   name: String,
 ) -> Object3D
 
-@external(javascript, "../savoiardi.ffi.mjs", "setPosition")
+@external(javascript, "./object.ffi.mjs", "setPosition")
 pub fn set_position(object: Object3D, position: Vec3(Float)) -> Object3D
 
-@external(javascript, "../savoiardi.ffi.mjs", "setScale")
+@external(javascript, "./object.ffi.mjs", "getPosition")
+pub fn get_position(object: Object3D) -> Vec3(Float)
+
+@external(javascript, "./object.ffi.mjs", "lookAt")
+pub fn look_at(object: Object3D, target: Vec3(Float)) -> Object3D
+
+@external(javascript, "./object.ffi.mjs", "setScale")
 pub fn set_scale(object: Object3D, scale: Vec3(Float)) -> Object3D
 
-@external(javascript, "../savoiardi.ffi.mjs", "setObjectQuaternion")
-pub fn set_quaternion(object: Object3D, quaternion: Quaternion) -> Nil
+@external(javascript, "./object.ffi.mjs", "getScale")
+pub fn get_scale(object: Object3D) -> Vec3(Float)
 
-@external(javascript, "../savoiardi.ffi.mjs", "getObjectMaterial")
+@external(javascript, "./object.ffi.mjs", "setRotation")
+pub fn set_rotation(object: Object3D, rotation: Vec3(Float)) -> Object3D
+
+@external(javascript, "./object.ffi.mjs", "setQuaternion")
+pub fn set_quaternion(object: Object3D, quaternion: Quaternion) -> Object3D
+
+@external(javascript, "./object.ffi.mjs", "getQuaternion")
+pub fn get_quaternion(object: Object3D) -> Quaternion
+
+@external(javascript, "./object.ffi.mjs", "getObjectMaterial")
 pub fn get_material(object: Object3D) -> Material
 
-@external(javascript, "../savoiardi.ffi.mjs", "setObjectGeometry")
-pub fn set_geometry(object: Object3D, geometry: Geometry) -> Nil
+@external(javascript, "./object.ffi.mjs", "setObjectGeometry")
+pub fn set_geometry(object: Object3D, geometry: Geometry) -> Object3D
 
-@external(javascript, "../savoiardi.ffi.mjs", "setObjectMaterial")
-pub fn set_material(object: Object3D, material: Material) -> Nil
+@external(javascript, "./object.ffi.mjs", "setObjectMaterial")
+pub fn set_material(object: Object3D, material: Material) -> Object3D
 
-@external(javascript, "../savoiardi.ffi.mjs", "enableShadows")
+@external(javascript, "./object.ffi.mjs", "enableShadows")
 pub fn set_shadows(
   object: Object3D,
   cast_shadow cast_shadow: Bool,
   receive_shadow receive_shadow: Bool,
+) -> Object3D
+
+@external(javascript, "./object.ffi.mjs", "setObjectVisible")
+pub fn set_visible(object: Object3D, visible: Bool) -> Object3D
+
+@external(javascript, "./object.ffi.mjs", "isObjectVisible")
+pub fn is_visible(object: Object3D) -> Bool
+
+@external(javascript, "./object.ffi.mjs", "setObjectName")
+pub fn set_name(object: Object3D, name: String) -> Object3D
+
+@external(javascript, "./object.ffi.mjs", "getObjectName")
+pub fn get_name(object: Object3D) -> String
+
+@external(javascript, "./object.ffi.mjs", "setFrustumCulled")
+pub fn set_frustum_culled(object: Object3D, frustum_culled: Bool) -> Object3D
+
+@external(javascript, "./object.ffi.mjs", "clearChildren")
+pub fn clear(object: Object3D) -> Object3D
+
+@external(javascript, "./object.ffi.mjs", "getObjectParent")
+pub fn get_parent(object: Object3D) -> Result(Object3D, Nil)
+
+@external(javascript, "./object.ffi.mjs", "translateX")
+pub fn translate_x(object: Object3D, distance: Float) -> Object3D
+
+@external(javascript, "./object.ffi.mjs", "translateY")
+pub fn translate_y(object: Object3D, distance: Float) -> Object3D
+
+@external(javascript, "./object.ffi.mjs", "translateZ")
+pub fn translate_z(object: Object3D, distance: Float) -> Object3D
+
+@external(javascript, "./object.ffi.mjs", "updateMatrix")
+pub fn update_matrix(object: Object3D) -> Object3D
+
+@external(javascript, "./object.ffi.mjs", "updateMatrixWorld")
+pub fn update_matrix_world(object: Object3D, force: Bool) -> Object3D
+
+@external(javascript, "./object.ffi.mjs", "updateWorldMatrix")
+pub fn update_world_matrix(
+  object: Object3D,
+  update_parents: Bool,
+  update_children: Bool,
+) -> Object3D
+
+@external(javascript, "./object.ffi.mjs", "getWorldPosition")
+pub fn get_world_position(object: Object3D) -> Vec3(Float)
+
+@external(javascript, "./object.ffi.mjs", "getWorldQuaternion")
+pub fn get_world_quaternion(object: Object3D) -> Quaternion
+
+@external(javascript, "./object.ffi.mjs", "getWorldScale")
+pub fn get_world_scale(object: Object3D) -> Vec3(Float)
+
+@external(javascript, "./object.ffi.mjs", "getWorldDirection")
+pub fn get_world_direction(object: Object3D) -> Vec3(Float)
+
+@external(javascript, "./object.ffi.mjs", "getObjectById")
+pub fn get_by_id(object: Object3D, id: Int) -> Result(Object3D, Nil)
+
+@external(javascript, "./object.ffi.mjs", "getObjectByName")
+pub fn get_by_name(object: Object3D, name: String) -> Result(Object3D, Nil)
+
+@external(javascript, "./object.ffi.mjs", "traverseObject")
+pub fn traverse(object: Object3D, visit: fn(Object3D) -> Nil) -> Nil
+
+@external(javascript, "./object.ffi.mjs", "traverseVisibleObject")
+pub fn traverse_visible(object: Object3D, visit: fn(Object3D) -> Nil) -> Nil
+
+@external(javascript, "./object.ffi.mjs", "traverseAncestorsObject")
+pub fn traverse_ancestors(object: Object3D, visit: fn(Object3D) -> Nil) -> Nil
+
+@external(javascript, "../savoiardi.ffi.mjs", "load")
+pub fn load_gltf(
+  loader: GLTFLoader,
+  url: String,
+  on_load: fn(GLTFData) -> Nil,
+  on_error: fn() -> Nil,
 ) -> Nil
 
-@external(javascript, "../savoiardi.ffi.mjs", "setObjectVisible")
-pub fn set_object_visible(object: Object3D, visible: Bool) -> Nil
+@external(javascript, "../savoiardi.ffi.mjs", "loadAsync")
+pub fn load_gltf_async(
+  loader: GLTFLoader,
+  url: String,
+) -> Promise(Result(GLTFData, Nil))
 
-@external(javascript, "../savoiardi.ffi.mjs", "setObjectName")
-pub fn set_object_name(object: Object3D, name: String) -> Nil
+@external(javascript, "../savoiardi.ffi.mjs", "load")
+pub fn load_obj(
+  loader: OBJLoader,
+  url: String,
+  on_load: fn(Object3D) -> Nil,
+  on_error: fn() -> Nil,
+) -> Nil
 
-@external(javascript, "../savoiardi.ffi.mjs", "loadGLTF")
-pub fn load_gltf(url: String) -> Promise(Result(GLTFData, Nil))
+@external(javascript, "../savoiardi.ffi.mjs", "loadAsync")
+pub fn load_obj_async(
+  loader: OBJLoader,
+  url: String,
+) -> Promise(Result(Object3D, Nil))
 
-@external(javascript, "../savoiardi.ffi.mjs", "loadOBJ")
-pub fn load_obj(url: String) -> Promise(Result(Object3D, Nil))
+@external(javascript, "../savoiardi.ffi.mjs", "load")
+pub fn load_fbx(
+  loader: FBXLoader,
+  url: String,
+  on_load: fn(FBXData) -> Nil,
+  on_error: fn() -> Nil,
+) -> Nil
 
-@external(javascript, "../savoiardi.ffi.mjs", "loadFBX")
-pub fn load_fbx(url: String) -> Promise(Result(FBXData, Nil))
+@external(javascript, "../savoiardi.ffi.mjs", "loadAsync")
+pub fn load_fbx_async(
+  loader: FBXLoader,
+  url: String,
+) -> Promise(Result(FBXData, Nil))
 
-@external(javascript, "../savoiardi.ffi.mjs", "getGltfScene")
+@external(javascript, "./object.ffi.mjs", "getGltfScene")
 pub fn get_gltf_scene(data: GLTFData) -> Object3D
 
-@external(javascript, "../savoiardi.ffi.mjs", "getFbxScene")
+@external(javascript, "./object.ffi.mjs", "getFbxScene")
 pub fn get_fbx_scene(data: FBXData) -> Object3D

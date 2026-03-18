@@ -74,10 +74,6 @@ pub fn main() {
 - **Model Loading** - GLTF, FBX, OBJ, and STL loading helpers
 - **Material/Object Updates** - Swap geometry/materials and update material side or wireframe state
 
-## Migration Notes
-
-- The misspelled camera function `update_orthograpic` has been renamed to `update_orthographic`.
-- Shared types now live with the modules that own them, and the standalone `loaders` module has been removed.
 
 ## Related Packages
 

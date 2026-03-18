@@ -1,17 +1,18 @@
+import gleam/bool
 import savoiardi/object.{type Object3D}
 
 pub type Camera
 
-@external(javascript, "../savoiardi.ffi.mjs", "createPerspectiveCamera")
-pub fn new_perspective(
+@external(javascript, "./camera.ffi.mjs", "createPerspectiveCamera")
+pub fn perspective(
   fov fov: Float,
   aspect aspect: Float,
   near near: Float,
   far far: Float,
 ) -> Camera
 
-@external(javascript, "../savoiardi.ffi.mjs", "createOrthographicCamera")
-pub fn new_orthographic(
+@external(javascript, "./camera.ffi.mjs", "createOrthographicCamera")
+pub fn orthographic(
   left left: Float,
   right right: Float,
   top top: Float,
@@ -20,19 +21,19 @@ pub fn new_orthographic(
   far far: Float,
 ) -> Camera
 
-@external(javascript, "../savoiardi.ffi.mjs", "updateCameraProjectionMatrix")
-pub fn update_projection_matrix(camera: Camera) -> Nil
+@external(javascript, "./camera.ffi.mjs", "updateCameraProjectionMatrix")
+pub fn update_projection_matrix(camera: Camera) -> Camera
 
-@external(javascript, "../savoiardi.ffi.mjs", "setPerspectiveCameraParams")
+@external(javascript, "./camera.ffi.mjs", "setPerspectiveCameraParams")
 pub fn update_perspective(
   camera: Camera,
   fov fov: Float,
   aspect aspect: Float,
   near near: Float,
   far far: Float,
-) -> Nil
+) -> Camera
 
-@external(javascript, "../savoiardi.ffi.mjs", "updateOrthographicCamera")
+@external(javascript, "./camera.ffi.mjs", "updateOrthographicCamera")
 pub fn update_orthographic(
   camera: Camera,
   left left: Float,
@@ -41,11 +42,18 @@ pub fn update_orthographic(
   bottom bottom: Float,
   near near: Float,
   far far: Float,
-) -> Nil
+) -> Camera
 
-@external(javascript, "../savoiardi.ffi.mjs", "identity")
+@external(javascript, "./camera.ffi.mjs", "identity")
 pub fn to_object3d(camera: Camera) -> Object3D
 
-// TODO: This should return a result by doing an assertion
-@external(javascript, "../savoiardi.ffi.mjs", "identity")
-pub fn from_object3d(object: Object3D) -> Camera
+pub fn from_object3d(object: Object3D) -> Result(Camera, Nil) {
+  use <- bool.guard(when: !is_camera(object), return: Error(Nil))
+  Ok(cast_to_object3d(object))
+}
+
+@external(javascript, "./camera.ffi.mjs", "identity")
+fn cast_to_object3d(object: Object3D) -> Camera
+
+@external(javascript, "./camera.ffi.mjs", "isCamera")
+fn is_camera(object: Object3D) -> Bool
