@@ -31,7 +31,15 @@ export function getDoubleSide() {
  * @param {boolean} depthWrite
  * @returns {THREE.MeshBasicMaterial}
  */
-export function createBasicMaterial(color, transparent, opacity, map, side, alphaTest, depthWrite) {
+export function createBasicMaterial(
+  color,
+  transparent,
+  opacity,
+  map,
+  side,
+  alphaTest,
+  depthWrite,
+) {
   return new THREE.MeshBasicMaterial({
     color,
     transparent,
@@ -75,11 +83,17 @@ export function createStandardMaterial(
     map: Option$isSome(map) ? Option$Some$0(map) : null,
     normalMap: Option$isSome(normalMap) ? Option$Some$0(normalMap) : null,
     aoMap: Option$isSome(aoMap) ? Option$Some$0(aoMap) : null,
-    displacementMap: Option$isSome(displacementMap) ? Option$Some$0(displacementMap) : null,
+    displacementMap: Option$isSome(displacementMap)
+      ? Option$Some$0(displacementMap)
+      : null,
     displacementBias,
     displacementScale,
-    roughnessMap: Option$isSome(roughnessMap) ? Option$Some$0(roughnessMap) : null,
-    metalnessMap: Option$isSome(metalnessMap) ? Option$Some$0(metalnessMap) : null,
+    roughnessMap: Option$isSome(roughnessMap)
+      ? Option$Some$0(roughnessMap)
+      : null,
+    metalnessMap: Option$isSome(metalnessMap)
+      ? Option$Some$0(metalnessMap)
+      : null,
     emissive,
     emissiveIntensity,
   });
@@ -122,11 +136,17 @@ export function createPhysicalMaterial(
     map: Option$isSome(map) ? Option$Some$0(map) : null,
     normalMap: Option$isSome(normalMap) ? Option$Some$0(normalMap) : null,
     aoMap: Option$isSome(aoMap) ? Option$Some$0(aoMap) : null,
-    displacementMap: Option$isSome(displacementMap) ? Option$Some$0(displacementMap) : null,
+    displacementMap: Option$isSome(displacementMap)
+      ? Option$Some$0(displacementMap)
+      : null,
     displacementBias,
     displacementScale,
-    roughnessMap: Option$isSome(roughnessMap) ? Option$Some$0(roughnessMap) : null,
-    metalnessMap: Option$isSome(metalnessMap) ? Option$Some$0(metalnessMap) : null,
+    roughnessMap: Option$isSome(roughnessMap)
+      ? Option$Some$0(roughnessMap)
+      : null,
+    metalnessMap: Option$isSome(metalnessMap)
+      ? Option$Some$0(metalnessMap)
+      : null,
     emissive,
     emissiveIntensity,
     clearcoat,
@@ -141,7 +161,16 @@ export function createPhysicalMaterial(
  * Create a `MeshPhongMaterial`.
  * @returns {THREE.MeshPhongMaterial}
  */
-export function createPhongMaterial(color, shininess, map, normalMap, aoMap, transparent, opacity, alphaTest) {
+export function createPhongMaterial(
+  color,
+  shininess,
+  map,
+  normalMap,
+  aoMap,
+  transparent,
+  opacity,
+  alphaTest,
+) {
   return new THREE.MeshPhongMaterial({
     color,
     shininess,
@@ -158,7 +187,15 @@ export function createPhongMaterial(color, shininess, map, normalMap, aoMap, tra
  * Create a `MeshLambertMaterial`.
  * @returns {THREE.MeshLambertMaterial}
  */
-export function createLambertMaterial(color, map, normalMap, aoMap, transparent, opacity, alphaTest) {
+export function createLambertMaterial(
+  color,
+  map,
+  normalMap,
+  aoMap,
+  transparent,
+  opacity,
+  alphaTest,
+) {
   return new THREE.MeshLambertMaterial({
     color,
     map: Option$isSome(map) ? Option$Some$0(map) : null,
@@ -174,7 +211,15 @@ export function createLambertMaterial(color, map, normalMap, aoMap, transparent,
  * Create a `MeshToonMaterial`.
  * @returns {THREE.MeshToonMaterial}
  */
-export function createToonMaterial(color, map, normalMap, aoMap, transparent, opacity, alphaTest) {
+export function createToonMaterial(
+  color,
+  map,
+  normalMap,
+  aoMap,
+  transparent,
+  opacity,
+  alphaTest,
+) {
   return new THREE.MeshToonMaterial({
     color,
     map: Option$isSome(map) ? Option$Some$0(map) : null,
@@ -186,7 +231,7 @@ export function createToonMaterial(color, map, normalMap, aoMap, transparent, op
   });
 }
 
-/** @param {THREE.Material & Record<string, any>} material @param {boolean} wireframe @returns {void} */
+/** @param {THREE.Material & Record<string, any>} material @param {boolean} wireframe @returns {THREE.Material & Record<string, any>} */
 export function updateMaterialWireframe(material, wireframe) {
   if (material.wireframe !== undefined) {
     material.wireframe = wireframe;
@@ -195,7 +240,7 @@ export function updateMaterialWireframe(material, wireframe) {
   return material;
 }
 
-/** @param {THREE.Material & Record<string, any>} material @param {number} color @returns {void} */
+/** @param {THREE.Material & Record<string, any>} material @param {number} color @returns {THREE.Material & Record<string, any>} */
 export function updateMaterialColor(material, color) {
   if (material.color) {
     material.color.setHex(color);
@@ -204,21 +249,21 @@ export function updateMaterialColor(material, color) {
   return material;
 }
 
-/** @param {THREE.Material & Record<string, any>} material @param {boolean} transparent @returns {void} */
+/** @param {THREE.Material & Record<string, any>} material @param {boolean} transparent @returns {THREE.Material & Record<string, any>} */
 export function updateMaterialTransparent(material, transparent) {
   material.transparent = transparent;
   material.needsUpdate = true;
   return material;
 }
 
-/** @param {THREE.Material & Record<string, any>} material @param {number} opacity @returns {void} */
+/** @param {THREE.Material & Record<string, any>} material @param {number} opacity @returns {THREE.Material & Record<string, any>} */
 export function updateMaterialOpacity(material, opacity) {
   material.opacity = opacity;
   material.needsUpdate = true;
   return material;
 }
 
-/** @param {THREE.Material & Record<string, any>} material @param {number} emissive @returns {void} */
+/** @param {THREE.Material & Record<string, any>} material @param {number} emissive @returns {THREE.Material & Record<string, any>} */
 export function updateMaterialEmissive(material, emissive) {
   if (material.emissive) {
     material.emissive.setHex(emissive);
@@ -227,7 +272,7 @@ export function updateMaterialEmissive(material, emissive) {
   return material;
 }
 
-/** @param {THREE.Material & Record<string, any>} material @param {number} emissiveIntensity @returns {void} */
+/** @param {THREE.Material & Record<string, any>} material @param {number} emissiveIntensity @returns {THREE.Material & Record<string, any>} */
 export function updateMaterialEmissiveIntensity(material, emissiveIntensity) {
   if (material.emissiveIntensity !== undefined) {
     material.emissiveIntensity = emissiveIntensity;
@@ -236,21 +281,21 @@ export function updateMaterialEmissiveIntensity(material, emissiveIntensity) {
   return material;
 }
 
-/** @param {THREE.Material & Record<string, any>} material @param {string} propertyName @param {THREE.Texture} texture @returns {void} */
+/** @param {THREE.Material & Record<string, any>} material @param {string} propertyName @param {THREE.Texture} texture @returns {THREE.Material & Record<string, any>} */
 export function setMaterialTexture(material, propertyName, texture) {
   material[propertyName] = texture;
   material.needsUpdate = true;
   return material;
 }
 
-/** @param {THREE.Material & Record<string, any>} material @param {number} side @returns {void} */
+/** @param {THREE.Material & Record<string, any>} material @param {number} side @returns {THREE.Material & Record<string, any>} */
 export function updateMaterialSide(material, side) {
   material.side = side;
   material.needsUpdate = true;
   return material;
 }
 
-/** @param {THREE.Material & Record<string, any>} material @param {boolean} needsUpdate @returns {void} */
+/** @param {THREE.Material & Record<string, any>} material @param {boolean} needsUpdate @returns {THREE.Material & Record<string, any>} */
 export function setMaterialNeedsUpdate(material, needsUpdate) {
   material.needsUpdate = needsUpdate;
   return material;

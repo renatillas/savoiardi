@@ -1,6 +1,19 @@
 {
   "dependencies": {
+    "eslint": "^10.0.3",
     "prettier": "^3.8.1",
     "three": "^0.183.2"
+  },
+  "name": "savoiardi",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/bun": "latest",
+    "globals": "^17.4.0"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
   }
 }

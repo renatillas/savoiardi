@@ -30,7 +30,7 @@ export function createOrthographicCamera(left, right, top, bottom, near, far) {
 /**
  * Update the camera projection matrix.
  * @param {THREE.Camera} camera
- * @returns {void}
+ * @returns {THREE.Camera}
  */
 export function updateCameraProjectionMatrix(camera) {
   camera.updateProjectionMatrix();
@@ -44,7 +44,7 @@ export function updateCameraProjectionMatrix(camera) {
  * @param {number} aspect
  * @param {number} near
  * @param {number} far
- * @returns {void}
+ * @returns {THREE.PerspectiveCamera}
  */
 export function setPerspectiveCameraParams(camera, fov, aspect, near, far) {
   camera.fov = fov;
@@ -63,9 +63,17 @@ export function setPerspectiveCameraParams(camera, fov, aspect, near, far) {
  * @param {number} bottom
  * @param {number} near
  * @param {number} far
- * @returns {void}
+ * @returns {THREE.OrthographicCamera}
  */
-export function updateOrthographicCamera(camera, left, right, top, bottom, near, far) {
+export function updateOrthographicCamera(
+  camera,
+  left,
+  right,
+  top,
+  bottom,
+  near,
+  far,
+) {
   camera.left = left;
   camera.right = right;
   camera.top = top;

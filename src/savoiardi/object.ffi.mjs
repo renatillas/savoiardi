@@ -22,19 +22,19 @@ export function createMesh(geometry) {
   return new THREE.Mesh(geometry);
 }
 
-/** @param {THREE.Object3D} parent @param {THREE.Object3D} child @returns {void} */
+/** @param {THREE.Object3D} parent @param {THREE.Object3D} child @returns {THREE.Object3D} */
 export function addChild(parent, child) {
   parent.add(child);
   return parent;
 }
 
-/** @param {THREE.Object3D} parent @param {THREE.Object3D} child @returns {void} */
+/** @param {THREE.Object3D} parent @param {THREE.Object3D} child @returns {THREE.Object3D} */
 export function removeChild(parent, child) {
   parent.remove(child);
   return parent;
 }
 
-/** @param {THREE.Object3D} object @returns {void} */
+/** @param {THREE.Object3D} object @returns {THREE.Object3D} */
 export function removeFromParent(object) {
   object.removeFromParent();
   return object;
@@ -81,12 +81,12 @@ export function setPosition(object, position) {
   return object;
 }
 
-/** @param {THREE.Object3D} object @returns {import("../../vec/vec/vec3.mjs").Vec3} */
+/** @param {THREE.Object3D} object @returns {import("../../build/dev/javascript/vec/vec/vec3.mjs").Vec3} */
 export function getPosition(object) {
   return vec3_from_three(object.position);
 }
 
-/** @param {THREE.Object3D} object @param {{ x: number, y: number, z: number }} target @returns {void} */
+/** @param {THREE.Object3D} object @param {{ x: number, y: number, z: number }} target @returns {THREE.Object3D} */
 export function lookAt(object, target) {
   object.lookAt(target.x, target.y, target.z);
   return object;
@@ -98,25 +98,25 @@ export function setScale(object, scale) {
   return object;
 }
 
-/** @param {THREE.Object3D} object 
- *  @returns {import("../../build/dev/javascript/vec/vec/vec3.mjs").Vec3} */
+/** @param {THREE.Object3D}
+ * @returns {import("../../build/dev/javascript/vec/vec/vec3.mjs").Vec3} */
 export function getScale(object) {
   return vec3_from_three(object.scale);
 }
 
-/** @param {THREE.Object3D} object @param {import("../../build/dev/javascript/vec/vec/vec3.mjs").Vec3} rotation @returns {void} */
+/** @param {THREE.Object3D} object @param {import("../../build/dev/javascript/vec/vec/vec3.mjs").Vec3} rotation @returns {THREE.Object3D} */
 export function setRotation(object, rotation) {
   object.rotation.set(rotation.x, rotation.y, rotation.z);
   return object;
 }
 
-/** @param {THREE.Object3D} object @param {{ x: number, y: number, z: number, w: number }} quaternion @returns {void} */
+/** @param {THREE.Object3D} object @param {{ x: number, y: number, z: number, w: number }} quaternion @returns {THREE.Object3D} */
 export function setQuaternion(object, quaternion) {
   object.quaternion.set(quaternion.x, quaternion.y, quaternion.z, quaternion.w);
   return object;
 }
 
-/** @param {THREE.Object3D} object @returns {import("../../quaterni/quaternion.mjs").Quaternion} */
+/** @param {THREE.Object3D} object @returns {import("../../build/dev/javascript/quaterni/quaternion.mjs").Quaternion} */
 export function getQuaternion(object) {
   return quaternion_from_three(object.quaternion);
 }
@@ -126,19 +126,19 @@ export function getObjectMaterial(object) {
   return object.material;
 }
 
-/** @param {THREE.Object3D & Record<string, any>} object @param {THREE.BufferGeometry} geometry @returns {void} */
+/** @param {THREE.Object3D & Record<string, any>} object @param {THREE.BufferGeometry} geometry @returns {THREE.Object3D & Record<string, any>} */
 export function setObjectGeometry(object, geometry) {
   object.geometry = geometry;
   return object;
 }
 
-/** @param {THREE.Object3D & Record<string, any>} object @param {THREE.Material | THREE.Material[]} material @returns {void} */
+/** @param {THREE.Object3D & Record<string, any>} object @param {THREE.Material | THREE.Material[]} material @returns {THREE.Object3D & Record<string, any>} */
 export function setObjectMaterial(object, material) {
   object.material = material;
   return object;
 }
 
-/** @param {THREE.Object3D} object @param {boolean} castShadow @param {boolean} receiveShadow @returns {void} */
+/** @param {THREE.Object3D} object @param {boolean} castShadow @param {boolean} receiveShadow @returns {THREE.Object3D} */
 export function enableShadows(object, castShadow, receiveShadow) {
   object.traverse((child) => {
     if (child.isMesh) {
@@ -149,7 +149,7 @@ export function enableShadows(object, castShadow, receiveShadow) {
   return object;
 }
 
-/** @param {THREE.Object3D} object @param {boolean} visible @returns {void} */
+/** @param {THREE.Object3D} object @param {boolean} visible @returns {THREE.Object3D} */
 export function setObjectVisible(object, visible) {
   object.visible = visible;
   return object;
@@ -160,7 +160,7 @@ export function isObjectVisible(object) {
   return object.visible;
 }
 
-/** @param {THREE.Object3D} object @param {string} name @returns {void} */
+/** @param {THREE.Object3D} object @param {string} name @returns {THREE.Object3D} */
 export function setObjectName(object, name) {
   object.name = name;
   return object;
@@ -171,85 +171,87 @@ export function getObjectName(object) {
   return object.name;
 }
 
-/** @param {THREE.Object3D} object @param {boolean} frustumCulled @returns {void} */
+/** @param {THREE.Object3D} object @param {boolean} frustumCulled @returns {THREE.Object3D} */
 export function setFrustumCulled(object, frustumCulled) {
   object.frustumCulled = frustumCulled;
   return object;
 }
 
-/** @param {THREE.Object3D} object @returns {void} */
+/** @param {THREE.Object3D} object @returns {THREE.Object3D} */
 export function clearChildren(object) {
   object.clear();
   return object;
 }
 
-/** @param {THREE.Object3D} object @returns {import("../gleam.mjs").Ok | import("../gleam.mjs").Error} */
+/** @param {THREE.Object3D} object @returns {import("../../build/dev/javascript/savoiardi/gleam.mjs").Ok | import("../../build/dev/javascript/savoiardi/gleam.mjs").Error} */
 export function getObjectParent(object) {
   return result_from_nullable(object.parent);
 }
 
-/** @param {THREE.Object3D} object @param {number} distance @returns {void} */
+/** @param {THREE.Object3D} object @param {number} distance @returns {THREE.Object3D} */
 export function translateX(object, distance) {
   object.translateX(distance);
   return object;
 }
 
-/** @param {THREE.Object3D} object @param {number} distance @returns {void} */
+/** @param {THREE.Object3D} object @param {number} distance @returns {THREE.Object3D} */
 export function translateY(object, distance) {
   object.translateY(distance);
   return object;
 }
 
-/** @param {THREE.Object3D} object @param {number} distance @returns {void} */
+/** @param {THREE.Object3D} object @param {number} distance @returns {THREE.Object3D} */
 export function translateZ(object, distance) {
   object.translateZ(distance);
   return object;
 }
 
-/** @param {THREE.Object3D} object @returns {void} */
+/** @param {THREE.Object3D} object @returns {THREE.Object3D} */
 export function updateMatrix(object) {
   object.updateMatrix();
   return object;
 }
 
-/** @param {THREE.Object3D} object @param {boolean} force @returns {void} */
+/** @param {THREE.Object3D} object @param {boolean} force @returns {THREE.Object3D} */
 export function updateMatrixWorld(object, force) {
   object.updateMatrixWorld(force);
   return object;
 }
 
-/** @param {THREE.Object3D} object @param {boolean} updateParents @param {boolean} updateChildren @returns {void} */
+/** @param {THREE.Object3D} object @param {boolean} updateParents @param {boolean} updateChildren @returns {THREE.Object3D} */
 export function updateWorldMatrix(object, updateParents, updateChildren) {
   object.updateWorldMatrix(updateParents, updateChildren);
   return object;
 }
 
-/** @param {THREE.Object3D} object @returns {import("../../vec/vec/vec3.mjs").Vec3} */
+/** @param {THREE.Object3D} object @returns {import("../../build/dev/javascript/vec/vec/vec3.mjs").Vec3} */
 export function getWorldPosition(object) {
   return vec3_from_three(object.getWorldPosition(reusableWorldPosition));
 }
 
-/** @param {THREE.Object3D} object @returns {import("../../quaterni/quaternion.mjs").Quaternion} */
+/** @param {THREE.Object3D} object @returns {import("../../build/dev/javascript/quaterni/quaternion.mjs").Quaternion} */
 export function getWorldQuaternion(object) {
-  return quaternion_from_three(object.getWorldQuaternion(reusableWorldQuaternion));
+  return quaternion_from_three(
+    object.getWorldQuaternion(reusableWorldQuaternion),
+  );
 }
 
-/** @param {THREE.Object3D} object @returns {import("../../vec/vec/vec3.mjs").Vec3} */
+/** @param {THREE.Object3D} object @returns {import("../../build/dev/javascript/vec/vec/vec3.mjs").Vec3} */
 export function getWorldScale(object) {
   return vec3_from_three(object.getWorldScale(reusableWorldScale));
 }
 
-/** @param {THREE.Object3D} object @returns {import("../../vec/vec/vec3.mjs").Vec3} */
+/** @param {THREE.Object3D} object @returns {import("../../build/dev/javascript/vec/vec/vec3.mjs").Vec3} */
 export function getWorldDirection(object) {
   return vec3_from_three(object.getWorldDirection(reusableWorldDirection));
 }
 
-/** @param {THREE.Object3D} object @param {number} id @returns {import("../gleam.mjs").Ok | import("../gleam.mjs").Error} */
+/** @param {THREE.Object3D} object @param {number} id @returns {import("../../build/dev/javascript/savoiardi/gleam.mjs").Ok | import("../../build/dev/javascript/savoiardi/gleam.mjs").Error} */
 export function getObjectById(object, id) {
   return result_from_nullable(object.getObjectById(id));
 }
 
-/** @param {THREE.Object3D} object @param {string} name @returns {import("../gleam.mjs").Ok | import("../gleam.mjs").Error} */
+/** @param {THREE.Object3D} object @param {string} name @returns {import("../../build/dev/javascript/savoiardi/gleam.mjs").Ok | import("../../build/dev/javascript/savoiardi/gleam.mjs").Error} */
 export function getObjectByName(object, name) {
   return result_from_nullable(object.getObjectByName(name));
 }

@@ -34,7 +34,7 @@ export function identity(value) {
 /**
  * Convert a Three.js vector-like object to Gleam's `Vec3`.
  * @param {{ x: number, y: number, z: number }} value
- * @returns {import("../vec/vec/vec3.mjs").Vec3}
+ * @returns {import("../build/dev/javascript/vec/vec/vec3.mjs").Vec3}
  */
 export function vec3_from_three(value) {
   return Vec3$Vec3(value.x, value.y, value.z);
@@ -43,7 +43,7 @@ export function vec3_from_three(value) {
 /**
  * Convert a Three.js quaternion-like object to Gleam's `Quaternion`.
  * @param {{ x: number, y: number, z: number, w: number }} value
- * @returns {import("../quaterni/quaternion.mjs").Quaternion}
+ * @returns {import("../build/dev/javascript/quaterni/quaternion.mjs").Quaternion}
  */
 export function quaternion_from_three(value) {
   return Quaternion$Quaternion(value.x, value.y, value.z, value.w);
@@ -53,7 +53,7 @@ export function quaternion_from_three(value) {
  * Convert a nullable JS value into a Gleam `Option`.
  * @template T
  * @param {T | null | undefined} value
- * @returns {import("../gleam_stdlib/gleam/option.mjs").Some | import("../gleam_stdlib/gleam/option.mjs").None}
+ * @returns {import("../build/dev/javascript/gleam_stdlib/gleam/option.mjs").Some | import("../build/dev/javascript/gleam_stdlib/gleam/option.mjs").None}
  */
 export function option_from_nullable(value) {
   return value == null ? Option$None() : Option$Some(value);
@@ -73,7 +73,7 @@ export function option_to_nullable(value) {
  * Convert a nullable JS value into a Gleam `Result`.
  * @template T
  * @param {T | null | undefined} value
- * @returns {import("./gleam.mjs").Ok | import("./gleam.mjs").Error}
+ * @returns {import("../build/dev/javascript/savoiardi/gleam.mjs").Ok | import("../build/dev/javascript/savoiardi/gleam.mjs").Error}
  */
 export function result_from_nullable(value) {
   return value == null ? Result$Error() : Result$Ok(value);
@@ -130,17 +130,22 @@ export function dispose_object3d(object) {
   }
 }
 
-/** @param {import("three").Loader} loader @param {string} url @returns {Promise<any>} */
+/**
+ * @param {import("three").Loader} loader
+ * @param {string} url
+ * @returns {Promise<any>}
+ */
 export function loadAsync(loader, url) {
   return loader.loadAsync(url, undefined);
-
 }
 
-
-/** @param {import("three").Loader} loader 
- *  @param {string} url 
- *  @param {(gltf: any) => void} onLoad 
- *  @param {() => void} onError @returns {void} */
+/**
+ * @param {import("three").Loader} loader
+ * @param {string} url
+ * @param {(gltf: any) => void} onLoad
+ * @param {() => void} onError
+ * @returns {void}
+ */
 export function load(loader, url, onLoad, onError) {
   loader.load(url, onLoad, undefined, () => onError());
 }
