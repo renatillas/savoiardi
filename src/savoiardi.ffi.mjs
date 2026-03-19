@@ -18,7 +18,7 @@ import {
   LoadError$ParseError,
   LoadError$ResourceError,
   LoadError$LoadFailure,
-} from "./savoiardi.mjs";
+} from "./savoiardi/loader.mjs";
 
 function error_message(error) {
   if (error instanceof Error) {
