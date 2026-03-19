@@ -6,7 +6,6 @@
 import gleam/javascript/array
 import gleam/javascript/promise.{type Promise}
 import quaternion.{type Quaternion}
-import savoiardi
 import savoiardi/geometry.{type Geometry}
 import savoiardi/loader.{type FBXLoader, type GLTFLoader, type OBJLoader}
 import savoiardi/material.{type Material}
@@ -294,7 +293,7 @@ pub fn traverse_ancestors(object: Object3D, visit: fn(Object3D) -> Nil) -> Nil
 pub fn load_gltf(
   loader: GLTFLoader,
   url: String,
-  on_result: fn(Result(GLTFData, savoiardi.LoadError)) -> Nil,
+  on_result: fn(Result(GLTFData, loader.LoadError)) -> Nil,
 ) -> Nil
 
 /// Loads GLTF data asynchronously.
@@ -302,14 +301,14 @@ pub fn load_gltf(
 pub fn load_gltf_async(
   loader: GLTFLoader,
   url: String,
-) -> Promise(Result(GLTFData, savoiardi.LoadError))
+) -> Promise(Result(GLTFData, loader.LoadError))
 
 /// Loads an OBJ model and reports the result through a callback.
 @external(javascript, "../savoiardi.ffi.mjs", "load")
 pub fn load_obj(
   loader: OBJLoader,
   url: String,
-  on_result: fn(Result(Object3D, savoiardi.LoadError)) -> Nil,
+  on_result: fn(Result(Object3D, loader.LoadError)) -> Nil,
 ) -> Nil
 
 /// Loads an OBJ model asynchronously.
@@ -317,14 +316,14 @@ pub fn load_obj(
 pub fn load_obj_async(
   loader: OBJLoader,
   url: String,
-) -> Promise(Result(Object3D, savoiardi.LoadError))
+) -> Promise(Result(Object3D, loader.LoadError))
 
 /// Loads FBX data and reports the result through a callback.
 @external(javascript, "../savoiardi.ffi.mjs", "load")
 pub fn load_fbx(
   loader: FBXLoader,
   url: String,
-  on_result: fn(Result(FBXData, savoiardi.LoadError)) -> Nil,
+  on_result: fn(Result(FBXData, loader.LoadError)) -> Nil,
 ) -> Nil
 
 /// Loads FBX data asynchronously.
@@ -332,7 +331,7 @@ pub fn load_fbx(
 pub fn load_fbx_async(
   loader: FBXLoader,
   url: String,
-) -> Promise(Result(FBXData, savoiardi.LoadError))
+) -> Promise(Result(FBXData, loader.LoadError))
 
 /// Extracts the root scene object from GLTF data.
 @external(javascript, "./object.ffi.mjs", "getGltfScene")

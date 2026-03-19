@@ -5,7 +5,6 @@
 
 import gleam/javascript/array
 import gleam/javascript/promise.{type Promise}
-import savoiardi
 import savoiardi/loader.{type CubeTextureLoader, type TextureLoader}
 import vec/vec2.{type Vec2}
 
@@ -152,7 +151,7 @@ fn minification_filter_to_int(filter: MinificationFilter) -> Int {
 pub fn load(
   loader: TextureLoader,
   url: String,
-  on_result: fn(Result(Texture, savoiardi.LoadError)) -> Nil,
+  on_result: fn(Result(Texture, loader.LoadError)) -> Nil,
 ) -> Nil
 
 /// Loads a texture asynchronously.
@@ -160,14 +159,14 @@ pub fn load(
 pub fn load_async(
   loader: TextureLoader,
   url: String,
-) -> Promise(Result(Texture, savoiardi.LoadError))
+) -> Promise(Result(Texture, loader.LoadError))
 
 /// Loads an equirectangular texture and reports the result through a callback.
 @external(javascript, "../savoiardi.ffi.mjs", "load")
 pub fn load_equirectangular(
   loader: TextureLoader,
   url: String,
-  on_result: fn(Result(Texture, savoiardi.LoadError)) -> Nil,
+  on_result: fn(Result(Texture, loader.LoadError)) -> Nil,
 ) -> Nil
 
 /// Loads an equirectangular texture asynchronously.
@@ -175,13 +174,13 @@ pub fn load_equirectangular(
 pub fn load_equirectangular_async(
   loader: TextureLoader,
   url: String,
-) -> Promise(Result(Texture, savoiardi.LoadError))
+) -> Promise(Result(Texture, loader.LoadError))
 
 /// Loads a cube texture from six URLs and reports the result through a callback.
 pub fn load_cube(
   loader: CubeTextureLoader,
   urls: List(String),
-  on_result: fn(Result(CubeTexture, savoiardi.LoadError)) -> Nil,
+  on_result: fn(Result(CubeTexture, loader.LoadError)) -> Nil,
 ) {
   do_load_cube(loader, array.from_list(urls), on_result)
 }
@@ -190,14 +189,14 @@ pub fn load_cube(
 fn do_load_cube(
   loader: CubeTextureLoader,
   urls: array.Array(String),
-  on_result: fn(Result(CubeTexture, savoiardi.LoadError)) -> Nil,
+  on_result: fn(Result(CubeTexture, loader.LoadError)) -> Nil,
 ) -> Nil
 
 /// Loads a cube texture from six URLs asynchronously.
 pub fn load_cube_async(
   loader: CubeTextureLoader,
   urls: List(String),
-) -> Promise(Result(CubeTexture, savoiardi.LoadError)) {
+) -> Promise(Result(CubeTexture, loader.LoadError)) {
   do_load_cube_async(loader, array.from_list(urls))
 }
 
@@ -205,7 +204,7 @@ pub fn load_cube_async(
 fn do_load_cube_async(
   loader: CubeTextureLoader,
   urls: array.Array(String),
-) -> Promise(Result(CubeTexture, savoiardi.LoadError))
+) -> Promise(Result(CubeTexture, loader.LoadError))
 
 /// Sets the color space of a texture.
 pub fn set_color_space(texture: Texture, color_space: ColorSpace) -> Texture {

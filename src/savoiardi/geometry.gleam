@@ -4,7 +4,6 @@
 //// helpers for text and STL geometry loading.
 
 import gleam/javascript/promise.{type Promise}
-import savoiardi
 import savoiardi/loader.{type FontLoader, type STLLoader}
 import vec/vec3.{type Vec3}
 
@@ -124,7 +123,7 @@ pub fn compute_bounding_sphere(geometry: Geometry) -> Geometry
 pub fn load_stl(
   loader: STLLoader,
   url url: String,
-  on_result on_result: fn(Result(Geometry, savoiardi.LoadError)) -> Nil,
+  on_result on_result: fn(Result(Geometry, loader.LoadError)) -> Nil,
 ) -> Nil
 
 /// Loads STL geometry asynchronously.
@@ -132,14 +131,14 @@ pub fn load_stl(
 pub fn load_stl_async(
   loader: STLLoader,
   url url: String,
-) -> Promise(Result(Geometry, savoiardi.LoadError))
+) -> Promise(Result(Geometry, loader.LoadError))
 
 /// Loads a font and reports the result through a callback.
 @external(javascript, "../savoiardi.ffi.mjs", "load")
 pub fn load_font(
   loader: FontLoader,
   url url: String,
-  on_result on_result: fn(Result(Font, savoiardi.LoadError)) -> Nil,
+  on_result on_result: fn(Result(Font, loader.LoadError)) -> Nil,
 ) -> Nil
 
 /// Loads a font asynchronously.
@@ -147,7 +146,7 @@ pub fn load_font(
 pub fn load_font_async(
   loader: FontLoader,
   url url: String,
-) -> Promise(Result(Font, savoiardi.LoadError))
+) -> Promise(Result(Font, loader.LoadError))
 
 /// Creates text geometry from a loaded font.
 @external(javascript, "./geometry.ffi.mjs", "createTextGeometry")

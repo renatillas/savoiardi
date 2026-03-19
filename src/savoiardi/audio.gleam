@@ -4,7 +4,6 @@
 //// surface typed in terms of listeners, global audio, and positional audio.
 
 import gleam/javascript/promise.{type Promise}
-import savoiardi
 import savoiardi/camera.{type Camera}
 import savoiardi/loader.{type AudioLoader}
 import savoiardi/object.{type Object3D}
@@ -106,7 +105,7 @@ pub fn listener_from_object3d(object: Object3D) -> Result(Listener, Nil) {
 pub fn load(
   loader: AudioLoader,
   url: String,
-  on_result: fn(Result(AudioBuffer, savoiardi.LoadError)) -> Nil,
+  on_result: fn(Result(AudioBuffer, loader.LoadError)) -> Nil,
 ) -> Nil
 
 /// Loads an audio buffer asynchronously.
@@ -114,7 +113,7 @@ pub fn load(
 pub fn load_async(
   loader: AudioLoader,
   url: String,
-) -> Promise(Result(AudioBuffer, savoiardi.LoadError))
+) -> Promise(Result(AudioBuffer, loader.LoadError))
 
 /// Assigns a buffer to an audio source.
 @external(javascript, "./audio.ffi.mjs", "setBuffer")

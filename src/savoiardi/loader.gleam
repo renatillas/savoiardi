@@ -3,6 +3,15 @@
 //// Loaders are kept in their own module so the higher-level geometry, texture,
 //// audio, and object APIs can share them without exposing raw JavaScript values.
 
+pub type LoadError {
+  EmptyUrl
+  InvalidUrl(url: String, message: String)
+  HttpError(url: String, status: Int, status_text: String)
+  ResourceError(url: String)
+  ParseError(message: String)
+  LoadFailure(message: String)
+}
+
 /// Loads 2D textures.
 pub type TextureLoader
 
