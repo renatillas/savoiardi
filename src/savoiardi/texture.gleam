@@ -1,18 +1,27 @@
+//// Texture loading and texture configuration.
+////
+//// The public API covers both regular textures and cube textures together with
+//// the most common color-space, mapping, wrapping, and filtering controls.
+
 import gleam/javascript/array
 import gleam/javascript/promise.{type Promise}
 import savoiardi
 import savoiardi/loader.{type CubeTextureLoader, type TextureLoader}
 import vec/vec2.{type Vec2}
 
+/// A 2D texture.
 pub type Texture
 
+/// A cube texture.
 pub type CubeTexture
 
+/// Output color spaces supported by the texture API.
 pub type ColorSpace {
   SRGB
   LinearSRGB
 }
 
+/// Texture coordinate mappings supported by the texture API.
 pub type Mapping {
   UV
   CubeReflection
@@ -21,17 +30,20 @@ pub type Mapping {
   EquirectangularRefraction
 }
 
+/// Texture wrapping modes.
 pub type Wrapping {
   Repeat
   ClampToEdge
   MirroredRepeat
 }
 
+/// Magnification filters.
 pub type MagnificationFilter {
   Nearest
   Linear
 }
 
+/// Minification filters.
 pub type MinificationFilter {
   NearestMinification
   NearestMipmapNearest
@@ -89,6 +101,7 @@ fn get_linear_mipmap_nearest_filter_constant() -> Int
 @external(javascript, "./texture.ffi.mjs", "getLinearMipmapLinearFilter")
 fn get_linear_mipmap_linear_filter_constant() -> Int
 
+/// Converts a color space to the underlying Three.js constant.
 pub fn color_space_to_string(space: ColorSpace) -> String {
   case space {
     SRGB -> get_srgb_color_space_constant()
@@ -134,6 +147,7 @@ fn minification_filter_to_int(filter: MinificationFilter) -> Int {
   }
 }
 
+/// Loads a texture and reports the result through a callback.
 @external(javascript, "../savoiardi.ffi.mjs", "load")
 pub fn load(
   loader: TextureLoader,
@@ -141,12 +155,14 @@ pub fn load(
   on_result: fn(Result(Texture, savoiardi.LoadError)) -> Nil,
 ) -> Nil
 
+/// Loads a texture asynchronously.
 @external(javascript, "../savoiardi.ffi.mjs", "loadAsync")
 pub fn load_async(
   loader: TextureLoader,
   url: String,
 ) -> Promise(Result(Texture, savoiardi.LoadError))
 
+/// Loads an equirectangular texture and reports the result through a callback.
 @external(javascript, "../savoiardi.ffi.mjs", "load")
 pub fn load_equirectangular(
   loader: TextureLoader,
@@ -154,12 +170,14 @@ pub fn load_equirectangular(
   on_result: fn(Result(Texture, savoiardi.LoadError)) -> Nil,
 ) -> Nil
 
+/// Loads an equirectangular texture asynchronously.
 @external(javascript, "../savoiardi.ffi.mjs", "loadAsync")
 pub fn load_equirectangular_async(
   loader: TextureLoader,
   url: String,
 ) -> Promise(Result(Texture, savoiardi.LoadError))
 
+/// Loads a cube texture from six URLs and reports the result through a callback.
 pub fn load_cube(
   loader: CubeTextureLoader,
   urls: List(String),
@@ -175,6 +193,7 @@ fn do_load_cube(
   on_result: fn(Result(CubeTexture, savoiardi.LoadError)) -> Nil,
 ) -> Nil
 
+/// Loads a cube texture from six URLs asynchronously.
 pub fn load_cube_async(
   loader: CubeTextureLoader,
   urls: List(String),
@@ -188,6 +207,7 @@ fn do_load_cube_async(
   urls: array.Array(String),
 ) -> Promise(Result(CubeTexture, savoiardi.LoadError))
 
+/// Sets the color space of a texture.
 pub fn set_color_space(texture: Texture, color_space: ColorSpace) -> Texture {
   set_color_space_ffi(texture, color_space_to_string(color_space))
   texture
@@ -196,6 +216,7 @@ pub fn set_color_space(texture: Texture, color_space: ColorSpace) -> Texture {
 @external(javascript, "./texture.ffi.mjs", "setTextureColorSpace")
 fn set_color_space_ffi(texture: Texture, color_space: String) -> Texture
 
+/// Sets the mapping mode of a texture.
 pub fn set_mapping(texture: Texture, mapping: Mapping) -> Texture {
   set_mapping_ffi(texture, mapping_to_int(mapping))
   texture
@@ -204,6 +225,7 @@ pub fn set_mapping(texture: Texture, mapping: Mapping) -> Texture {
 @external(javascript, "./texture.ffi.mjs", "setTextureMapping")
 fn set_mapping_ffi(texture: Texture, mapping: Int) -> Texture
 
+/// Sets the horizontal wrapping mode of a texture.
 pub fn set_wrap_s(texture: Texture, wrapping: Wrapping) -> Texture {
   set_wrap_s_ffi(texture, wrapping_to_int(wrapping))
   texture
@@ -212,6 +234,7 @@ pub fn set_wrap_s(texture: Texture, wrapping: Wrapping) -> Texture {
 @external(javascript, "./texture.ffi.mjs", "setTextureWrapS")
 fn set_wrap_s_ffi(texture: Texture, wrapping: Int) -> Texture
 
+/// Sets the vertical wrapping mode of a texture.
 pub fn set_wrap_t(texture: Texture, wrapping: Wrapping) -> Texture {
   set_wrap_t_ffi(texture, wrapping_to_int(wrapping))
   texture
@@ -220,12 +243,14 @@ pub fn set_wrap_t(texture: Texture, wrapping: Wrapping) -> Texture {
 @external(javascript, "./texture.ffi.mjs", "setTextureWrapT")
 fn set_wrap_t_ffi(texture: Texture, wrapping: Int) -> Texture
 
+/// Sets both wrapping modes of a texture.
 pub fn set_wrap(texture: Texture, wrap_s: Wrapping, wrap_t: Wrapping) -> Texture {
   set_wrap_s(texture, wrap_s)
   set_wrap_t(texture, wrap_t)
   texture
 }
 
+/// Sets the magnification filter of a texture.
 pub fn set_mag_filter(texture: Texture, filter: MagnificationFilter) -> Texture {
   set_mag_filter_ffi(texture, magnification_filter_to_int(filter))
   texture
@@ -234,6 +259,7 @@ pub fn set_mag_filter(texture: Texture, filter: MagnificationFilter) -> Texture 
 @external(javascript, "./texture.ffi.mjs", "setTextureMagFilter")
 fn set_mag_filter_ffi(texture: Texture, filter: Int) -> Texture
 
+/// Sets the minification filter of a texture.
 pub fn set_min_filter(texture: Texture, filter: MinificationFilter) -> Texture {
   set_min_filter_ffi(texture, minification_filter_to_int(filter))
   texture
@@ -242,33 +268,43 @@ pub fn set_min_filter(texture: Texture, filter: MinificationFilter) -> Texture {
 @external(javascript, "./texture.ffi.mjs", "setTextureMinFilter")
 fn set_min_filter_ffi(texture: Texture, filter: Int) -> Texture
 
+/// Sets the repeat vector of a texture.
 @external(javascript, "./texture.ffi.mjs", "setTextureRepeat")
 pub fn set_repeat(texture: Texture, repeat: Vec2(Float)) -> Texture
 
+/// Sets the offset vector of a texture.
 @external(javascript, "./texture.ffi.mjs", "setTextureOffset")
 pub fn set_offset(texture: Texture, offset: Vec2(Float)) -> Texture
 
+/// Sets the UV rotation of a texture.
 @external(javascript, "./texture.ffi.mjs", "setTextureRotation")
 pub fn set_rotation(texture: Texture, rotation: Float) -> Texture
 
+/// Sets the UV center of a texture.
 @external(javascript, "./texture.ffi.mjs", "setTextureCenter")
 pub fn set_center(texture: Texture, center: Vec2(Float)) -> Texture
 
+/// Sets the anisotropy level of a texture.
 @external(javascript, "./texture.ffi.mjs", "setTextureAnisotropy")
 pub fn set_anisotropy(texture: Texture, anisotropy: Int) -> Texture
 
+/// Enables or disables vertical flipping when uploading a texture.
 @external(javascript, "./texture.ffi.mjs", "setTextureFlipY")
 pub fn set_flip_y(texture: Texture, flip_y: Bool) -> Texture
 
+/// Enables or disables mipmap generation.
 @external(javascript, "./texture.ffi.mjs", "setTextureGenerateMipmaps")
 pub fn set_generate_mipmaps(texture: Texture, generate_mipmaps: Bool) -> Texture
 
+/// Marks a texture as needing an update.
 @external(javascript, "./texture.ffi.mjs", "setTextureNeedsUpdate")
 pub fn set_needs_update(texture: Texture, needs_update: Bool) -> Texture
 
+/// Disposes a texture.
 @external(javascript, "./texture.ffi.mjs", "disposeTexture")
 pub fn dispose(texture: Texture) -> Nil
 
+/// Sets the mapping mode of a cube texture.
 pub fn set_cube_mapping(
   cube_texture: CubeTexture,
   mapping: Mapping,

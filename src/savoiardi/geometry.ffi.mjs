@@ -141,6 +141,18 @@ export function createCapsuleGeometry(
 }
 
 /**
+ * @param {{ toArray(): Array<{ x: number, y: number, z: number }> }} points
+ * @returns {THREE.BufferGeometry}
+ */
+export function createLinePointsGeometry(points,) {
+  const vectors = points
+    .toArray()
+    .map((point) => new THREE.Vector3(point.x, point.y, point.z));
+
+  return new THREE.BufferGeometry().setFromPoints(vectors);
+}
+
+/**
  * @param {THREE.BufferGeometry} geometry
  * @returns {THREE.BufferGeometry}
  */

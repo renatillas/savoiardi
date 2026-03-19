@@ -15,6 +15,11 @@ export function createCubeTextureLoader() {
   return new THREE.CubeTextureLoader();
 }
 
+/** @returns {THREE.AudioLoader} */
+export function createAudioLoader() {
+  return new THREE.AudioLoader();
+}
+
 /** @returns {STLLoader} */
 export function createSTLLoader() {
   return new STLLoader();

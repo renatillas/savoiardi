@@ -4,6 +4,7 @@ import {
   vec3_from_three,
   quaternion_from_three,
   result_from_nullable,
+  disposeMaterial,
 } from "../savoiardi.ffi.mjs";
 
 const reusableWorldPosition = new THREE.Vector3();
@@ -19,6 +20,11 @@ export function createGroup() {
 /** @param {THREE.BufferGeometry} geometry @param {THREE.Material | THREE.Material[]} material @returns {THREE.Mesh} */
 export function createMesh(geometry, material) {
   return new THREE.Mesh(geometry, material);
+}
+
+/** @param {THREE.BufferGeometry} geometry @param {THREE.Material | THREE.Material[]} material @returns {THREE.LineSegments} */
+export function createLineSegments(geometry, material) {
+  return new THREE.LineSegments(geometry, material);
 }
 
 /** @param {THREE.Object3D} parent @param {THREE.Object3D} child @returns {THREE.Object3D} */
@@ -59,15 +65,15 @@ export function disposeObject3D(object) {
 
   if (object.material) {
     if (Array.isArray(object.material)) {
-      object.material.forEach((material) => dispose_material(material));
+      object.material.forEach((material) => disposeMaterial(material));
     } else {
-      dispose_material(object.material);
+      disposeMaterial(object.material);
     }
   }
 
   if (object.children) {
     for (const child of object.children) {
-      dispose_object3d(child);
+      disposeObject3D(child);
     }
   }
 }

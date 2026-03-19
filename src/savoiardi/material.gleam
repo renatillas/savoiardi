@@ -1,15 +1,23 @@
+//// Material constructors and material property updates.
+////
+//// The module exposes option records for common Three.js material families and
+//// a shared set of mutating helpers for runtime updates.
+
 import gleam/option.{type Option, None}
 import savoiardi/texture.{type Texture}
 import vec/vec2.{type Vec2}
 
+/// A render material.
 pub type Material
 
+/// The face sides a material can render.
 pub type MaterialSide {
   FrontSide
   BackSide
   DoubleSide
 }
 
+/// Options for creating a basic material.
 pub type BasicOptions {
   BasicOptions(
     color: Int,
@@ -22,6 +30,7 @@ pub type BasicOptions {
   )
 }
 
+/// Options for creating a standard material.
 pub type StandardOptions {
   StandardOptions(
     color: Int,
@@ -43,6 +52,7 @@ pub type StandardOptions {
   )
 }
 
+/// Options for creating a physical material.
 pub type PhysicalOptions {
   PhysicalOptions(
     color: Int,
@@ -69,6 +79,7 @@ pub type PhysicalOptions {
   )
 }
 
+/// Options for creating a phong material.
 pub type PhongOptions {
   PhongOptions(
     color: Int,
@@ -82,6 +93,7 @@ pub type PhongOptions {
   )
 }
 
+/// Options for creating a lambert material.
 pub type LambertOptions {
   LambertOptions(
     color: Int,
@@ -94,6 +106,7 @@ pub type LambertOptions {
   )
 }
 
+/// Options for creating a toon material.
 pub type ToonOptions {
   ToonOptions(
     color: Int,
@@ -106,6 +119,7 @@ pub type ToonOptions {
   )
 }
 
+/// Options for creating a normal material.
 pub type NormalOptions {
   NormalOptions(
     transparent: Bool,
@@ -116,6 +130,7 @@ pub type NormalOptions {
   )
 }
 
+/// Options for creating a matcap material.
 pub type MatcapOptions {
   MatcapOptions(
     color: Int,
@@ -127,10 +142,24 @@ pub type MatcapOptions {
   )
 }
 
+/// Options for creating a shadow material.
 pub type ShadowOptions {
   ShadowOptions(color: Int, transparent: Bool, opacity: Float)
 }
 
+/// Options for creating a basic line material.
+pub type LineBasicOptions {
+  LineBasicOptions(
+    color: Int,
+    transparent: Bool,
+    opacity: Float,
+    alpha_test: Float,
+    depth_write: Bool,
+    linewidth: Float,
+  )
+}
+
+/// Returns default options for a basic material.
 pub fn basic_options() -> BasicOptions {
   BasicOptions(
     color: 0xffffff,
@@ -143,6 +172,7 @@ pub fn basic_options() -> BasicOptions {
   )
 }
 
+/// Returns default options for a standard material.
 pub fn standard_options() -> StandardOptions {
   StandardOptions(
     color: 0xffffff,
@@ -164,6 +194,7 @@ pub fn standard_options() -> StandardOptions {
   )
 }
 
+/// Returns default options for a physical material.
 pub fn physical_options() -> PhysicalOptions {
   PhysicalOptions(
     color: 0xffffff,
@@ -190,6 +221,7 @@ pub fn physical_options() -> PhysicalOptions {
   )
 }
 
+/// Returns default options for a phong material.
 pub fn phong_options() -> PhongOptions {
   PhongOptions(
     color: 0xffffff,
@@ -203,6 +235,7 @@ pub fn phong_options() -> PhongOptions {
   )
 }
 
+/// Returns default options for a lambert material.
 pub fn lambert_options() -> LambertOptions {
   LambertOptions(
     color: 0xffffff,
@@ -215,6 +248,7 @@ pub fn lambert_options() -> LambertOptions {
   )
 }
 
+/// Returns default options for a toon material.
 pub fn toon_options() -> ToonOptions {
   ToonOptions(
     color: 0xffffff,
@@ -227,6 +261,7 @@ pub fn toon_options() -> ToonOptions {
   )
 }
 
+/// Returns default options for a normal material.
 pub fn normal_options() -> NormalOptions {
   NormalOptions(
     transparent: False,
@@ -237,6 +272,7 @@ pub fn normal_options() -> NormalOptions {
   )
 }
 
+/// Returns default options for a matcap material.
 pub fn matcap_options() -> MatcapOptions {
   MatcapOptions(
     color: 0xffffff,
@@ -248,8 +284,21 @@ pub fn matcap_options() -> MatcapOptions {
   )
 }
 
+/// Returns default options for a shadow material.
 pub fn shadow_options() -> ShadowOptions {
   ShadowOptions(color: 0x000000, transparent: True, opacity: 1.0)
+}
+
+/// Returns default options for a line basic material.
+pub fn line_basic_options() -> LineBasicOptions {
+  LineBasicOptions(
+    color: 0xffffff,
+    transparent: False,
+    opacity: 1.0,
+    alpha_test: 0.0,
+    depth_write: True,
+    linewidth: 1.0,
+  )
 }
 
 @external(javascript, "./material.ffi.mjs", "getFrontSide")
@@ -269,6 +318,7 @@ fn material_side_to_int(side: MaterialSide) -> Int {
   }
 }
 
+/// Creates a basic material.
 pub fn basic(options: BasicOptions) -> Material {
   create_basic_material_ffi(
     options.color,
@@ -292,6 +342,7 @@ fn create_basic_material_ffi(
   depth_write: Bool,
 ) -> Material
 
+/// Creates a standard material.
 pub fn standard(options: StandardOptions) -> Material {
   create_standard_material_ffi(
     options.color,
@@ -333,6 +384,7 @@ fn create_standard_material_ffi(
   alpha_test: Float,
 ) -> Material
 
+/// Creates a physical material.
 pub fn physical(options: PhysicalOptions) -> Material {
   create_physical_material_ffi(
     options.color,
@@ -384,6 +436,7 @@ fn create_physical_material_ffi(
   ior: Float,
 ) -> Material
 
+/// Creates a phong material.
 pub fn phong(options: PhongOptions) -> Material {
   create_phong_material_ffi(
     options.color,
@@ -409,6 +462,7 @@ fn create_phong_material_ffi(
   alpha_test: Float,
 ) -> Material
 
+/// Creates a lambert material.
 pub fn lambert(options: LambertOptions) -> Material {
   create_lambert_material_ffi(
     options.color,
@@ -432,6 +486,7 @@ fn create_lambert_material_ffi(
   alpha_test: Float,
 ) -> Material
 
+/// Creates a toon material.
 pub fn toon(options: ToonOptions) -> Material {
   create_toon_material_ffi(
     options.color,
@@ -455,6 +510,7 @@ fn create_toon_material_ffi(
   alpha_test: Float,
 ) -> Material
 
+/// Creates a normal material.
 pub fn normal(options: NormalOptions) -> Material {
   create_normal_material(
     transparent: options.transparent,
@@ -474,6 +530,7 @@ fn create_normal_material(
   side side: Int,
 ) -> Material
 
+/// Creates a matcap material.
 pub fn matcap(options: MatcapOptions) -> Material {
   create_matcap_material(
     color: options.color,
@@ -495,6 +552,7 @@ fn create_matcap_material(
   side side: Int,
 ) -> Material
 
+/// Creates a shadow material.
 pub fn shadow(options: ShadowOptions) -> Material {
   create_shadow_material_ffi(
     options.color,
@@ -510,9 +568,33 @@ fn create_shadow_material_ffi(
   opacity: Float,
 ) -> Material
 
+/// Creates a line basic material.
+pub fn line_basic(options: LineBasicOptions) -> Material {
+  create_line_basic_material_ffi(
+    options.color,
+    options.transparent,
+    options.opacity,
+    options.alpha_test,
+    options.depth_write,
+    options.linewidth,
+  )
+}
+
+@external(javascript, "./material.ffi.mjs", "createLineBasicMaterial")
+fn create_line_basic_material_ffi(
+  color: Int,
+  transparent: Bool,
+  opacity: Float,
+  alpha_test: Float,
+  depth_write: Bool,
+  linewidth: Float,
+) -> Material
+
+/// Enables or disables wireframe rendering.
 @external(javascript, "./material.ffi.mjs", "updateMaterialWireframe")
 pub fn set_wireframe(material: Material, wireframe: Bool) -> Material
 
+/// Sets the base color of a material.
 pub fn set_color(material: Material, color: Int) -> Material {
   set_color_ffi(material, color)
 }
@@ -520,12 +602,15 @@ pub fn set_color(material: Material, color: Int) -> Material {
 @external(javascript, "./material.ffi.mjs", "updateMaterialColor")
 fn set_color_ffi(material: Material, color: Int) -> Material
 
+/// Sets whether a material is transparent.
 @external(javascript, "./material.ffi.mjs", "updateMaterialTransparent")
 pub fn set_transparent(material: Material, transparent: Bool) -> Material
 
+/// Sets the opacity of a material.
 @external(javascript, "./material.ffi.mjs", "updateMaterialOpacity")
 pub fn set_opacity(material: Material, opacity: Float) -> Material
 
+/// Sets the emissive color of a material.
 pub fn set_emissive(material: Material, emissive: Int) -> Material {
   set_emissive_ffi(material, emissive)
 }
@@ -533,108 +618,139 @@ pub fn set_emissive(material: Material, emissive: Int) -> Material {
 @external(javascript, "./material.ffi.mjs", "updateMaterialEmissive")
 fn set_emissive_ffi(material: Material, emissive: Int) -> Material
 
+/// Sets the emissive intensity of a material.
 @external(javascript, "./material.ffi.mjs", "updateMaterialEmissiveIntensity")
 pub fn set_emissive_intensity(
   material: Material,
   emissive_intensity: Float,
 ) -> Material
 
+/// Sets the roughness of a material.
 @external(javascript, "./material.ffi.mjs", "updateMaterialRoughness")
 pub fn set_roughness(material: Material, roughness: Float) -> Material
 
+/// Sets the metalness of a material.
 @external(javascript, "./material.ffi.mjs", "updateMaterialMetalness")
 pub fn set_metalness(material: Material, metalness: Float) -> Material
 
+/// Sets the environment map of a material.
 @external(javascript, "./material.ffi.mjs", "setMaterialEnvMap")
 pub fn set_env_map(material: Material, env_map: Texture) -> Material
 
+/// Sets the normal map of a material.
 @external(javascript, "./material.ffi.mjs", "setMaterialNormalMap")
 pub fn set_normal_map(material: Material, normal_map: Texture) -> Material
 
+/// Sets the matcap texture of a material.
 @external(javascript, "./material.ffi.mjs", "setMaterialMatcap")
 pub fn set_matcap(material: Material, matcap: Texture) -> Material
 
+/// Sets the normal scale of a material.
 @external(javascript, "./material.ffi.mjs", "setMaterialNormalScale")
 pub fn set_normal_scale(
   material: Material,
   normal_scale: Vec2(Float),
 ) -> Material
 
+/// Sets the alpha map of a material.
 @external(javascript, "./material.ffi.mjs", "setMaterialAlphaMap")
 pub fn set_alpha_map(material: Material, alpha_map: Texture) -> Material
 
+/// Sets the emissive map of a material.
 @external(javascript, "./material.ffi.mjs", "setMaterialEmissiveMap")
 pub fn set_emissive_map(material: Material, emissive_map: Texture) -> Material
 
+/// Sets the ambient occlusion map of a material.
 @external(javascript, "./material.ffi.mjs", "setMaterialAoMap")
 pub fn set_ambient_occlusion_map(
   material: Material,
   ambient_occlusion_map: Texture,
 ) -> Material
 
+/// Sets the ambient occlusion map intensity.
 @external(javascript, "./material.ffi.mjs", "updateMaterialAoMapIntensity")
 pub fn set_ambient_occlusion_map_intensity(
   material: Material,
   ambient_occlusion_map_intensity: Float,
 ) -> Material
 
+/// Sets the roughness map of a material.
 @external(javascript, "./material.ffi.mjs", "setMaterialRoughnessMap")
 pub fn set_roughness_map(material: Material, roughness_map: Texture) -> Material
 
+/// Sets the metalness map of a material.
 @external(javascript, "./material.ffi.mjs", "setMaterialMetalnessMap")
 pub fn set_metalness_map(material: Material, metalness_map: Texture) -> Material
 
+/// Sets the displacement map of a material.
 @external(javascript, "./material.ffi.mjs", "setMaterialDisplacementMap")
 pub fn set_displacement_map(
   material: Material,
   displacement_map: Texture,
 ) -> Material
 
+/// Sets the displacement scale of a material.
 @external(javascript, "./material.ffi.mjs", "setMaterialDisplacementScale")
 pub fn set_displacement_scale(
   material: Material,
   displacement_scale: Float,
 ) -> Material
 
+/// Sets the displacement bias of a material.
 @external(javascript, "./material.ffi.mjs", "setMaterialDisplacementBias")
 pub fn set_displacement_bias(
   material: Material,
   displacement_bias: Float,
 ) -> Material
 
+/// Sets the clearcoat amount of a material.
 @external(javascript, "./material.ffi.mjs", "updateMaterialClearcoat")
 pub fn set_clearcoat(material: Material, clearcoat: Float) -> Material
 
+/// Sets the clearcoat roughness of a material.
 @external(javascript, "./material.ffi.mjs", "updateMaterialClearcoatRoughness")
 pub fn set_clearcoat_roughness(
   material: Material,
   clearcoat_roughness: Float,
 ) -> Material
 
+/// Sets the transmission amount of a material.
 @external(javascript, "./material.ffi.mjs", "updateMaterialTransmission")
 pub fn set_transmission(material: Material, transmission: Float) -> Material
 
+/// Sets the thickness of a material.
 @external(javascript, "./material.ffi.mjs", "updateMaterialThickness")
 pub fn set_thickness(material: Material, thickness: Float) -> Material
 
+/// Sets the index of refraction of a material.
 @external(javascript, "./material.ffi.mjs", "updateMaterialIor")
 pub fn set_ior(material: Material, ior: Float) -> Material
 
+/// Enables or disables flat shading.
 @external(javascript, "./material.ffi.mjs", "updateMaterialFlatShading")
 pub fn set_flat_shading(material: Material, flat_shading: Bool) -> Material
 
+/// Enables or disables vertex colors.
 @external(javascript, "./material.ffi.mjs", "updateMaterialVertexColors")
 pub fn set_vertex_colors(material: Material, vertex_colors: Bool) -> Material
 
+/// Enables or disables depth testing.
 @external(javascript, "./material.ffi.mjs", "updateMaterialDepthTest")
 pub fn set_depth_test(material: Material, depth_test: Bool) -> Material
 
+/// Enables or disables depth writing.
 @external(javascript, "./material.ffi.mjs", "updateMaterialDepthWrite")
 pub fn set_depth_write(material: Material, depth_write: Bool) -> Material
 
+/// Sets the line width of a material.
+@external(javascript, "./material.ffi.mjs", "updateMaterialLineWidth")
+pub fn set_line_width(material: Material, linewidth: Float) -> Material
+
+/// Enables or disables scene fog for a material.
 @external(javascript, "./material.ffi.mjs", "updateMaterialFog")
 pub fn set_fog(material: Material, fog: Bool) -> Material
 
+/// Sets which sides of geometry a material should render.
 pub fn set_side(material: Material, side: MaterialSide) -> Material {
   set_side_ffi(material, material_side_to_int(side))
 }
@@ -642,8 +758,10 @@ pub fn set_side(material: Material, side: MaterialSide) -> Material {
 @external(javascript, "./material.ffi.mjs", "updateMaterialSide")
 fn set_side_ffi(material: Material, side: Int) -> Material
 
+/// Marks a material as needing an update.
 @external(javascript, "./material.ffi.mjs", "setMaterialNeedsUpdate")
 pub fn set_needs_update(material: Material, needs_update: Bool) -> Material
 
-@external(javascript, "./material.ffi.mjs", "disposeMaterial")
+/// Disposes a material.
+@external(javascript, "../savoiardi.ffi.mjs", "disposeMaterial")
 pub fn dispose(material: Material) -> Nil

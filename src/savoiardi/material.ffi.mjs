@@ -1,8 +1,5 @@
 import * as THREE from "three";
 import {
-  dispose_material,
-} from "../savoiardi.ffi.mjs";
-import {
   Option$isSome,
   Option$Some$0,
 } from "../../gleam_stdlib/gleam/option.mjs";
@@ -287,6 +284,28 @@ export function createShadowMaterial(color, transparent, opacity) {
   });
 }
 
+/**
+ * Create a `LineBasicMaterial`.
+ * @returns {THREE.LineBasicMaterial}
+ */
+export function createLineBasicMaterial(
+  color,
+  transparent,
+  opacity,
+  alphaTest,
+  depthWrite,
+  linewidth,
+) {
+  return new THREE.LineBasicMaterial({
+    color,
+    transparent,
+    opacity,
+    alphaTest,
+    depthWrite,
+    linewidth,
+  });
+}
+
 function setMaterialPropertyIfSupported(material, propertyName, value) {
   if (propertyName in material) {
     material[propertyName] = value;
@@ -521,6 +540,11 @@ export function updateMaterialDepthWrite(material, depthWrite) {
   return setMaterialPropertyIfSupported(material, "depthWrite", depthWrite);
 }
 
+/** @param {THREE.Material & Record<string, any>} material @param {number} linewidth @returns {THREE.Material & Record<string, any>} */
+export function updateMaterialLineWidth(material, linewidth) {
+  return setMaterialPropertyIfSupported(material, "linewidth", linewidth);
+}
+
 /** @param {THREE.Material & Record<string, any>} material @param {boolean} fog @returns {THREE.Material & Record<string, any>} */
 export function updateMaterialFog(material, fog) {
   return setMaterialPropertyIfSupported(material, "fog", fog);
@@ -544,9 +568,4 @@ export function updateMaterialSide(material, side) {
 export function setMaterialNeedsUpdate(material, needsUpdate) {
   material.needsUpdate = needsUpdate;
   return material;
-}
-
-/** @param {THREE.Material & Record<string, any>} material @returns {void} */
-export function disposeMaterial(material) {
-  dispose_material(material);
 }

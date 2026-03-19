@@ -168,7 +168,7 @@ export function result_from_nullable(value) {
  * @param {import("three").Material & Record<string, any>} material
  * @returns {void}
  */
-export function dispose_material(material) {
+export function disposeMaterial(material) {
   if (!material) return;
 
   if (material.map) material.map.dispose();

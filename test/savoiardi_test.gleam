@@ -91,10 +91,7 @@ pub fn orthographic_camera_surface_test() {
 pub fn object_surface_test() {
   let material =
     material.basic(
-      material.BasicOptions(
-        ..material.basic_options(),
-        color: 0xabcdef,
-      ),
+      material.BasicOptions(..material.basic_options(), color: 0xabcdef),
     )
 
   let geometry = geometry.box(width: 1.0, height: 1.0, depth: 1.0)
@@ -138,6 +135,46 @@ pub fn object_surface_test() {
   assert object.children(clone) |> list.length == 1
 }
 
+pub fn line_surface_test() {
+  let line_geometry =
+    geometry.line_points([
+      vec3.Vec3(0.0, 0.0, 0.0),
+      vec3.Vec3(1.0, 0.0, 0.0),
+      vec3.Vec3(1.0, 1.0, 0.0),
+    ])
+
+  let line_material =
+    material.line_basic(
+      material.LineBasicOptions(
+        ..material.line_basic_options(),
+        color: 0xff00ff,
+        linewidth: 2.0,
+      ),
+    )
+    |> material.set_line_width(3.0)
+    |> material.set_color(0x00ffcc)
+    |> material.set_transparent(True)
+
+  let line = object.line_segments(line_geometry, line_material)
+  let parent = object.group()
+
+  object.add_child(parent: parent, child: line)
+  let updated_material =
+    object.get_material(line)
+    |> material.set_line_width(1.5)
+    |> material.set_fog(False)
+    |> material.set_depth_write(False)
+    |> material.set_depth_test(True)
+    |> material.set_transparent(True)
+    |> material.set_opacity(0.5)
+    |> material.set_color(0x123456)
+    |> material.set_needs_update(True)
+
+  assert object.children(parent) |> list.length == 1
+  assert updated_material == object.get_material(line)
+  assert object.children(parent) |> list.length == 1
+}
+
 pub fn light_surface_test() {
   let directional = case
     light.directional(color: 0xffffff, intensity: 1.0)
@@ -152,11 +189,7 @@ pub fn light_surface_test() {
   }
 
   let point = case
-    light.point(
-      color: 0xffffff,
-      intensity: 1.0,
-      distance: 10.0,
-    )
+    light.point(color: 0xffffff, intensity: 1.0, distance: 10.0)
     |> light.point_from_light
   {
     Ok(light) ->
@@ -213,10 +246,7 @@ pub fn light_surface_test() {
 pub fn material_scene_surface_test() {
   let basic =
     material.basic(
-      material.BasicOptions(
-        ..material.basic_options(),
-        color: 0xffffff,
-      ),
+      material.BasicOptions(..material.basic_options(), color: 0xffffff),
     )
     |> material.set_side(material.DoubleSide)
     |> material.set_wireframe(True)
@@ -263,7 +293,6 @@ pub fn material_scene_surface_test() {
         matcap: option.None,
       ),
     )
-    |> material.set_matcap(option.None)
 
   let _ =
     material.shadow(material.ShadowOptions(
