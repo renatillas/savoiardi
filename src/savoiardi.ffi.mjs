@@ -11,15 +11,99 @@ import {
   Option$isSome,
   Option$Some$0,
 } from "../gleam_stdlib/gleam/option.mjs";
+import {
+  LoadError$EmptyUrl,
+  LoadError$HttpError,
+  LoadError$InvalidUrl,
+  LoadError$ParseError,
+  LoadError$ResourceError,
+  LoadError$LoadFailure,
+} from "./savoiardi.mjs";
 
-export {
-  Result$Ok,
-  Result$Error,
-  Option$Some,
-  Option$None,
-  Option$isSome,
-  Option$Some$0,
-};
+function error_message(error) {
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  if (typeof error === "string") {
+    return error;
+  }
+
+  try {
+    return JSON.stringify(error);
+  } catch {
+    return String(error);
+  }
+}
+
+function has_empty_url(url) {
+  if (typeof url === "string") {
+    return url.trim() === "";
+  }
+
+  if (Array.isArray(url)) {
+    return url.some((entry) => typeof entry === "string" && entry.trim() === "");
+  }
+
+  return false;
+}
+
+function first_url_value(url) {
+  if (typeof url === "string") {
+    return url;
+  }
+
+  if (Array.isArray(url)) {
+    return url.find((entry) => typeof entry === "string") ?? "";
+  }
+
+  return "";
+}
+
+function is_invalid_url_message(message) {
+  return (
+    message.includes("Failed to parse URL") ||
+    message.includes("Invalid URL") ||
+    message.includes("Only absolute URLs are supported")
+  );
+}
+
+function load_error(url, reason) {
+  const message = error_message(reason);
+
+  if (
+    reason &&
+    typeof reason === "object" &&
+    "response" in reason &&
+    reason.response &&
+    typeof reason.response.status === "number"
+  ) {
+    return LoadError$HttpError(
+      first_url_value(url),
+      reason.response.status,
+      reason.response.statusText ?? "",
+    );
+  }
+
+  if (
+    reason &&
+    typeof reason === "object" &&
+    "type" in reason &&
+    reason.type === "error"
+  ) {
+    return LoadError$ResourceError(first_url_value(url));
+  }
+
+  if (reason instanceof SyntaxError) {
+    return LoadError$ParseError(message);
+  }
+
+  if (is_invalid_url_message(message)) {
+    return LoadError$InvalidUrl(first_url_value(url), message);
+  }
+
+  return LoadError$LoadFailure(message);
+}
 
 /**
  * Identity cast helper for compatible opaque types.
@@ -103,49 +187,51 @@ export function dispose_material(material) {
   material.dispose();
 }
 
-/**
- * Recursively dispose an `Object3D` subtree.
- * @param {import("three").Object3D & Record<string, any>} object
- * @returns {void}
- */
-export function dispose_object3d(object) {
-  if (!object) return;
-
-  if (object.geometry) {
-    object.geometry.dispose();
-  }
-
-  if (object.material) {
-    if (Array.isArray(object.material)) {
-      object.material.forEach((material) => dispose_material(material));
-    } else {
-      dispose_material(object.material);
-    }
-  }
-
-  if (object.children) {
-    for (const child of object.children) {
-      dispose_object3d(child);
-    }
-  }
-}
 
 /**
  * @param {import("three").Loader} loader
  * @param {string} url
  * @returns {Promise<any>}
  */
-export function loadAsync(loader, url) {
-  return loader.loadAsync(url, undefined);
+export async function loadAsync(loader, url) {
+  if (has_empty_url(url)) {
+    return Result$Error(LoadError$EmptyUrl());
+  }
+
+  try {
+    return loader
+      .loadAsync(url, undefined)
+      .then((value) => Result$Ok(value))
+      .catch((reason) => Result$Error(load_error(url, reason)));
+  } catch (reason) {
+    return Result$Error(LoadError$InvalidUrl(first_url_value(url), error_message(reason)));
+  }
 }
 
 /**
  * @param {import("three").Loader} loader
  * @param {string} url
- * @param {(gltf: any) => void} onLoad
- * @param {() => void} onError
+ * @param {(result: any) => void} onResult
  * @returns {void}
  */
-export function load(loader, url, onLoad, onError) {
-  loader.load(url, onLoad, undefined, () => onError());
+export function load(loader, url, onResult) {
+  if (has_empty_url(url)) {
+    onResult(Result$Error(LoadError$EmptyUrl()));
+    return;
+  }
+
+  try {
+    loader.load(
+      url,
+      (value) => onResult(Result$Ok(value)),
+      undefined,
+      (reason) => onResult(Result$Error(load_error(url, reason))),
+    );
+  } catch (reason) {
+    onResult(
+      Result$Error(
+        LoadError$InvalidUrl(first_url_value(url), error_message(reason)),
+      ),
+    );
+  }
 }

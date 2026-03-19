@@ -4,7 +4,6 @@ import {
   vec3_from_three,
   quaternion_from_three,
   result_from_nullable,
-  dispose_object3d,
 } from "../savoiardi.ffi.mjs";
 
 const reusableWorldPosition = new THREE.Vector3();
@@ -17,9 +16,9 @@ export function createGroup() {
   return new THREE.Group();
 }
 
-/** @param {THREE.BufferGeometry} geometry @returns {THREE.Mesh} */
-export function createMesh(geometry) {
-  return new THREE.Mesh(geometry);
+/** @param {THREE.BufferGeometry} geometry @param {THREE.Material | THREE.Material[]} material @returns {THREE.Mesh} */
+export function createMesh(geometry, material) {
+  return new THREE.Mesh(geometry, material);
 }
 
 /** @param {THREE.Object3D} parent @param {THREE.Object3D} child @returns {THREE.Object3D} */
@@ -46,9 +45,31 @@ export function removeFromParent(object) {
   return object;
 }
 
-/** @param {THREE.Object3D} object @returns {void} */
+/**
+ * Recursively dispose an `Object3D` subtree.
+ * @param {import("three").Object3D} object
+ * @returns {void}
+ */
 export function disposeObject3D(object) {
-  dispose_object3d(object);
+  if (!object) return;
+
+  if (object.geometry) {
+    object.geometry.dispose();
+  }
+
+  if (object.material) {
+    if (Array.isArray(object.material)) {
+      object.material.forEach((material) => dispose_material(material));
+    } else {
+      dispose_material(object.material);
+    }
+  }
+
+  if (object.children) {
+    for (const child of object.children) {
+      dispose_object3d(child);
+    }
+  }
 }
 
 /**
@@ -167,11 +188,20 @@ export function setObjectMaterial(object, material) {
   return object;
 }
 
-/** @param {THREE.Object3D} object @param {boolean} castShadow @param {boolean} receiveShadow @returns {THREE.Object3D} */
-export function enableShadows(object, castShadow, receiveShadow) {
+/** @param {THREE.Object3D} object @param {boolean} castShadow @returns {THREE.Object3D} */
+export function setObjectCastShadow(object, castShadow) {
   object.traverse((child) => {
     if (child.isMesh) {
       child.castShadow = castShadow;
+    }
+  });
+  return object;
+}
+
+/** @param {THREE.Object3D} object @param {boolean} receiveShadow @returns {THREE.Object3D} */
+export function setObjectReceiveShadow(object, receiveShadow) {
+  object.traverse((child) => {
+    if (child.isMesh) {
       child.receiveShadow = receiveShadow;
     }
   });
@@ -198,6 +228,32 @@ export function setObjectName(object, name) {
 /** @param {THREE.Object3D} object @returns {string} */
 export function getObjectName(object) {
   return object.name;
+}
+
+/** @param {THREE.Object3D} object @returns {number} */
+export function getObjectId(object) {
+  return object.id;
+}
+
+/** @param {THREE.Object3D} object @returns {string} */
+export function getObjectUuid(object) {
+  return object.uuid;
+}
+
+/** @param {THREE.Object3D} object @returns {THREE.Object3D[]} */
+export function getObjectChildren(object) {
+  return object.children;
+}
+
+/** @param {THREE.Object3D} object @param {boolean} recursive @returns {THREE.Object3D} */
+export function cloneObject(object, recursive) {
+  return object.clone(recursive);
+}
+
+/** @param {THREE.Object3D} object @param {THREE.Object3D} source @param {boolean} recursive @returns {THREE.Object3D} */
+export function copyObject(object, source, recursive) {
+  object.copy(source, recursive);
+  return object;
 }
 
 /** @param {THREE.Object3D} object @param {boolean} frustumCulled @returns {THREE.Object3D} */
@@ -301,6 +357,22 @@ export function getObjectById(object, id) {
 /** @param {THREE.Object3D} object @param {string} name @returns {import("../../build/dev/javascript/savoiardi/gleam.mjs").Ok | import("../../build/dev/javascript/savoiardi/gleam.mjs").Error} */
 export function getObjectByName(object, name) {
   return result_from_nullable(object.getObjectByName(name));
+}
+
+/** @param {THREE.Object3D} object @param {string} propertyName @param {string} value @returns {import("../../build/dev/javascript/savoiardi/gleam.mjs").Ok | import("../../build/dev/javascript/savoiardi/gleam.mjs").Error} */
+export function getObjectByProperty(object, propertyName, value) {
+  return result_from_nullable(object.getObjectByProperty(propertyName, value));
+}
+
+/** @param {THREE.Object3D} object @param {string} propertyName @param {string} value @returns {THREE.Object3D[]} */
+export function getObjectsByProperty(object, propertyName, value) {
+  const matches = [];
+  object.traverse((child) => {
+    if (child[propertyName] === value) {
+      matches.push(child);
+    }
+  });
+  return matches;
 }
 
 /** @param {THREE.Object3D} object @param {(child: THREE.Object3D) => void} visit @returns {void} */

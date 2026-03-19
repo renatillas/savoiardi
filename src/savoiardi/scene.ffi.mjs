@@ -8,7 +8,7 @@ export function createScene() {
 
 /**
  * @param {THREE.Scene} scene
- * @param {number} color
+ * @param {string} color
  * @returns {THREE.Scene}
  */
 export function setSceneBackgroundColor(scene, color) {
@@ -106,7 +106,7 @@ export function setSceneEnvironmentIntensity(scene, intensity) {
 
 /**
  * @param {THREE.Scene} scene
- * @param {number} color
+ * @param {string} color
  * @param {number} near
  * @param {number} far
  * @returns {THREE.Scene}
@@ -118,7 +118,7 @@ export function setSceneFog(scene, color, near, far) {
 
 /**
  * @param {THREE.Scene} scene
- * @param {number} color
+ * @param {string} color
  * @param {number} density
  * @returns {THREE.Scene}
  */

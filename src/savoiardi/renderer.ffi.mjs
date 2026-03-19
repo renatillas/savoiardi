@@ -5,9 +5,31 @@ import {
   Option$Some$0,
 } from "../../gleam_stdlib/gleam/option.mjs";
 
-/** @param {boolean} antialias @param {boolean} alpha @returns {THREE.WebGLRenderer} */
-export function createRenderer(antialias, alpha) {
-  return new THREE.WebGLRenderer({ antialias, alpha });
+/** @returns {THREE.WebGLRenderer} */
+export function createRenderer(
+  antialias,
+  alpha,
+  depth,
+  stencil,
+  premultipliedAlpha,
+  preserveDrawingBuffer,
+  failIfMajorPerformanceCaveat,
+  logarithmicDepthBuffer,
+  reversedDepthBuffer,
+  powerPreference,
+) {
+  return new THREE.WebGLRenderer({
+    antialias,
+    alpha,
+    depth,
+    stencil,
+    premultipliedAlpha,
+    preserveDrawingBuffer,
+    failIfMajorPerformanceCaveat,
+    logarithmicDepthBuffer,
+    reversedDepthBuffer,
+    powerPreference,
+  });
 }
 
 /** @param {THREE.WebGLRenderer} renderer @param {boolean} enabled @returns {THREE.WebGLRenderer} */
@@ -148,7 +170,7 @@ export function setClearAlpha(renderer, alpha) {
   return renderer;
 }
 
-/** @param {THREE.WebGLRenderer} renderer @param {number} color @param {number} alpha @returns {THREE.WebGLRenderer} */
+/** @param {THREE.WebGLRenderer} renderer @param {string} color @param {number} alpha @returns {THREE.WebGLRenderer} */
 export function setClearColor(renderer, color, alpha) {
   renderer.setClearColor(color, alpha);
   return renderer;

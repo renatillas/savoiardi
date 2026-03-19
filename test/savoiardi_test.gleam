@@ -1,10 +1,14 @@
+import gleam/list
 import gleam/option
 import gleam/result
 import gleeunit
 import savoiardi/camera
+import savoiardi/geometry
 import savoiardi/light
 import savoiardi/material
 import savoiardi/object
+import savoiardi/renderer
+import savoiardi/scene
 import vec/vec2
 import vec/vec3
 
@@ -46,7 +50,8 @@ pub fn perspective_camera_surface_test() {
   assert camera.near(generic) == 0.5
   assert camera.far(generic) == 250.0
   assert camera.zoom(generic) == 1.25
-  assert camera.perspective_from_object3d(camera.to_object3d(generic)) |> result.is_ok
+  assert camera.perspective_from_object3d(camera.to_object3d(generic))
+    |> result.is_ok
 }
 
 pub fn orthographic_camera_surface_test() {
@@ -84,8 +89,17 @@ pub fn orthographic_camera_surface_test() {
 }
 
 pub fn object_surface_test() {
+  let material =
+    material.basic(
+      material.BasicOptions(
+        ..material.basic_options(),
+        color: 0xabcdef,
+      ),
+    )
+
+  let geometry = geometry.box(width: 1.0, height: 1.0, depth: 1.0)
   let parent = object.group()
-  let child = object.group()
+  let child = object.mesh(geometry, material)
 
   child
   |> object.set_position(vec3.Vec3(1.0, 2.0, 3.0))
@@ -95,12 +109,17 @@ pub fn object_surface_test() {
   |> object.rotate_z(0.125)
   |> object.set_scale(vec3.Vec3(2.0, 3.0, 4.0))
   |> object.set_render_order(10)
+  |> object.set_cast_shadow(True)
+  |> object.set_receive_shadow(True)
+  |> object.set_name("cube")
   |> object.set_matrix_auto_update(False)
   |> object.set_matrix_world_auto_update(False)
   |> object.update_matrix
 
   object.add_child(parent: parent, child: child)
   object.attach_child(parent: parent, child: child)
+
+  let clone = object.clone(parent, True)
 
   assert object.get_position(child) == vec3.Vec3(1.0, 2.0, 3.0)
   assert object.get_scale(child).x == 2.0
@@ -110,63 +129,78 @@ pub fn object_surface_test() {
   assert object.get_rotation(child).y >. 0.24
   assert object.get_rotation(child).z >. 0.12
   assert object.get_parent(child) |> result.is_ok
+  assert object.get_by_name(parent, "cube") |> result.is_ok
+  assert object.get_by_property(parent, "name", "cube") |> result.is_ok
+  assert object.get_all_by_property(parent, "name", "cube") |> list.length == 1
+  assert object.children(parent) |> list.length == 1
+  assert object.id(parent) > 0
+  assert object.uuid(parent) != ""
+  assert object.children(clone) |> list.length == 1
 }
 
 pub fn light_surface_test() {
-  let directional =
-    case light.directional(color: 0xffffff, intensity: 1.0)
-    |> light.directional_from_light {
-      Ok(light) ->
-        light
-        |> light.directional_set_target(object.group())
-        |> light.directional_set_shadow_camera_bounds(-10.0, 10.0, 10.0, -10.0)
-        |> light.directional_set_shadow_camera_near_far(0.5, 50.0)
-      Error(_) -> panic as "Expected directional light"
-    }
+  let directional = case
+    light.directional(color: 0xffffff, intensity: 1.0)
+    |> light.directional_from_light
+  {
+    Ok(light) ->
+      light
+      |> light.directional_set_target(object.group())
+      |> light.directional_set_shadow_camera_bounds(-10.0, 10.0, 10.0, -10.0)
+      |> light.directional_set_shadow_camera_near_far(0.5, 50.0)
+    Error(_) -> panic as "Expected directional light"
+  }
 
-  let point =
-    case light.point(color: 0xffffff, intensity: 1.0, distance: 10.0)
-    |> light.point_from_light {
-      Ok(light) ->
-        light
-        |> light.point_set_distance(20.0)
-        |> light.point_set_decay(2.0)
-        |> light.point_set_power(4.0)
-        |> light.point_set_shadow_camera_near_far(0.25, 40.0)
-      Error(_) -> panic as "Expected point light"
-    }
+  let point = case
+    light.point(
+      color: 0xffffff,
+      intensity: 1.0,
+      distance: 10.0,
+    )
+    |> light.point_from_light
+  {
+    Ok(light) ->
+      light
+      |> light.point_set_distance(20.0)
+      |> light.point_set_decay(2.0)
+      |> light.point_set_power(4.0)
+      |> light.point_set_shadow_camera_near_far(0.25, 40.0)
+    Error(_) -> panic as "Expected point light"
+  }
 
-  let spot =
-    case light.spot(
+  let spot = case
+    light.spot(
       color: 0xffffff,
       intensity: 1.0,
       distance: 10.0,
       angle: 0.5,
       penumbra: 0.1,
     )
-    |> light.spot_from_light {
-      Ok(light) ->
-        light
-        |> light.spot_set_target(object.group())
-        |> light.spot_set_distance(12.0)
-        |> light.spot_set_angle(0.75)
-        |> light.spot_set_penumbra(0.2)
-        |> light.spot_set_decay(1.5)
-        |> light.spot_set_power(8.0)
-        |> light.spot_set_shadow_camera_near_far(0.5, 60.0)
-      Error(_) -> panic as "Expected spot light"
-    }
+    |> light.spot_from_light
+  {
+    Ok(light) ->
+      light
+      |> light.spot_set_target(object.group())
+      |> light.spot_set_distance(12.0)
+      |> light.spot_set_angle(0.75)
+      |> light.spot_set_penumbra(0.2)
+      |> light.spot_set_decay(1.5)
+      |> light.spot_set_power(8.0)
+      |> light.spot_set_shadow_camera_near_far(0.5, 60.0)
+    Error(_) -> panic as "Expected spot light"
+  }
 
-  let hemisphere =
-    case light.hemisphere(
+  let hemisphere = case
+    light.hemisphere(
       sky_color: 0xffffff,
       ground_color: 0x111111,
       intensity: 0.75,
     )
-    |> light.hemisphere_from_light {
-      Ok(light) -> light |> light.hemisphere_set_ground_color(0x333333)
-      Error(_) -> panic as "Expected hemisphere light"
-    }
+    |> light.hemisphere_from_light
+  {
+    Ok(light) -> light |> light.hemisphere_set_ground_color(0x333333)
+    Error(_) -> panic as "Expected hemisphere light"
+  }
 
   assert light.from_object3d(light.directional_to_object3d(directional))
     |> result.is_ok
@@ -176,16 +210,13 @@ pub fn light_surface_test() {
     |> result.is_ok
 }
 
-pub fn material_surface_test() {
+pub fn material_scene_surface_test() {
   let basic =
     material.basic(
-      color: 0xffffff,
-      transparent: False,
-      opacity: 1.0,
-      color_map: option.None,
-      side: material.FrontSide,
-      alpha_test: 0.0,
-      depth_write: True,
+      material.BasicOptions(
+        ..material.basic_options(),
+        color: 0xffffff,
+      ),
     )
     |> material.set_side(material.DoubleSide)
     |> material.set_wireframe(True)
@@ -194,63 +225,72 @@ pub fn material_surface_test() {
 
   let physical =
     material.physical(
-      color: 0xffffff,
-      metalness: 0.5,
-      roughness: 0.25,
-      transparent: True,
-      opacity: 0.75,
-      color_map: option.None,
-      normal_map: option.None,
-      ambient_occlusion_map: option.None,
-      displacement_map: option.None,
-      displacement_scale: 0.0,
-      displacement_bias: 0.0,
-      roughness_map: option.None,
-      metalness_map: option.None,
-      emissive: 0x111111,
-      emissive_intensity: 1.0,
-      alpha_test: 0.0,
-      clearcoat: 0.1,
-      clearcoat_roughness: 0.2,
-      transmission: 0.3,
-      thickness: 0.4,
-      ior: 1.5,
+      material.PhysicalOptions(
+        ..material.physical_options(),
+        color: 0xffffff,
+        metalness: 0.5,
+        roughness: 0.25,
+        transparent: True,
+        opacity: 0.75,
+        emissive: 0x111111,
+        clearcoat: 0.1,
+        clearcoat_roughness: 0.2,
+        transmission: 0.3,
+        thickness: 0.4,
+        ior: 1.5,
+      ),
     )
     |> material.set_roughness(0.6)
     |> material.set_metalness(0.2)
-    |> material.set_normal_scale(vec2.Vec2(1.0, 1.0))
-    |> material.set_clearcoat(0.4)
-    |> material.set_clearcoat_roughness(0.3)
-    |> material.set_transmission(0.2)
-    |> material.set_thickness(0.5)
-    |> material.set_ior(1.45)
-    |> material.set_vertex_colors(False)
-    |> material.set_depth_test(True)
-    |> material.set_needs_update(True)
+    |> material.set_emissive(0x222222)
 
-  let _ =
+  let normal =
     material.normal(
-      transparent: False,
-      opacity: 1.0,
-      wireframe: False,
-      flat_shading: False,
-      side: material.FrontSide,
+      material.NormalOptions(
+        ..material.normal_options(),
+        wireframe: False,
+        flat_shading: False,
+        side: material.FrontSide,
+      ),
     )
-    |> material.set_flat_shading(True)
+    |> material.set_normal_scale(vec2.Vec2(1.0, 1.0))
 
-  let _ =
+  let matcap =
     material.matcap(
-      color: 0xffffff,
-      matcap: option.None,
-      transparent: False,
-      opacity: 1.0,
-      flat_shading: False,
-      side: material.FrontSide,
+      material.MatcapOptions(
+        ..material.matcap_options(),
+        color: 0xffffff,
+        matcap: option.None,
+      ),
     )
     |> material.set_matcap(option.None)
 
-  let _ = material.shadow(color: 0x000000, transparent: True, opacity: 0.5)
+  let _ =
+    material.shadow(material.ShadowOptions(
+      color: 0x000000,
+      transparent: True,
+      opacity: 0.5,
+    ))
+
+  let render_options =
+    renderer.options()
+    |> renderer.with_antialias(True)
+    |> renderer.with_alpha(True)
+    |> renderer.with_power_preference(renderer.HighPerformancePreference)
+
+  let scene =
+    scene.new()
+    |> scene.set_background(scene.background_color(0x1A1A2E))
+    |> scene.set_fog(scene.fog(color: 0x101820, near: 1.0, far: 10.0))
+    |> scene.set_background_blurriness(0.1)
+    |> scene.set_environment_intensity(1.25)
+
+  assert render_options.antialias
+  assert render_options.alpha
+  assert render_options.power_preference == renderer.HighPerformancePreference
   let _ = basic
   let _ = physical
-  Nil
+  let _ = normal
+  let _ = matcap
+  let _ = scene
 }

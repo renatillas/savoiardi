@@ -28,11 +28,7 @@ pub fn orthographic(
 pub fn from_perspective(camera: Perspective) -> Camera
 
 @external(javascript, "./camera.ffi.mjs", "identity")
-pub fn from_orthograpic(camera: Orthographic) -> Camera
-
-pub fn from_orthographic(camera: Orthographic) -> Camera {
-  from_orthograpic(camera)
-}
+pub fn from_orthographic(camera: Orthographic) -> Camera
 
 @external(javascript, "./camera.ffi.mjs", "updateProjectionMatrix")
 pub fn update_projection_matrix(camera: Camera) -> Camera

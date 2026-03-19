@@ -9,6 +9,27 @@ pub type Renderer
 
 pub type Canvas
 
+pub type PowerPreference {
+  DefaultPowerPreference
+  LowPowerPreference
+  HighPerformancePreference
+}
+
+pub type RendererOptions {
+  RendererOptions(
+    antialias: Bool,
+    alpha: Bool,
+    depth: Bool,
+    stencil: Bool,
+    premultiplied_alpha: Bool,
+    preserve_drawing_buffer: Bool,
+    fail_if_major_performance_caveat: Bool,
+    logarithmic_depth_buffer: Bool,
+    reversed_depth_buffer: Bool,
+    power_preference: PowerPreference,
+  )
+}
+
 pub type ToneMapping {
   NoToneMapping
   LinearToneMapping
@@ -24,6 +45,46 @@ pub type ShadowMapType {
   PCFShadowMap
   PCFSoftShadowMap
   VSMShadowMap
+}
+
+pub fn options() -> RendererOptions {
+  RendererOptions(
+    antialias: False,
+    alpha: False,
+    depth: True,
+    stencil: False,
+    premultiplied_alpha: True,
+    preserve_drawing_buffer: False,
+    fail_if_major_performance_caveat: False,
+    logarithmic_depth_buffer: False,
+    reversed_depth_buffer: False,
+    power_preference: DefaultPowerPreference,
+  )
+}
+
+pub fn with_antialias(
+  options: RendererOptions,
+  antialias: Bool,
+) -> RendererOptions {
+  RendererOptions(..options, antialias: antialias)
+}
+
+pub fn with_alpha(options: RendererOptions, alpha: Bool) -> RendererOptions {
+  RendererOptions(..options, alpha: alpha)
+}
+
+pub fn with_power_preference(
+  options: RendererOptions,
+  power_preference: PowerPreference,
+) -> RendererOptions {
+  RendererOptions(..options, power_preference: power_preference)
+}
+
+pub fn with_preserve_drawing_buffer(
+  options: RendererOptions,
+  preserve_drawing_buffer: Bool,
+) -> RendererOptions {
+  RendererOptions(..options, preserve_drawing_buffer: preserve_drawing_buffer)
 }
 
 @external(javascript, "./renderer.ffi.mjs", "getNoToneMapping")
@@ -80,8 +141,42 @@ fn shadow_map_type_to_int(shadow_map_type: ShadowMapType) -> Int {
   }
 }
 
+fn power_preference_to_string(power_preference: PowerPreference) -> String {
+  case power_preference {
+    DefaultPowerPreference -> "default"
+    LowPowerPreference -> "low-power"
+    HighPerformancePreference -> "high-performance"
+  }
+}
+
+pub fn new(options options: RendererOptions) -> Renderer {
+  create_renderer_ffi(
+    options.antialias,
+    options.alpha,
+    options.depth,
+    options.stencil,
+    options.premultiplied_alpha,
+    options.preserve_drawing_buffer,
+    options.fail_if_major_performance_caveat,
+    options.logarithmic_depth_buffer,
+    options.reversed_depth_buffer,
+    power_preference_to_string(options.power_preference),
+  )
+}
+
 @external(javascript, "./renderer.ffi.mjs", "createRenderer")
-pub fn new(antialias antialias: Bool, alpha alpha: Bool) -> Renderer
+fn create_renderer_ffi(
+  antialias: Bool,
+  alpha: Bool,
+  depth: Bool,
+  stencil: Bool,
+  premultiplied_alpha: Bool,
+  preserve_drawing_buffer: Bool,
+  fail_if_major_performance_caveat: Bool,
+  logarithmic_depth_buffer: Bool,
+  reversed_depth_buffer: Bool,
+  power_preference: String,
+) -> Renderer
 
 @external(javascript, "./renderer.ffi.mjs", "enableRendererShadowMap")
 pub fn set_shadow_map(renderer: Renderer, enabled: Bool) -> Renderer

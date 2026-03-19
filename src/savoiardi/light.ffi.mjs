@@ -2,7 +2,7 @@ import * as THREE from "three";
 export { identity } from "../savoiardi.ffi.mjs";
 
 /**
- * @param {number} color
+ * @param {string} color
  * @param {number} intensity
  * @returns {THREE.AmbientLight}
  */
@@ -11,7 +11,7 @@ export function createAmbientLight(color, intensity) {
 }
 
 /**
- * @param {number} color
+ * @param {string} color
  * @param {number} intensity
  * @returns {THREE.DirectionalLight}
  */
@@ -20,7 +20,7 @@ export function createDirectionalLight(color, intensity) {
 }
 
 /**
- * @param {number} color
+ * @param {string} color
  * @param {number} intensity
  * @param {number} distance
  * @returns {THREE.PointLight}
@@ -30,7 +30,7 @@ export function createPointLight(color, intensity, distance) {
 }
 
 /**
- * @param {number} color
+ * @param {string} color
  * @param {number} intensity
  * @param {number} distance
  * @param {number} angle
@@ -42,8 +42,8 @@ export function createSpotLight(color, intensity, distance, angle, penumbra) {
 }
 
 /**
- * @param {number} skyColor
- * @param {number} groundColor
+ * @param {string} skyColor
+ * @param {string} groundColor
  * @param {number} intensity
  * @returns {THREE.HemisphereLight}
  */
@@ -95,12 +95,12 @@ export function setLightCastShadow(light, castShadow) {
 
 /**
  * @param {THREE.Light & { color?: THREE.Color }} light
- * @param {number} color
+ * @param {string} color
  * @returns {THREE.Light & { color?: THREE.Color }}
  */
 export function updateLightColor(light, color) {
   if (light.color) {
-    light.color.setHex(color);
+    light.color.set(color);
   }
   return light;
 }

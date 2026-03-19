@@ -18,11 +18,7 @@ pub fn ambient(color color: Int, intensity intensity: Float) -> Light
 pub fn directional(color color: Int, intensity intensity: Float) -> Light
 
 @external(javascript, "./light.ffi.mjs", "createPointLight")
-pub fn point(
-  color color: Int,
-  intensity intensity: Float,
-  distance distance: Float,
-) -> Light
+pub fn point(color color: Int, intensity intensity: Float, distance distance: Float) -> Light
 
 @external(javascript, "./light.ffi.mjs", "createSpotLight")
 pub fn spot(
@@ -50,7 +46,7 @@ pub fn set_color(light: Light, color: Int) -> Light
 pub fn set_intensity(light: Light, intensity: Float) -> Light
 
 pub fn directional_from_light(light: Light) -> Result(DirectionalLight, Nil) {
-  use <- bool.guard(when: !is_directional_light(light), return: Error(Nil))
+  use <- bool.guard(when: !is_directional(light), return: Error(Nil))
   Ok(coerce(light))
 }
 
@@ -70,7 +66,7 @@ pub fn directional_set_target(
 pub fn directional_get_target(light: DirectionalLight) -> Object3D
 
 pub fn point_from_light(light: Light) -> Result(PointLight, Nil) {
-  use <- bool.guard(when: !is_point_light(light), return: Error(Nil))
+  use <- bool.guard(when: !is_point(light), return: Error(Nil))
   Ok(coerce(light))
 }
 
@@ -90,7 +86,7 @@ pub fn point_set_decay(light: PointLight, decay: Float) -> PointLight
 pub fn point_set_power(light: PointLight, power: Float) -> PointLight
 
 pub fn spot_from_light(light: Light) -> Result(SpotLight, Nil) {
-  use <- bool.guard(when: !is_spot_light(light), return: Error(Nil))
+  use <- bool.guard(when: !is_spot(light), return: Error(Nil))
   Ok(coerce(light))
 }
 
@@ -122,7 +118,7 @@ pub fn spot_set_decay(light: SpotLight, decay: Float) -> SpotLight
 pub fn spot_set_power(light: SpotLight, power: Float) -> SpotLight
 
 pub fn hemisphere_from_light(light: Light) -> Result(HemisphereLight, Nil) {
-  use <- bool.guard(when: !is_hemisphere_light(light), return: Error(Nil))
+  use <- bool.guard(when: !is_hemisphere(light), return: Error(Nil))
   Ok(coerce(light))
 }
 
@@ -195,16 +191,16 @@ pub fn from_object3d(object: Object3D) -> Result(Light, Nil) {
 }
 
 @external(javascript, "./light.ffi.mjs", "isDirectionalLight")
-fn is_directional_light(light: Light) -> Bool
+fn is_directional(light: Light) -> Bool
 
 @external(javascript, "./light.ffi.mjs", "isPointLight")
-fn is_point_light(light: Light) -> Bool
+fn is_point(light: Light) -> Bool
 
 @external(javascript, "./light.ffi.mjs", "isSpotLight")
-fn is_spot_light(light: Light) -> Bool
+fn is_spot(light: Light) -> Bool
 
 @external(javascript, "./light.ffi.mjs", "isHemisphereLight")
-fn is_hemisphere_light(light: Light) -> Bool
+fn is_hemisphere(light: Light) -> Bool
 
 @external(javascript, "./light.ffi.mjs", "isLight")
 fn is_light(object: Object3D) -> Bool

@@ -1,4 +1,5 @@
 import gleam/javascript/promise.{type Promise}
+import savoiardi
 import savoiardi/loader.{type FontLoader, type STLLoader}
 
 pub type Geometry
@@ -95,29 +96,27 @@ pub fn compute_bounding_sphere(geometry: Geometry) -> Geometry
 pub fn load_stl(
   loader: STLLoader,
   url url: String,
-  on_load on_load: fn(Geometry) -> Nil,
-  on_error on_error: fn() -> Nil,
+  on_result on_result: fn(Result(Geometry, savoiardi.LoadError)) -> Nil,
 ) -> Nil
 
 @external(javascript, "../savoiardi.ffi.mjs", "loadAsync")
 pub fn load_stl_async(
   loader: STLLoader,
   url url: String,
-) -> Promise(Result(Geometry, Nil))
+) -> Promise(Result(Geometry, savoiardi.LoadError))
 
 @external(javascript, "../savoiardi.ffi.mjs", "load")
 pub fn load_font(
   loader: FontLoader,
   url url: String,
-  on_load on_load: fn(Font) -> Nil,
-  on_error on_error: fn() -> Nil,
+  on_result on_result: fn(Result(Font, savoiardi.LoadError)) -> Nil,
 ) -> Nil
 
 @external(javascript, "../savoiardi.ffi.mjs", "loadAsync")
 pub fn load_font_async(
   loader: FontLoader,
   url url: String,
-) -> Promise(Result(Font, Nil))
+) -> Promise(Result(Font, savoiardi.LoadError))
 
 @external(javascript, "./geometry.ffi.mjs", "createTextGeometry")
 pub fn text(

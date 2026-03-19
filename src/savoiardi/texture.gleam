@@ -1,5 +1,6 @@
 import gleam/javascript/array
 import gleam/javascript/promise.{type Promise}
+import savoiardi
 import savoiardi/loader.{type CubeTextureLoader, type TextureLoader}
 import vec/vec2.{type Vec2}
 
@@ -100,8 +101,10 @@ fn mapping_to_int(mapping: Mapping) -> Int {
     UV -> get_uv_mapping_constant()
     CubeReflection -> get_cube_reflection_mapping_constant()
     CubeRefraction -> get_cube_refraction_mapping_constant()
-    EquirectangularReflection -> get_equirectangular_reflection_mapping_constant()
-    EquirectangularRefraction -> get_equirectangular_refraction_mapping_constant()
+    EquirectangularReflection ->
+      get_equirectangular_reflection_mapping_constant()
+    EquirectangularRefraction ->
+      get_equirectangular_refraction_mapping_constant()
   }
 }
 
@@ -135,51 +138,47 @@ fn minification_filter_to_int(filter: MinificationFilter) -> Int {
 pub fn load(
   loader: TextureLoader,
   url: String,
-  on_load: fn(Texture) -> Nil,
-  on_error: fn() -> Nil,
+  on_result: fn(Result(Texture, savoiardi.LoadError)) -> Nil,
 ) -> Nil
 
 @external(javascript, "../savoiardi.ffi.mjs", "loadAsync")
 pub fn load_async(
   loader: TextureLoader,
   url: String,
-) -> Promise(Result(Texture, Nil))
+) -> Promise(Result(Texture, savoiardi.LoadError))
 
 @external(javascript, "../savoiardi.ffi.mjs", "load")
 pub fn load_equirectangular(
   loader: TextureLoader,
   url: String,
-  on_load: fn(Texture) -> Nil,
-  on_error: fn() -> Nil,
+  on_result: fn(Result(Texture, savoiardi.LoadError)) -> Nil,
 ) -> Nil
 
 @external(javascript, "../savoiardi.ffi.mjs", "loadAsync")
 pub fn load_equirectangular_async(
   loader: TextureLoader,
   url: String,
-) -> Promise(Result(Texture, Nil))
+) -> Promise(Result(Texture, savoiardi.LoadError))
 
 pub fn load_cube(
   loader: CubeTextureLoader,
   urls: List(String),
-  on_load: fn(CubeTexture) -> Nil,
-  on_error: fn() -> Nil,
+  on_result: fn(Result(CubeTexture, savoiardi.LoadError)) -> Nil,
 ) {
-  do_load_cube(loader, array.from_list(urls), on_load, on_error)
+  do_load_cube(loader, array.from_list(urls), on_result)
 }
 
 @external(javascript, "../savoiardi.ffi.mjs", "load")
 fn do_load_cube(
   loader: CubeTextureLoader,
   urls: array.Array(String),
-  on_load: fn(CubeTexture) -> Nil,
-  on_error: fn() -> Nil,
+  on_result: fn(Result(CubeTexture, savoiardi.LoadError)) -> Nil,
 ) -> Nil
 
 pub fn load_cube_async(
   loader: CubeTextureLoader,
   urls: List(String),
-) -> Promise(Result(CubeTexture, Nil)) {
+) -> Promise(Result(CubeTexture, savoiardi.LoadError)) {
   do_load_cube_async(loader, array.from_list(urls))
 }
 
@@ -187,7 +186,7 @@ pub fn load_cube_async(
 fn do_load_cube_async(
   loader: CubeTextureLoader,
   urls: array.Array(String),
-) -> Promise(Result(CubeTexture, Nil))
+) -> Promise(Result(CubeTexture, savoiardi.LoadError))
 
 pub fn set_color_space(texture: Texture, color_space: ColorSpace) -> Texture {
   set_color_space_ffi(texture, color_space_to_string(color_space))
@@ -270,7 +269,10 @@ pub fn set_needs_update(texture: Texture, needs_update: Bool) -> Texture
 @external(javascript, "./texture.ffi.mjs", "disposeTexture")
 pub fn dispose(texture: Texture) -> Nil
 
-pub fn set_cube_mapping(cube_texture: CubeTexture, mapping: Mapping) -> CubeTexture {
+pub fn set_cube_mapping(
+  cube_texture: CubeTexture,
+  mapping: Mapping,
+) -> CubeTexture {
   set_cube_mapping_ffi(cube_texture, mapping_to_int(mapping))
   cube_texture
 }

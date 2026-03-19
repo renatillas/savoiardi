@@ -1,9 +1,11 @@
 import * as THREE from "three";
 import {
-  Option$isSome,
-  Option$Some$0,
   dispose_material,
 } from "../savoiardi.ffi.mjs";
+import {
+  Option$isSome,
+  Option$Some$0,
+} from "../../gleam_stdlib/gleam/option.mjs";
 
 /** @returns {number} */
 export function getFrontSide() {
@@ -22,7 +24,7 @@ export function getDoubleSide() {
 
 /**
  * Create a `MeshBasicMaterial`.
- * @param {number} color
+ * @param {string} color
  * @param {boolean} transparent
  * @param {number} opacity
  * @param {any} map
@@ -302,10 +304,10 @@ export function updateMaterialWireframe(material, wireframe) {
   return material;
 }
 
-/** @param {THREE.Material & Record<string, any>} material @param {number} color @returns {THREE.Material & Record<string, any>} */
+/** @param {THREE.Material & Record<string, any>} material @param {string} color @returns {THREE.Material & Record<string, any>} */
 export function updateMaterialColor(material, color) {
   if (material.color) {
-    material.color.setHex(color);
+    material.color.set(color);
     material.needsUpdate = true;
   }
   return material;
@@ -325,10 +327,10 @@ export function updateMaterialOpacity(material, opacity) {
   return material;
 }
 
-/** @param {THREE.Material & Record<string, any>} material @param {number} emissive @returns {THREE.Material & Record<string, any>} */
+/** @param {THREE.Material & Record<string, any>} material @param {string} emissive @returns {THREE.Material & Record<string, any>} */
 export function updateMaterialEmissive(material, emissive) {
   if (material.emissive) {
-    material.emissive.setHex(emissive);
+    material.emissive.set(emissive);
     material.needsUpdate = true;
   }
   return material;
