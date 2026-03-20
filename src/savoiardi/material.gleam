@@ -160,12 +160,16 @@ pub type LineBasicOptions {
 }
 
 /// Options for creating a sprite material.
+///
+/// The sprite-specific properties match `THREE.SpriteMaterial` directly. The
+/// shared material controls (`transparent`, `opacity`, `alpha_test`,
+/// `depth_test`, and `depth_write`) come from the base `THREE.Material` API.
 pub type SpriteOptions {
   SpriteOptions(
     color: Int,
     transparent: Bool,
     opacity: Float,
-    color_map: Option(Texture),
+    map: Option(Texture),
     alpha_map: Option(Texture),
     alpha_test: Float,
     rotation: Float,
@@ -324,12 +328,12 @@ pub fn sprite_options() -> SpriteOptions {
     color: 0xffffff,
     transparent: True,
     opacity: 1.0,
-    color_map: None,
+    map: None,
     alpha_map: None,
     alpha_test: 0.0,
     rotation: 0.0,
     size_attenuation: True,
-    fog: False,
+    fog: True,
     depth_test: True,
     depth_write: True,
   )
@@ -628,7 +632,7 @@ fn create_line_basic_material_ffi(
 pub fn sprite(options: SpriteOptions) -> Material {
   create_sprite_material_ffi(
     options.color,
-    options.color_map,
+    options.map,
     options.transparent,
     options.opacity,
     options.alpha_map,
@@ -712,9 +716,19 @@ pub fn set_color_map(material: Material, color_map: Texture) -> Material {
   set_color_map_option(material, Some(color_map))
 }
 
+/// Sets the material map.
+pub fn set_map(material: Material, map: Texture) -> Material {
+  set_color_map(material, map)
+}
+
 /// Clears the base color map of a material.
 pub fn clear_color_map(material: Material) -> Material {
   set_color_map_option(material, None)
+}
+
+/// Clears the material map.
+pub fn clear_map(material: Material) -> Material {
+  clear_color_map(material)
 }
 
 @external(javascript, "./material.ffi.mjs", "setMaterialMap")
@@ -840,7 +854,7 @@ pub fn set_depth_test(material: Material, depth_test: Bool) -> Material
 @external(javascript, "./material.ffi.mjs", "updateMaterialDepthWrite")
 pub fn set_depth_write(material: Material, depth_write: Bool) -> Material
 
-/// Sets the UV rotation of a sprite material.
+/// Sets the sprite rotation in radians.
 @external(javascript, "./material.ffi.mjs", "updateMaterialRotation")
 pub fn set_rotation(material: Material, rotation: Float) -> Material
 
