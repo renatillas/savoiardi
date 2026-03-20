@@ -37,11 +37,11 @@ export function identity(value) {
 }
 
 export function isAudio(object) {
-  return object?.isAudio === true;
+  return object?.type === "Audio" || object?.type === "PositionalAudio";
 }
 
 export function isPositionalAudio(object) {
-  return object?.isPositionalAudio === true;
+  return object?.type === "PositionalAudio";
 }
 
 export function isAudioListener(object) {
