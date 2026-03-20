@@ -306,6 +306,38 @@ export function createLineBasicMaterial(
   });
 }
 
+/**
+ * Create a `SpriteMaterial`.
+ * @returns {THREE.SpriteMaterial}
+ */
+export function createSpriteMaterial(
+  color,
+  map,
+  transparent,
+  opacity,
+  alphaMap,
+  alphaTest,
+  rotation,
+  sizeAttenuation,
+  fog,
+  depthTest,
+  depthWrite,
+) {
+  return new THREE.SpriteMaterial({
+    color,
+    map: Option$isSome(map) ? Option$Some$0(map) : null,
+    transparent,
+    opacity,
+    alphaMap: Option$isSome(alphaMap) ? Option$Some$0(alphaMap) : null,
+    alphaTest,
+    rotation,
+    sizeAttenuation,
+    fog,
+    depthTest,
+    depthWrite,
+  });
+}
+
 function setMaterialPropertyIfSupported(material, propertyName, value) {
   if (propertyName in material) {
     material[propertyName] = value;
@@ -346,6 +378,11 @@ export function updateMaterialOpacity(material, opacity) {
   return material;
 }
 
+/** @param {THREE.Material & Record<string, any>} material @param {number} alphaTest @returns {THREE.Material & Record<string, any>} */
+export function updateMaterialAlphaTest(material, alphaTest) {
+  return setMaterialPropertyIfSupported(material, "alphaTest", alphaTest);
+}
+
 /** @param {THREE.Material & Record<string, any>} material @param {string} emissive @returns {THREE.Material & Record<string, any>} */
 export function updateMaterialEmissive(material, emissive) {
   if (material.emissive) {
@@ -380,6 +417,15 @@ export function setMaterialEnvMap(material, envMap) {
     material,
     "envMap",
     Option$isSome(envMap) ? Option$Some$0(envMap) : null,
+  );
+}
+
+/** @param {THREE.Material & Record<string, any>} material @param {any} map @returns {THREE.Material & Record<string, any>} */
+export function setMaterialMap(material, map) {
+  return setMaterialPropertyIfSupported(
+    material,
+    "map",
+    Option$isSome(map) ? Option$Some$0(map) : null,
   );
 }
 
@@ -538,6 +584,20 @@ export function updateMaterialDepthTest(material, depthTest) {
 /** @param {THREE.Material & Record<string, any>} material @param {boolean} depthWrite @returns {THREE.Material & Record<string, any>} */
 export function updateMaterialDepthWrite(material, depthWrite) {
   return setMaterialPropertyIfSupported(material, "depthWrite", depthWrite);
+}
+
+/** @param {THREE.Material & Record<string, any>} material @param {number} rotation @returns {THREE.Material & Record<string, any>} */
+export function updateMaterialRotation(material, rotation) {
+  return setMaterialPropertyIfSupported(material, "rotation", rotation);
+}
+
+/** @param {THREE.Material & Record<string, any>} material @param {boolean} sizeAttenuation @returns {THREE.Material & Record<string, any>} */
+export function updateMaterialSizeAttenuation(material, sizeAttenuation) {
+  return setMaterialPropertyIfSupported(
+    material,
+    "sizeAttenuation",
+    sizeAttenuation,
+  );
 }
 
 /** @param {THREE.Material & Record<string, any>} material @param {number} linewidth @returns {THREE.Material & Record<string, any>} */

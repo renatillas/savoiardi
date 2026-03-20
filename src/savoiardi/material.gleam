@@ -3,7 +3,7 @@
 //// The module exposes option records for common Three.js material families and
 //// a shared set of mutating helpers for runtime updates.
 
-import gleam/option.{type Option, None}
+import gleam/option.{type Option, None, Some}
 import savoiardi/texture.{type Texture}
 import vec/vec2.{type Vec2}
 
@@ -159,6 +159,23 @@ pub type LineBasicOptions {
   )
 }
 
+/// Options for creating a sprite material.
+pub type SpriteOptions {
+  SpriteOptions(
+    color: Int,
+    transparent: Bool,
+    opacity: Float,
+    color_map: Option(Texture),
+    alpha_map: Option(Texture),
+    alpha_test: Float,
+    rotation: Float,
+    size_attenuation: Bool,
+    fog: Bool,
+    depth_test: Bool,
+    depth_write: Bool,
+  )
+}
+
 /// Returns default options for a basic material.
 pub fn basic_options() -> BasicOptions {
   BasicOptions(
@@ -298,6 +315,23 @@ pub fn line_basic_options() -> LineBasicOptions {
     alpha_test: 0.0,
     depth_write: True,
     linewidth: 1.0,
+  )
+}
+
+/// Returns default options for a sprite material.
+pub fn sprite_options() -> SpriteOptions {
+  SpriteOptions(
+    color: 0xffffff,
+    transparent: True,
+    opacity: 1.0,
+    color_map: None,
+    alpha_map: None,
+    alpha_test: 0.0,
+    rotation: 0.0,
+    size_attenuation: True,
+    fog: False,
+    depth_test: True,
+    depth_write: True,
   )
 }
 
@@ -590,6 +624,38 @@ fn create_line_basic_material_ffi(
   linewidth: Float,
 ) -> Material
 
+/// Creates a sprite material.
+pub fn sprite(options: SpriteOptions) -> Material {
+  create_sprite_material_ffi(
+    options.color,
+    options.color_map,
+    options.transparent,
+    options.opacity,
+    options.alpha_map,
+    options.alpha_test,
+    options.rotation,
+    options.size_attenuation,
+    options.fog,
+    options.depth_test,
+    options.depth_write,
+  )
+}
+
+@external(javascript, "./material.ffi.mjs", "createSpriteMaterial")
+fn create_sprite_material_ffi(
+  color: Int,
+  map: Option(Texture),
+  transparent: Bool,
+  opacity: Float,
+  alpha_map: Option(Texture),
+  alpha_test: Float,
+  rotation: Float,
+  size_attenuation: Bool,
+  fog: Bool,
+  depth_test: Bool,
+  depth_write: Bool,
+) -> Material
+
 /// Enables or disables wireframe rendering.
 @external(javascript, "./material.ffi.mjs", "updateMaterialWireframe")
 pub fn set_wireframe(material: Material, wireframe: Bool) -> Material
@@ -609,6 +675,10 @@ pub fn set_transparent(material: Material, transparent: Bool) -> Material
 /// Sets the opacity of a material.
 @external(javascript, "./material.ffi.mjs", "updateMaterialOpacity")
 pub fn set_opacity(material: Material, opacity: Float) -> Material
+
+/// Sets the alpha test threshold of a material.
+@external(javascript, "./material.ffi.mjs", "updateMaterialAlphaTest")
+pub fn set_alpha_test(material: Material, alpha_test: Float) -> Material
 
 /// Sets the emissive color of a material.
 pub fn set_emissive(material: Material, emissive: Int) -> Material {
@@ -637,6 +707,22 @@ pub fn set_metalness(material: Material, metalness: Float) -> Material
 @external(javascript, "./material.ffi.mjs", "setMaterialEnvMap")
 pub fn set_env_map(material: Material, env_map: Texture) -> Material
 
+/// Sets the base color map of a material.
+pub fn set_color_map(material: Material, color_map: Texture) -> Material {
+  set_color_map_option(material, Some(color_map))
+}
+
+/// Clears the base color map of a material.
+pub fn clear_color_map(material: Material) -> Material {
+  set_color_map_option(material, None)
+}
+
+@external(javascript, "./material.ffi.mjs", "setMaterialMap")
+fn set_color_map_option(
+  material: Material,
+  color_map: Option(Texture),
+) -> Material
+
 /// Sets the normal map of a material.
 @external(javascript, "./material.ffi.mjs", "setMaterialNormalMap")
 pub fn set_normal_map(material: Material, normal_map: Texture) -> Material
@@ -653,8 +739,20 @@ pub fn set_normal_scale(
 ) -> Material
 
 /// Sets the alpha map of a material.
+pub fn set_alpha_map(material: Material, alpha_map: Texture) -> Material {
+  set_alpha_map_option(material, Some(alpha_map))
+}
+
+/// Clears the alpha map of a material.
+pub fn clear_alpha_map(material: Material) -> Material {
+  set_alpha_map_option(material, None)
+}
+
 @external(javascript, "./material.ffi.mjs", "setMaterialAlphaMap")
-pub fn set_alpha_map(material: Material, alpha_map: Texture) -> Material
+fn set_alpha_map_option(
+  material: Material,
+  alpha_map: Option(Texture),
+) -> Material
 
 /// Sets the emissive map of a material.
 @external(javascript, "./material.ffi.mjs", "setMaterialEmissiveMap")
@@ -741,6 +839,17 @@ pub fn set_depth_test(material: Material, depth_test: Bool) -> Material
 /// Enables or disables depth writing.
 @external(javascript, "./material.ffi.mjs", "updateMaterialDepthWrite")
 pub fn set_depth_write(material: Material, depth_write: Bool) -> Material
+
+/// Sets the UV rotation of a sprite material.
+@external(javascript, "./material.ffi.mjs", "updateMaterialRotation")
+pub fn set_rotation(material: Material, rotation: Float) -> Material
+
+/// Enables or disables world-space size attenuation for sprites.
+@external(javascript, "./material.ffi.mjs", "updateMaterialSizeAttenuation")
+pub fn set_size_attenuation(
+  material: Material,
+  size_attenuation: Bool,
+) -> Material
 
 /// Sets the line width of a material.
 @external(javascript, "./material.ffi.mjs", "updateMaterialLineWidth")
